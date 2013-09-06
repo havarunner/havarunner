@@ -1,4 +1,4 @@
-package havarunner.exceptions;
+package havarunner.exception;
 
 public class CamelCasedException extends CodingConventionException {
     public CamelCasedException(String message) {

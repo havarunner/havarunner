@@ -1,8 +1,8 @@
 package havarunner;
 
 
-import havarunner.exceptions.CamelCasedException;
-import havarunner.exceptions.MethodIsNotPackagePrivateException;
+import havarunner.exception.CamelCasedException;
+import havarunner.exception.MemberIsNotPackagePrivateException;
 import org.junit.Test;
 import org.junit.runners.model.InitializationError;
 
@@ -18,21 +18,20 @@ public class CodingConventionsTest {
         new HavaRunner(snake_cases_examples.class).getChildren();
     }
 
-    @Test(expected = MethodIsNotPackagePrivateException.class)
+    @Test(expected = MemberIsNotPackagePrivateException.class)
     public void HavaRunner_rejects_public_test_methods() throws InitializationError {
         new HavaRunner(public_modifier_example.class).getChildren();
     }
 
-    @Test(expected = MethodIsNotPackagePrivateException.class)
+    @Test(expected = MemberIsNotPackagePrivateException.class)
     public void HavaRunner_rejects_private_test_methods() throws InitializationError {
         new HavaRunner(private_modifier_example.class).getChildren();
     }
 
-    @Test(expected = MethodIsNotPackagePrivateException.class)
+    @Test(expected = MemberIsNotPackagePrivateException.class)
     public void HavaRunner_rejects_protected_test_methods() throws InitializationError {
         new HavaRunner(protected_modifier_example.class).getChildren();
     }
-
 
     static class CamelCaseExamples {
 

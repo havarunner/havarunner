@@ -1,4 +1,4 @@
-package havarunner.exceptions;
+package havarunner.exception;
 
 import havarunner.HavaRunner;
 
