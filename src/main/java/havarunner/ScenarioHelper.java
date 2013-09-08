@@ -2,6 +2,8 @@ package havarunner;
 
 import havarunner.exception.ScenarioMethodNotFound;
 import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.MethodInterceptor;
+import net.sf.cglib.proxy.MethodProxy;
 import org.junit.runners.model.Statement;
 
 import java.lang.reflect.InvocationTargetException;
@@ -74,4 +76,17 @@ class ScenarioHelper {
     }
 
     static final Object defaultScenario = new Object();
+
+    private static class ScenarioInterceptor implements MethodInterceptor {
+        final Object scenario;
+
+        ScenarioInterceptor(TestAndParameters testAndParameters) {
+            this.scenario = testAndParameters.scenario;
+        }
+
+        @Override
+        public Object intercept(Object proxiedObject, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+            return methodProxy.invokeSuper(proxiedObject, args);
+        }
+    }
 }
