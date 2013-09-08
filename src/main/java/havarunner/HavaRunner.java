@@ -13,16 +13,19 @@ import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static havarunner.Ensure.violatesCodingConventions;
 import static havarunner.Helper.*;
 import static havarunner.scenario.ScenarioHelper.addScenarioInterceptor;
 
 public class HavaRunner extends ParentRunner<FrameworkMethodAndScenario> {
-    final ExecutorService executor = Executors.newCachedThreadPool();
+    final ExecutorService executor = new ThreadPoolExecutor(
+        0, Runtime.getRuntime().availableProcessors() * 3,
+        60L, TimeUnit.SECONDS,
+        new SynchronousQueue<Runnable>(),
+        new ThreadPoolExecutor.CallerRunsPolicy()
+    );
 
     public HavaRunner(Class testClass) throws InitializationError {
         super(testClass);
