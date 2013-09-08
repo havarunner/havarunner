@@ -12,7 +12,7 @@ import java.lang.reflect.Method;
 class ScenarioHelper {
 
     static Statement addScenarioInterceptor(final TestAndParameters testAndParameters, Object testClassInstance) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        ScenarioInterceptor interceptor = new ScenarioInterceptor(testAndParameters);
+        ScenarioInterceptor interceptor = new ScenarioInterceptor();
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(testClassInstance.getClass());
         enhancer.setCallback(interceptor);
@@ -78,12 +78,6 @@ class ScenarioHelper {
     static final Object defaultScenario = new Object();
 
     private static class ScenarioInterceptor implements MethodInterceptor {
-        final Object scenario;
-
-        ScenarioInterceptor(TestAndParameters testAndParameters) {
-            this.scenario = testAndParameters.scenario;
-        }
-
         @Override
         public Object intercept(Object proxiedObject, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
             return methodProxy.invokeSuper(proxiedObject, args);
