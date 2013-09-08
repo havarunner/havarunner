@@ -2,7 +2,7 @@ package havarunner;
 
 import havarunner.exception.CamelCasedException;
 import havarunner.exception.MemberIsNotPackagePrivateException;
-import havarunner.scenario.FrameworkMethodAndScenario;
+import havarunner.scenario.TestParameters;
 import org.junit.Test;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -52,7 +52,7 @@ public class CodingConventionsTest {
 
     private AtomicReference<Throwable> runAndRecordFailedAssumption(HavaRunner havaRunner) {
         final AtomicReference<Throwable> expectedFailure = new AtomicReference<>();
-        for (FrameworkMethodAndScenario f : havaRunner.getChildren()) {
+        for (TestParameters f : havaRunner.getChildren()) {
             havaRunner.runChild(f, new RunNotifier() {
                 @Override
                 public void fireTestAssumptionFailed(Failure failure) {

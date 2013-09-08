@@ -5,13 +5,12 @@ import havarunner.exception.CamelCasedException;
 import havarunner.exception.CodingConventionException;
 import havarunner.exception.MemberIsNotPackagePrivateException;
 import havarunner.exception.UnsupportedAnnotationException;
-import havarunner.scenario.FrameworkMethodAndScenario;
+import havarunner.scenario.TestParameters;
 import org.junit.*;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.TestClass;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -20,12 +19,12 @@ import java.util.List;
 class Ensure {
 
     static Optional<CodingConventionException> violatesCodingConventions(
-        FrameworkMethodAndScenario frameworkMethodAndScenario,
+        TestParameters testParameters,
         TestClass testClass
     ) {
         try {
-            ensuringSnakeCased(frameworkMethodAndScenario.getFrameworkMethod());
-            ensuringPackagePrivate(frameworkMethodAndScenario.getFrameworkMethod());
+            ensuringSnakeCased(testParameters.getFrameworkMethod());
+            ensuringPackagePrivate(testParameters.getFrameworkMethod());
             ensuringValidTestClass(testClass);
             return Optional.absent();
         } catch (CodingConventionException e) {

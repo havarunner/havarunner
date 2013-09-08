@@ -8,8 +8,8 @@ import java.lang.reflect.Method;
 class ScenarioInterceptor implements MethodInterceptor {
     final Object scenario;
 
-    ScenarioInterceptor(FrameworkMethodAndScenario frameworkMethodAndScenario) {
-        this.scenario = frameworkMethodAndScenario.getScenario();
+    ScenarioInterceptor(TestParameters testParameters) {
+        this.scenario = testParameters.getScenario();
     }
 
     @Override

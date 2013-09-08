@@ -1,7 +1,6 @@
 package havarunner;
 
-import havarunner.scenario.FrameworkMethodAndScenario;
-import havarunner.scenario.ScenarioHelper;
+import havarunner.scenario.TestParameters;
 import havarunner.scenario.TestWithMultipleScenarios;
 import org.junit.Assert;
 import org.junit.Test;
@@ -10,24 +9,25 @@ import org.junit.runners.model.TestClass;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static havarunner.scenario.ScenarioHelper.*;
 
 class Helper {
 
-    static List<FrameworkMethodAndScenario> toFrameworkMethods(TestClass testClass) {
-        List<FrameworkMethodAndScenario> frameworkMethods = new ArrayList<>();
-        for (MethodAndScenario methodAndScenario : findTestMethods(testClass)) {
-            frameworkMethods.add(
-                new FrameworkMethodAndScenario(
-                    new FrameworkMethod(methodAndScenario.method),
-                    methodAndScenario.scenario
-                )
-            );
+    static List<TestParameters> toTestParameters(Collection<Class> classesToTest) {
+        List<TestParameters> frameworkMethods = new ArrayList<>();
+        for (Class aClass : classesToTest) {
+            TestClass testClass = new TestClass(aClass);
+            for (MethodAndScenario methodAndScenario : findTestMethods(testClass)) {
+                frameworkMethods.add(
+                    new TestParameters(
+                        new FrameworkMethod(methodAndScenario.method),
+                        testClass,
+                        methodAndScenario.scenario
+                    )
+                );
+            }
         }
         return frameworkMethods;
     }
@@ -47,7 +47,9 @@ class Helper {
             1,
             declaredConstructors.length
         );
-        return declaredConstructors[0];
+        Constructor<?> declaredConstructor = declaredConstructors[0];
+        declaredConstructor.setAccessible(true);
+        return declaredConstructor;
     }
 
     private static List<MethodAndScenario> findTestMethods(TestClass testClass) {

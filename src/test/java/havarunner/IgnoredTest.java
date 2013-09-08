@@ -1,6 +1,6 @@
 package havarunner;
 
-import havarunner.scenario.FrameworkMethodAndScenario;
+import havarunner.scenario.TestParameters;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.Description;
@@ -22,7 +22,7 @@ public class IgnoredTest {
 
     private AtomicReference<Description> runAndCollectIgnored(HavaRunner havaRunner) {
         final AtomicReference<Description> expectedIgnoration = new AtomicReference<>();
-        for (FrameworkMethodAndScenario f : havaRunner.getChildren()) {
+        for (TestParameters f : havaRunner.getChildren()) {
             havaRunner.runChild(f, new RunNotifier() {
                 @Override
                 public void fireTestIgnored(Description description) {
