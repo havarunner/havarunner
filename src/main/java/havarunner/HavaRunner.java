@@ -2,7 +2,6 @@ package havarunner;
 
 import com.google.common.base.Optional;
 import havarunner.exception.CodingConventionException;
-import havarunner.scenario.TestParameters;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.internal.AssumptionViolatedException;
@@ -22,8 +21,8 @@ import java.util.List;
 import java.util.concurrent.*;
 
 import static havarunner.Ensure.violatesCodingConventions;
-import static havarunner.Helper.*;
-import static havarunner.scenario.ScenarioHelper.addScenarioInterceptor;
+import static havarunner.HavaRunnerHelper.*;
+import static havarunner.ScenarioHelper.addScenarioInterceptor;
 
 public class HavaRunner extends Runner {
     final ExecutorService executor = new ThreadPoolExecutor(
@@ -43,40 +42,40 @@ public class HavaRunner extends Runner {
         classesToTest.add(parentClass);
     }
 
-    protected List<TestParameters> getChildren() {
+    protected List<TestAndParameters> getChildren() {
         return toTestParameters(classesToTest);
     }
 
-    protected Description describeChild(TestParameters testParameters) {
+    protected Description describeChild(TestAndParameters testAndParameters) {
         return Description.createTestDescription(
-            testParameters.getTestClass().getJavaClass(),
-            testParameters.getFrameworkMethod().getName() + testParameters.scenarioToString()
+            testAndParameters.testClass.getJavaClass(),
+            testAndParameters.frameworkMethod.getName() + testAndParameters.scenarioToString()
         );
     }
 
-    protected void runChild(final TestParameters testParameters, final RunNotifier notifier) {
-        final Description description = describeChild(testParameters);
+    protected void runChild(final TestAndParameters testAndParameters, final RunNotifier notifier) {
+        final Description description = describeChild(testAndParameters);
         Optional<CodingConventionException> codingConventionException = violatesCodingConventions(
-            testParameters,
-            testParameters.getTestClass()
+            testAndParameters,
+            testAndParameters.testClass
         );
         if (codingConventionException.isPresent()) {
             notifier.fireTestAssumptionFailed(new Failure(description, codingConventionException.get()));
         } else {
-            runValidTest(testParameters, notifier, description);
+            runValidTest(testAndParameters, notifier, description);
         }
     }
 
-    private void runValidTest(final TestParameters testParameters, final RunNotifier notifier, final Description description) {
-        if (testParameters.getFrameworkMethod().getAnnotation(Ignore.class) != null) {
+    private void runValidTest(final TestAndParameters testAndParameters, final RunNotifier notifier, final Description description) {
+        if (testAndParameters.frameworkMethod.getAnnotation(Ignore.class) != null) {
             notifier.fireTestIgnored(description);
         } else {
             executor.submit(new Runnable() {
                 public void run() {
                     runLeaf(
                         toStatement(
-                            testParameters,
-                            newTestClassInstance(testParameters.getTestClass())
+                            testAndParameters,
+                            newTestClassInstance(testAndParameters.testClass)
                         ),
                         description,
                         notifier
@@ -104,7 +103,7 @@ public class HavaRunner extends Runner {
     @Override
     public Description getDescription() {
         Description description = Description.createSuiteDescription(parentClass);
-        for (TestParameters child : getChildren()) {
+        for (TestAndParameters child : getChildren()) {
             description.addChild(describeChild(child));
         }
         return description;
@@ -113,8 +112,8 @@ public class HavaRunner extends Runner {
     @Override
     public void run(RunNotifier notifier) {
         try {
-            for (TestParameters testParameters : getChildren()) {
-                runChild(testParameters, notifier);
+            for (TestAndParameters testAndParameters : getChildren()) {
+                runChild(testAndParameters, notifier);
             }
             executor.shutdown();
             executor.awaitTermination(10, TimeUnit.MINUTES);
@@ -123,7 +122,7 @@ public class HavaRunner extends Runner {
         }
     }
 
-    private Statement toStatement(final TestParameters testParameters, final Object testClassInstance) {
+    private Statement toStatement(final TestAndParameters testAndParameters, final Object testClassInstance) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
@@ -134,16 +133,16 @@ public class HavaRunner extends Runner {
 
             private Statement createTestInvokingStatement() throws Throwable {
                 if (isScenarioClass(testClassInstance.getClass())) {
-                    return addScenarioInterceptor(testParameters, testClassInstance);
+                    return addScenarioInterceptor(testAndParameters, testClassInstance);
                 } else {
                     return new Statement() {
                         @Override
                         public void evaluate() throws Throwable {
-                            for (Method before : testParameters.getBefores()) {
+                            for (Method before : testAndParameters.befores) {
                                 before.setAccessible(true);
                                 before.invoke(testClassInstance);
                             }
-                            testParameters.getFrameworkMethod().invokeExplosively(testClassInstance);
+                            testAndParameters.frameworkMethod.invokeExplosively(testClassInstance);
                         }
                     };
                 }
@@ -156,7 +155,7 @@ public class HavaRunner extends Runner {
                         try {
                             testInvokingStatement.evaluate();
                         } catch (Throwable exceptionWhileRunningTest) {
-                            Test annotation = testParameters.getFrameworkMethod().getAnnotation(Test.class);
+                            Test annotation = testAndParameters.frameworkMethod.getAnnotation(Test.class);
                             Class<? extends Throwable> expectedException = annotation.expected();
                             if (!expectedException.isAssignableFrom(exceptionWhileRunningTest.getClass())) {
                                 throw exceptionWhileRunningTest;

@@ -1,7 +1,7 @@
 package havarunner.example.scenario;
 
 import havarunner.HavaRunner;
-import havarunner.scenario.TestWithMultipleScenarios;
+import havarunner.TestWithMultipleScenarios;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

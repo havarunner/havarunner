@@ -1,4 +1,4 @@
-package havarunner.scenario;
+package havarunner;
 
 import havarunner.exception.ScenarioMethodNotFound;
 import net.sf.cglib.proxy.Enhancer;
@@ -7,37 +7,37 @@ import org.junit.runners.model.Statement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class ScenarioHelper {
+class ScenarioHelper {
 
-    public static Statement addScenarioInterceptor(final TestParameters testParameters, Object testClassInstance) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        ScenarioInterceptor interceptor = new ScenarioInterceptor(testParameters);
+    static Statement addScenarioInterceptor(final TestAndParameters testAndParameters, Object testClassInstance) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        ScenarioInterceptor interceptor = new ScenarioInterceptor(testAndParameters);
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(testClassInstance.getClass());
         enhancer.setCallback(interceptor);
         final Object intercepted = enhancer.create();
-        final Method testMethod = findScenarioTestMethod(testParameters, intercepted);
+        final Method testMethod = findScenarioTestMethod(testAndParameters, intercepted);
         return withBefores(
-            testRunningStatement(testParameters, intercepted, testMethod),
-            testParameters,
+            testRunningStatement(testAndParameters, intercepted, testMethod),
+            testAndParameters,
             intercepted
         );
     }
 
-    private static Statement testRunningStatement(final TestParameters testParameters, final Object intercepted, final Method testMethod) {
+    private static Statement testRunningStatement(final TestAndParameters testAndParameters, final Object intercepted, final Method testMethod) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
                 testMethod.setAccessible(true);
-                testMethod.invoke(intercepted, testParameters.getScenario());
+                testMethod.invoke(intercepted, testAndParameters.scenario);
             }
         };
     }
 
-    private static Statement withBefores(final Statement statement, final TestParameters testParameters, final Object intercepted) {
+    private static Statement withBefores(final Statement statement, final TestAndParameters testAndParameters, final Object intercepted) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                for (Method before : testParameters.getBefores()) {
+                for (Method before : testAndParameters.befores) {
                     before.setAccessible(true);
                     before.invoke(intercepted);
                 }
@@ -46,32 +46,32 @@ public class ScenarioHelper {
         };
     }
 
-    private static Method findScenarioTestMethod(TestParameters testParameters, Object intercepted) throws NoSuchMethodException {
+    private static Method findScenarioTestMethod(TestAndParameters testAndParameters, Object intercepted) throws NoSuchMethodException {
         try {
             Method scenarioMethod = intercepted.
                 getClass().
                 getDeclaredMethod(
-                    testParameters.getFrameworkMethod().getName(),
-                    testParameters.getScenario().getClass()
+                    testAndParameters.frameworkMethod.getName(),
+                    testAndParameters.scenario.getClass()
                 );
             return scenarioMethod;
         } catch (NoSuchMethodException e) {
             String methodAndSignature = String.format(
                 "%s(%s)",
-                testParameters.getFrameworkMethod().getName(),
-                testParameters.getScenario().getClass().getName()
+                testAndParameters.frameworkMethod.getName(),
+                testAndParameters.scenario.getClass().getName()
             );
             throw new ScenarioMethodNotFound(
                 String.format(
                     "Could not find the scenario method %s#%s. Please add the method %s into class %s.",
-                    testParameters.getTestClass().getJavaClass().getSimpleName(),
+                    testAndParameters.testClass.getJavaClass().getSimpleName(),
                     methodAndSignature,
                     methodAndSignature,
-                    testParameters.getTestClass().getJavaClass().getName()
+                    testAndParameters.testClass.getJavaClass().getName()
                 )
             );
         }
     }
 
-    public static final Object defaultScenario = new Object();
+    static final Object defaultScenario = new Object();
 }

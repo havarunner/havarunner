@@ -1,4 +1,4 @@
-package havarunner.scenario;
+package havarunner;
 
 import java.util.Set;
 

@@ -5,7 +5,6 @@ import havarunner.exception.CamelCasedException;
 import havarunner.exception.CodingConventionException;
 import havarunner.exception.MemberIsNotPackagePrivateException;
 import havarunner.exception.UnsupportedAnnotationException;
-import havarunner.scenario.TestParameters;
 import org.junit.*;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.TestClass;
@@ -19,12 +18,12 @@ import java.util.List;
 class Ensure {
 
     static Optional<CodingConventionException> violatesCodingConventions(
-        TestParameters testParameters,
+        TestAndParameters testAndParameters,
         TestClass testClass
     ) {
         try {
-            ensuringSnakeCased(testParameters.getFrameworkMethod());
-            ensuringPackagePrivate(testParameters.getFrameworkMethod());
+            ensuringSnakeCased(testAndParameters.frameworkMethod);
+            ensuringPackagePrivate(testAndParameters.frameworkMethod);
             ensuringValidTestClass(testClass);
             return Optional.absent();
         } catch (CodingConventionException e) {

@@ -1,7 +1,5 @@
 package havarunner;
 
-import havarunner.scenario.TestParameters;
-import havarunner.scenario.TestWithMultipleScenarios;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,17 +10,17 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
 
-import static havarunner.scenario.ScenarioHelper.*;
+import static havarunner.ScenarioHelper.*;
 
-class Helper {
+class HavaRunnerHelper {
 
-    static List<TestParameters> toTestParameters(Collection<Class> classesToTest) {
-        List<TestParameters> frameworkMethods = new ArrayList<>();
+    static List<TestAndParameters> toTestParameters(Collection<Class> classesToTest) {
+        List<TestAndParameters> frameworkMethods = new ArrayList<>();
         for (Class aClass : classesToTest) {
             TestClass testClass = new TestClass(aClass);
             for (MethodAndScenario methodAndScenario : findTestMethods(testClass)) {
                 frameworkMethods.add(
-                    new TestParameters(
+                    new TestAndParameters(
                         new FrameworkMethod(methodAndScenario.method),
                         testClass,
                         methodAndScenario.scenario,

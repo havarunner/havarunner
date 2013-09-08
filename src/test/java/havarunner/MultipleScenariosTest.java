@@ -4,7 +4,6 @@ import com.google.common.collect.Sets;
 import havarunner.example.scenario.Person;
 import havarunner.example.scenario.RestaurantMenuTest;
 import havarunner.exception.ScenarioMethodNotFound;
-import havarunner.scenario.TestWithMultipleScenarios;
 import org.junit.Test;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -12,7 +11,6 @@ import org.junit.runners.model.InitializationError;
 
 import java.lang.reflect.Method;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;

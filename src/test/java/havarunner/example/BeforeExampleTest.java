@@ -2,7 +2,7 @@ package havarunner.example;
 
 import com.google.common.collect.Sets;
 import havarunner.HavaRunner;
-import havarunner.scenario.TestWithMultipleScenarios;
+import havarunner.TestWithMultipleScenarios;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
