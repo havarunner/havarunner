@@ -31,6 +31,8 @@ public class HelloWorldTest {
 }
 ````
 
+Click [here](https://github.com/laurilehmijoki/HavaRunner/tree/master/src/test/java/havarunner/example) for more examples.
+
 ## Tests
 
 `mvn test`
