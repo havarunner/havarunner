@@ -1,9 +1,11 @@
 package havarunner;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import havarunner.example.scenario.Person;
 import havarunner.example.scenario.RestaurantMenuTest;
 import havarunner.exception.ScenarioMethodNotFound;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -20,9 +22,10 @@ public class MultipleScenariosTest {
     @Test
     public void it_constructs_an_example_for_each_scenario() throws InitializationError {
         int numberOfScenarios = Person.values().length;
+        Iterable<TestAndParameters> children = new HavaRunner(RestaurantMenuTest.class).getChildren();
         assertEquals(
             numberOfScenarios * numberOfExamples(RestaurantMenuTest.class),
-            new HavaRunner(RestaurantMenuTest.class).getChildren().size()
+            Lists.newArrayList(children).size()
         );
     }
 

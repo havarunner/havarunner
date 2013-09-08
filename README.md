@@ -35,7 +35,7 @@ Click [here](https://github.com/laurilehmijoki/HavaRunner/tree/master/src/test/j
 
 ## Tests
 
-`mvn test`
+`sbt test`
 
 ## License
 
