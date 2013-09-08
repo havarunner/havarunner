@@ -10,6 +10,27 @@ Status](https://travis-ci.org/laurilehmijoki/HavaRunner.png?branch=master)](http
 * Enclosed tests (group tests with static inner classes)
 * Tests are run in parallel by default
 
+## Usage
+
+````java
+package helloworld;
+
+import havarunner.HavaRunner;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static junit.framework.Assert.assertNotNull;
+
+@RunWith(HavaRunner.class)
+public class HelloWorldTest {
+
+    @Test
+    void HavaRunner_greets_the_world() {
+        assertNotNull("Hello world");
+    }
+}
+````
+
 ## Tests
 
 `mvn test`
