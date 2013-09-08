@@ -33,14 +33,14 @@
 
     <dependencies>
         <dependency>
-        	<groupId>com.google.guava</groupId>
-        	<artifactId>guava</artifactId>
-        	<version>14.0.1</version>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>14.0.1</version>
         </dependency>
         <dependency>
-        	<groupId>cglib</groupId>
-        	<artifactId>cglib-nodep</artifactId>
-        	<version>2.2.2</version>
+            <groupId>cglib</groupId>
+            <artifactId>cglib-nodep</artifactId>
+            <version>2.2.2</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -48,4 +48,23 @@
             <version>4.11</version>
         </dependency>
     </dependencies>
+
+    <licenses>
+        <license>
+            <name>The MIT Licence (MIT)</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <scm>
+        <url>git@github.com:laurilehmijoki/HavaRunner.git</url>
+        <connection>scm:git:git@github.com:laurilehmijoki/HavaRunner.git</connection>
+        <developerConnection>git@github.com:laurilehmijoki/HavaRunner.git</developerConnection>
+    </scm>
+    <developers>
+        <developer>
+            <email>lauri.lehmijoki@iki.fi</email>
+            <name>Lauri Lehmijoki</name>
+        </developer>
+    </developers>
 </project>
