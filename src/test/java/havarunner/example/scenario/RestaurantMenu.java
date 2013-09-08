@@ -1,9 +1,12 @@
 package havarunner.example.scenario;
 
+import static junit.framework.Assert.assertNotNull;
+
 class RestaurantMenu {
     final Person person;
 
     RestaurantMenu(Person person) {
+        assertNotNull(person);
         this.person = person;
     }
 

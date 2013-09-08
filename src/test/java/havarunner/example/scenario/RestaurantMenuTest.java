@@ -17,7 +17,7 @@ public class RestaurantMenuTest implements TestWithMultipleScenarios<Person> {
     @Test
     void it_is_cheaper_for_kids_than_adults() {
         RestaurantMenu menu = new RestaurantMenu(currentScenario());
-        if (menu.person == Person.KID) {
+        if (menu.person.equals(Person.KID)) {
             assertEquals(5, menu.price());
         } else {
             assertEquals(20, menu.price());
