@@ -14,6 +14,7 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -138,6 +139,10 @@ public class HavaRunner extends Runner {
                     return new Statement() {
                         @Override
                         public void evaluate() throws Throwable {
+                            for (Method before : testParameters.getBefores()) {
+                                before.setAccessible(true);
+                                before.invoke(testClassInstance);
+                            }
                             testParameters.getFrameworkMethod().invokeExplosively(testClassInstance);
                         }
                     };

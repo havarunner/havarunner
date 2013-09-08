@@ -2,7 +2,6 @@ package havarunner.scenario;
 
 import havarunner.exception.ScenarioMethodNotFound;
 import net.sf.cglib.proxy.Enhancer;
-import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.lang.reflect.InvocationTargetException;
@@ -17,11 +16,32 @@ public class ScenarioHelper {
         enhancer.setCallback(interceptor);
         final Object intercepted = enhancer.create();
         final Method testMethod = findScenarioTestMethod(testParameters, intercepted);
+        return withBefores(
+            testRunningStatement(testParameters, intercepted, testMethod),
+            testParameters,
+            intercepted
+        );
+    }
+
+    private static Statement testRunningStatement(final TestParameters testParameters, final Object intercepted, final Method testMethod) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
                 testMethod.setAccessible(true);
                 testMethod.invoke(intercepted, testParameters.getScenario());
+            }
+        };
+    }
+
+    private static Statement withBefores(final Statement statement, final TestParameters testParameters, final Object intercepted) {
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                for (Method before : testParameters.getBefores()) {
+                    before.setAccessible(true);
+                    before.invoke(intercepted);
+                }
+                statement.evaluate();
             }
         };
     }

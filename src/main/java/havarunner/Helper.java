@@ -3,6 +3,7 @@ package havarunner;
 import havarunner.scenario.TestParameters;
 import havarunner.scenario.TestWithMultipleScenarios;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.TestClass;
@@ -24,12 +25,23 @@ class Helper {
                     new TestParameters(
                         new FrameworkMethod(methodAndScenario.method),
                         testClass,
-                        methodAndScenario.scenario
+                        methodAndScenario.scenario,
+                        findBefores(testClass)
                     )
                 );
             }
         }
         return frameworkMethods;
+    }
+
+    private static Collection<Method> findBefores(TestClass testClass) {
+        Collection<Method> befores = new ArrayList<>();
+        for (Method method : testClass.getJavaClass().getDeclaredMethods()) {
+            if (method.getAnnotation(Before.class) != null) {
+                befores.add(method);
+            }
+        }
+        return befores;
     }
 
     static Object newTestClassInstance(TestClass testClass) {
