@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 
-import static havarunner.Ensure.violatesCodingConventions;
+import static havarunner.CodingConventions.violatesCodingConventions;
 import static havarunner.HavaRunnerHelper.*;
 import static havarunner.ScenarioHelper.addScenarioInterceptor;
 
