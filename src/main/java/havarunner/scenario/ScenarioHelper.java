@@ -1,21 +1,27 @@
 package havarunner.scenario;
 
 import net.sf.cglib.proxy.Enhancer;
+import org.junit.runners.model.Statement;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ScenarioHelper {
 
-    public static void addScenarioInterceptorAndRunTest(FrameworkMethodAndScenario frameworkMethodAndScenario, Object testClassInstance) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+    public static Statement addScenarioInterceptor(FrameworkMethodAndScenario frameworkMethodAndScenario, Object testClassInstance) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         ScenarioInterceptor interceptor = new ScenarioInterceptor(frameworkMethodAndScenario);
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(testClassInstance.getClass());
         enhancer.setCallback(interceptor);
-        Object intercepted = enhancer.create();
-        Method testMethod = intercepted.getClass().getDeclaredMethod(frameworkMethodAndScenario.getFrameworkMethod().getName());
+        final Object intercepted = enhancer.create();
+        final Method testMethod = intercepted.getClass().getDeclaredMethod(frameworkMethodAndScenario.getFrameworkMethod().getName());
         testMethod.setAccessible(true);
-        testMethod.invoke(intercepted);
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                testMethod.invoke(intercepted);
+            }
+        };
     }
 
     public static final Object defaultScenario = new Object();

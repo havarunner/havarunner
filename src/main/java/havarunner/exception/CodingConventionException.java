@@ -2,7 +2,7 @@ package havarunner.exception;
 
 import havarunner.HavaRunner;
 
-class CodingConventionException extends RuntimeException {
+public class CodingConventionException extends RuntimeException {
     CodingConventionException(String messageAboutParticularCodingConventionViolation) {
         super(
             String.format(

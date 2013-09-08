@@ -18,4 +18,12 @@ public class FrameworkMethodAndScenario {
     public Object getScenario() {
         return scenario;
     }
+
+    public String scenarioToString() {
+        if (scenario.equals(ScenarioHelper.defaultScenario)) {
+            return "";
+        } else {
+            return " (when " + getScenario().toString() + ")";
+        }
+    }
 }

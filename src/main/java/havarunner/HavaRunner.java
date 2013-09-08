@@ -1,8 +1,12 @@
 package havarunner;
 
+import com.google.common.base.Optional;
+import havarunner.exception.CodingConventionException;
 import havarunner.scenario.FrameworkMethodAndScenario;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.Description;
+import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.InitializationError;
@@ -13,8 +17,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static havarunner.Ensure.violatesCodingConventions;
 import static havarunner.Helper.*;
-import static havarunner.scenario.ScenarioHelper.addScenarioInterceptorAndRunTest;
+import static havarunner.scenario.ScenarioHelper.addScenarioInterceptor;
 
 public class HavaRunner extends ParentRunner<FrameworkMethodAndScenario> {
     final ExecutorService executor = Executors.newCachedThreadPool();
@@ -32,21 +37,35 @@ public class HavaRunner extends ParentRunner<FrameworkMethodAndScenario> {
     protected Description describeChild(FrameworkMethodAndScenario frameworkMethodAndScenario) {
         return Description.createTestDescription(
             getTestClass().getJavaClass(),
-            frameworkMethodAndScenario.getFrameworkMethod().getName() +
-                " (when " + frameworkMethodAndScenario.getScenario().toString() + ")"
+            frameworkMethodAndScenario.getFrameworkMethod().getName() + frameworkMethodAndScenario.scenarioToString()
         );
     }
 
     @Override
     protected void runChild(final FrameworkMethodAndScenario frameworkMethodAndScenario, final RunNotifier notifier) {
         final Description description = describeChild(frameworkMethodAndScenario);
+        Optional<CodingConventionException> codingConventionException = violatesCodingConventions(
+            frameworkMethodAndScenario,
+            getTestClass()
+        );
+        if (codingConventionException.isPresent()) {
+            notifier.fireTestAssumptionFailed(new Failure(description, codingConventionException.get()));
+        } else {
+            runValidTest(frameworkMethodAndScenario, notifier, description);
+        }
+    }
+
+    private void runValidTest(final FrameworkMethodAndScenario frameworkMethodAndScenario, final RunNotifier notifier, final Description description) {
         if (frameworkMethodAndScenario.getFrameworkMethod().getAnnotation(Ignore.class) != null) {
             notifier.fireTestIgnored(description);
         } else {
             executor.submit(new Runnable() {
                 public void run() {
                     runLeaf(
-                        toStatement(frameworkMethodAndScenario, newTestClassInstance(getTestClass())),
+                        toStatement(
+                            frameworkMethodAndScenario,
+                            newTestClassInstance(getTestClass())
+                        ),
                         description,
                         notifier
                     );
@@ -54,6 +73,7 @@ public class HavaRunner extends ParentRunner<FrameworkMethodAndScenario> {
             });
         }
     }
+
 
     @Override
     public void run(RunNotifier notifier) {
@@ -70,13 +90,40 @@ public class HavaRunner extends ParentRunner<FrameworkMethodAndScenario> {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
+                withExpectedExceptionTolerance(
+                    createTestInvokingStatement()
+                ).evaluate();
+            }
+
+            private Statement createTestInvokingStatement() throws Throwable {
                 if (isScenarioClass(testClassInstance.getClass())) {
-                    addScenarioInterceptorAndRunTest(frameworkMethodAndScenario, testClassInstance);
+                    return addScenarioInterceptor(frameworkMethodAndScenario, testClassInstance);
                 } else {
-                    frameworkMethodAndScenario.getFrameworkMethod().invokeExplosively(testClassInstance);
+                    return new Statement() {
+                        @Override
+                        public void evaluate() throws Throwable {
+                            frameworkMethodAndScenario.getFrameworkMethod().invokeExplosively(testClassInstance);
+                        }
+                    };
                 }
+            }
+
+            private Statement withExpectedExceptionTolerance(final Statement testInvokingStatement) {
+                return new Statement() {
+                    @Override
+                    public void evaluate() throws Throwable {
+                        try {
+                            testInvokingStatement.evaluate();
+                        } catch (Throwable exceptionWhileRunningTest) {
+                            Test annotation = frameworkMethodAndScenario.getFrameworkMethod().getAnnotation(Test.class);
+                            Class<? extends Throwable> expectedException = annotation.expected();
+                            if (!expectedException.isAssignableFrom(exceptionWhileRunningTest.getClass())) {
+                                throw exceptionWhileRunningTest;
+                            }
+                        }
+                    }
+                };
             }
         };
     }
-
 }

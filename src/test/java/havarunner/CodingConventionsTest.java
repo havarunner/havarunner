@@ -1,36 +1,66 @@
 package havarunner;
 
-
 import havarunner.exception.CamelCasedException;
 import havarunner.exception.MemberIsNotPackagePrivateException;
+import havarunner.scenario.FrameworkMethodAndScenario;
 import org.junit.Test;
+import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
+
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class CodingConventionsTest {
 
-    @Test(expected = CamelCasedException.class)
+    @Test
     public void HavaRunner_fails_if_a_test_method_is_camel_cased() throws InitializationError {
-        new HavaRunner(CamelCaseExamples.class).getChildren();
+        HavaRunner havaRunner = new HavaRunner(CamelCaseExamples.class);
+        AtomicReference<Throwable> expectedFailure = runAndRecordFailedAssumption(havaRunner);
+        assertEquals(expectedFailure.get().getClass(), CamelCasedException.class);
     }
 
     @Test
     public void HavaRunner_requires_snake_cased_methods() throws InitializationError {
-        new HavaRunner(snake_cases_examples.class).getChildren();
+        HavaRunner havaRunner = new HavaRunner(snake_cases_examples.class);
+        AtomicReference<Throwable> expectedFailure = runAndRecordFailedAssumption(havaRunner);
+        assertNull(expectedFailure.get());
     }
 
-    @Test(expected = MemberIsNotPackagePrivateException.class)
+    @Test
     public void HavaRunner_rejects_public_test_methods() throws InitializationError {
-        new HavaRunner(public_modifier_example.class).getChildren();
+        HavaRunner havaRunner = new HavaRunner(public_modifier_example.class);
+        AtomicReference<Throwable> expectedFailure = runAndRecordFailedAssumption(havaRunner);
+        assertEquals(expectedFailure.get().getClass(), MemberIsNotPackagePrivateException.class);
     }
 
-    @Test(expected = MemberIsNotPackagePrivateException.class)
+    @Test
     public void HavaRunner_rejects_private_test_methods() throws InitializationError {
-        new HavaRunner(private_modifier_example.class).getChildren();
+        HavaRunner havaRunner = new HavaRunner(private_modifier_example.class);
+        AtomicReference<Throwable> expectedFailure = runAndRecordFailedAssumption(havaRunner);
+        assertEquals(expectedFailure.get().getClass(), MemberIsNotPackagePrivateException.class);
     }
 
-    @Test(expected = MemberIsNotPackagePrivateException.class)
+    @Test
     public void HavaRunner_rejects_protected_test_methods() throws InitializationError {
-        new HavaRunner(protected_modifier_example.class).getChildren();
+        HavaRunner havaRunner = new HavaRunner(protected_modifier_example.class);
+        AtomicReference<Throwable> expectedFailure = runAndRecordFailedAssumption(havaRunner);
+        assertEquals(expectedFailure.get().getClass(), MemberIsNotPackagePrivateException.class);
+    }
+
+    private AtomicReference<Throwable> runAndRecordFailedAssumption(HavaRunner havaRunner) {
+        final AtomicReference<Throwable> expectedFailure = new AtomicReference<>();
+        for (FrameworkMethodAndScenario f : havaRunner.getChildren()) {
+            havaRunner.runChild(f, new RunNotifier() {
+                @Override
+                public void fireTestAssumptionFailed(Failure failure) {
+                    expectedFailure.set(failure.getException());
+                }
+            });
+        }
+        return expectedFailure;
     }
 
     static class CamelCaseExamples {

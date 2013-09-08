@@ -15,7 +15,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static havarunner.Ensure.ensuringPackagePrivate;
 import static havarunner.scenario.ScenarioHelper.*;
 
 class Helper {
@@ -25,11 +24,7 @@ class Helper {
         for (MethodAndScenario methodAndScenario : findTestMethods(testClass)) {
             frameworkMethods.add(
                 new FrameworkMethodAndScenario(
-                    Ensure.ensuringSnakeCased(
-                        ensuringPackagePrivate(
-                            new FrameworkMethod(methodAndScenario.method)
-                        )
-                    ),
+                    new FrameworkMethod(methodAndScenario.method),
                     methodAndScenario.scenario
                 )
             );
@@ -45,7 +40,7 @@ class Helper {
         }
     }
 
-    private static Constructor findOnlyConstructor(TestClass testClass) {
+    static Constructor findOnlyConstructor(TestClass testClass) {
         Constructor<?>[] declaredConstructors = testClass.getJavaClass().getDeclaredConstructors();
         Assert.assertEquals(
             String.format("The class %s should have exactly one no-arg constructor", testClass.getJavaClass().getName()),
