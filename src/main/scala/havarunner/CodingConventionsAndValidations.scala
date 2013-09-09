@@ -59,12 +59,12 @@ private[havarunner] object CodingConventionsAndValidations {
   }
 
   private def hasInvalidMethodName(frameworkMethod: FrameworkMethod) = {
-    val methodName = frameworkMethod.getMethod().getName
+    val methodName = frameworkMethod.getMethod.getName
     methodName.matches(".*[a-z][A-Z].*") && !methodName.contains("_")
   }
 
   private def isNotPackagePrivate(member: Member) = {
-    Modifier.isPrivate(member.getModifiers()) ||
+    Modifier.isPrivate(member.getModifiers) ||
       Modifier.isPublic(member.getModifiers) ||
       Modifier.isProtected(member.getModifiers)
   }
