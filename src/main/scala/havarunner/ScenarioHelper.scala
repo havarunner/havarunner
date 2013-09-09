@@ -1,33 +1,23 @@
 package havarunner
 
 import java.lang.reflect.Method
-import scala.collection.JavaConversions._
 import havarunner.exception.ScenarioMethodNotFound
 
 private[havarunner] object ScenarioHelper {
-  def createScenarioTestFunction(testAndParameters: TestAndParameters, testClassInstance: AnyRef): (() => Any) = {
+  def createScenarioTestFunction(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[AnyRef] = Operation(() => {
     val testMethod = findScenarioTestMethod(testAndParameters, testClassInstance)
-    withBefores(
+    Operation(() => (
       testRunningStatement(testAndParameters, testClassInstance, testMethod),
       testAndParameters,
       testClassInstance
-    )
-  }
+    ))
+  })
 
-  private def testRunningStatement(testAndParameters: TestAndParameters, intercepted: AnyRef, testMethod: Method) =
-    () => {
-        testMethod.setAccessible(true)
-        testMethod.invoke(intercepted, testAndParameters scenario)
-      }
-
-  private def withBefores(runTest: (() => Any), testAndParameters: TestAndParameters, intercepted: AnyRef) =
-    () => {
-      testAndParameters.befores.foreach(before => {
-        before.setAccessible(true)
-        before.invoke(intercepted)
-      })
-      runTest()
-    }
+  private def testRunningStatement(testAndParameters: TestAndParameters, intercepted: AnyRef, testMethod: Method): Operation[AnyRef] =
+    Operation(() => {
+      testMethod.setAccessible(true)
+      testMethod.invoke(intercepted, testAndParameters scenario)
+    })
 
   private def findScenarioTestMethod(testAndParameters: TestAndParameters, intercepted: AnyRef) =
     try {

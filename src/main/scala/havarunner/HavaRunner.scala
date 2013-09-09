@@ -60,16 +60,14 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     if (testAndParameters.frameworkMethod.getAnnotation(classOf[Ignore]) != null) {
       notifier fireTestIgnored description
     } else {
-      val runWithExceptionTolerance = () => {
-        withExpectedExceptionTolerance(
-          testAndParameters,
-          createTestInvokingStatement(testAndParameters)
-        )
-      }
+      val testClassInstance = CodeGeneratorHelper.newEnhancedInstance(testAndParameters.testClass.getJavaClass)
+      val testOperation =
+        runBefores(testAndParameters, testClassInstance).
+          andThen(createTestOperation(testAndParameters, testClassInstance))
       executor submit new Runnable {
         def run() {
           runLeaf(
-            runWithExceptionTolerance,
+            withExpectedExceptionTolerance(testAndParameters, testOperation),
             description,
             notifier
           )
@@ -78,11 +76,18 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def runLeaf(runTest: (() => Any), description: Description, notifier: RunNotifier) {
+  private def runBefores(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[Unit] = Operation(() => {
+    testAndParameters.befores.foreach(before => {
+      before.setAccessible(true)
+      before.invoke(testClassInstance)
+    })
+  })
+
+  private def runLeaf(testOperation: Operation[AnyRef], description: Description, notifier: RunNotifier) {
     val eachNotifier = new EachTestNotifier(notifier, description)
     eachNotifier fireTestStarted()
     try {
-      runTest()
+      testOperation.run
     } catch {
       case e: AssumptionViolatedException => eachNotifier addFailedAssumption e
       case e: Throwable => eachNotifier addFailure e
@@ -91,32 +96,26 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def createTestInvokingStatement(testAndParameters: TestAndParameters): (() => Any) = {
-    val testClassInstance = CodeGeneratorHelper.newEnhancedInstance(testAndParameters.testClass.getJavaClass)
+  private def createTestOperation(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[AnyRef] = {
     if (isScenarioClass(testAndParameters.testClass.getJavaClass))
       createScenarioTestFunction(testAndParameters, testClassInstance)
     else
-      () => {
-        testAndParameters.befores foreach (before => {
-          before setAccessible true
-          before invoke testClassInstance
-        })
+      Operation(() => {
         testAndParameters.frameworkMethod.invokeExplosively(testClassInstance)
-      }
+      })
   }
 
-  private def withExpectedExceptionTolerance(testAndParameters: TestAndParameters, runTest: (() => Any)) = {
-    () => {
+  private def withExpectedExceptionTolerance(testAndParameters: TestAndParameters, test: Operation[AnyRef]): Operation[AnyRef] = Operation(() => {
       try {
-        runTest()
+        test.run
       } catch {
         case exceptionWhileRunningTest: Throwable =>
           val annotation = testAndParameters.frameworkMethod.getAnnotation(classOf[Test])
           val expectedException = annotation.expected
           if (!(expectedException isAssignableFrom exceptionWhileRunningTest.getClass)) {
             throw exceptionWhileRunningTest
-          }
+          } else
+            Unit
       }
-    }
-  }
+  })
 }
