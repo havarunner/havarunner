@@ -2,6 +2,7 @@ package havarunner;
 
 
 import havarunner.exception.UnsupportedAnnotationException;
+import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -18,17 +19,17 @@ public class UnsupportedJUnitAnnotationsTest {
             run(havaRunner);
             fail("Must throw an exception");
         } catch (UnsupportedAnnotationException e) {
-            assertEquals(e.annotationClass(), BeforeClass.class);
+            assertEquals(e.annotationClass(), After.class);
             assertEquals(
-                    "class havarunner.UnsupportedJUnitAnnotationsTest$TestWithBeforeClass uses the unsupported annotation org.junit.BeforeClass",
+                    "class havarunner.UnsupportedJUnitAnnotationsTest$TestWithBeforeClass uses the unsupported annotation org.junit.After",
                     e.getMessage()
             );
         }
     }
 
     static class TestWithBeforeClass {
-        @BeforeClass
-        void HavaRunner_does_not_support_the_BeforeClass_annotation() {
+        @After
+        void HavaRunner_does_not_support_the_After_annotation() {
         }
 
         @Test

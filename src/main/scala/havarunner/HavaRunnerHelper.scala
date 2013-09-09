@@ -2,9 +2,10 @@ package havarunner
 
 import org.junit.runners.model.{FrameworkMethod, TestClass}
 import java.lang.reflect.Method
-import org.junit.{Test, Assert, Before}
+import org.junit.{BeforeClass, Test, Assert, Before}
 import havarunner.ScenarioHelper._
 import scala.collection.JavaConversions._
+import java.lang.annotation.Annotation
 
 private[havarunner] object HavaRunnerHelper {
   def toTestParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
@@ -14,17 +15,17 @@ private[havarunner] object HavaRunnerHelper {
         new TestAndParameters(
           new FrameworkMethod(methodAndScenario.method),
           testClass,
-          methodAndScenario.scenario.asInstanceOf[Object],
-          findBefores(testClass)
+          scenario = methodAndScenario.scenario.asInstanceOf[Object],
+          beforeClasses = findMethods(testClass, classOf[BeforeClass]),
+          befores = findMethods(testClass, classOf[Before])
         )
       })
     })
-
   }
 
-  def findBefores(testClass: TestClass): List[Method] =
+  private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]): List[Method] =
     testClass.getJavaClass.getDeclaredMethods.filter(method =>
-      method.getAnnotation(classOf[Before]) != null
+      method.getAnnotation(annotation) != null
     ).toList
 
   def findOnlyConstructor(testClass: TestClass) = {

@@ -58,8 +58,9 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     } else {
       val testClassInstance = CodeGeneratorHelper.newEnhancedInstance(testAndParameters.testClass.getJavaClass)
       val testOperation =
-        runBefores(testAndParameters, testClassInstance).
-          andThen(createTestOperation(testAndParameters, testClassInstance))
+        runBeforeClasses(testAndParameters) andThen
+          (runBefores(testAndParameters, testClassInstance) andThen
+            runTest(testAndParameters, testClassInstance))
       executor submit new Runnable {
         def run() {
           runLeaf(
@@ -71,6 +72,13 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       }
     }
   }
+
+  private def runBeforeClasses(testAndParameters: TestAndParameters): Operation[Unit] = Operation(() => {
+    testAndParameters.beforeClasses.foreach(before => {
+      before.setAccessible(true)
+      before.invoke(null)
+    })
+  })
 
   private def runBefores(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[Unit] = Operation(() => {
     testAndParameters.befores.foreach(before => {
@@ -92,7 +100,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def createTestOperation(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[AnyRef] = {
+  private def runTest(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[AnyRef] = {
     if (isScenarioClass(testAndParameters.testClass.getJavaClass))
       createScenarioTestFunction(testAndParameters, testClassInstance)
     else
