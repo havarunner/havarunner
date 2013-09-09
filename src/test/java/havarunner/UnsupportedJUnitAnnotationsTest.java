@@ -7,6 +7,7 @@ import org.junit.Test;
 
 import static havarunner.TestHelper.run;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class UnsupportedJUnitAnnotationsTest {
 
@@ -15,6 +16,7 @@ public class UnsupportedJUnitAnnotationsTest {
         HavaRunner havaRunner = new HavaRunner(TestWithBeforeClass.class);
         try {
             run(havaRunner);
+            fail("Must throw an exception");
         } catch (UnsupportedAnnotationException e) {
             assertEquals(e.annotationClass(), BeforeClass.class);
             assertEquals(
