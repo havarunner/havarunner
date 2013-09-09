@@ -6,11 +6,9 @@ import havarunner.exception.ScenarioMethodNotFound
 private[havarunner] object ScenarioHelper {
   def createScenarioTestFunction(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[AnyRef] = Operation(() => {
     val testMethod = findScenarioTestMethod(testAndParameters, testClassInstance)
-    Operation(() => (
-      testRunningStatement(testAndParameters, testClassInstance, testMethod),
-      testAndParameters,
-      testClassInstance
-    ))
+    Operation(() =>
+      testRunningStatement(testAndParameters, testClassInstance, testMethod)
+    )
   })
 
   private def testRunningStatement(testAndParameters: TestAndParameters, intercepted: AnyRef, testMethod: Method): Operation[AnyRef] =

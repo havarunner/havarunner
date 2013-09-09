@@ -2,7 +2,7 @@ package havarunner
 
 import org.junit.runners.model.{FrameworkMethod, TestClass}
 import java.lang.reflect.Method
-import org.junit.{BeforeClass, Test, Assert, Before}
+import org.junit._
 import havarunner.ScenarioHelper._
 import scala.collection.JavaConversions._
 import java.lang.annotation.Annotation
@@ -17,7 +17,8 @@ private[havarunner] object HavaRunnerHelper {
           testClass,
           scenario = methodAndScenario.scenario.asInstanceOf[Object],
           beforeClasses = findMethods(testClass, classOf[BeforeClass]),
-          befores = findMethods(testClass, classOf[Before])
+          befores = findMethods(testClass, classOf[Before]),
+          afterClasses = findMethods(testClass, classOf[AfterClass])
         )
       })
     })

@@ -10,6 +10,7 @@ import havarunner.ScenarioHelper._
 import org.junit.{Test, Ignore}
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.internal.AssumptionViolatedException
+import java.lang.reflect.Method
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
   val executor = new ThreadPoolExecutor(
@@ -60,7 +61,8 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       val testOperation =
         runBeforeClasses(testAndParameters) andThen
           (runBefores(testAndParameters, testClassInstance) andThen
-            runTest(testAndParameters, testClassInstance))
+            runTest(testAndParameters, testClassInstance)) andThen
+              runAfterClasses(testAndParameters)
       executor submit new Runnable {
         def run() {
           runLeaf(
@@ -73,21 +75,27 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def runBeforeClasses(testAndParameters: TestAndParameters): Operation[Unit] = Operation(() => {
-    testAndParameters.beforeClasses.foreach(before => {
-      before.setAccessible(true)
-      before.invoke(null)
-    })
-  })
+  private def runBeforeClasses(testAndParameters: TestAndParameters): Operation[Unit] =
+    Operation(() =>
+      testAndParameters.beforeClasses.foreach(invoke(_))
+    )
 
-  private def runBefores(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[Unit] = Operation(() => {
-    testAndParameters.befores.foreach(before => {
-      before.setAccessible(true)
-      before.invoke(testClassInstance)
-    })
-  })
+  private def runBefores(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[Unit] =
+    Operation(() =>
+      testAndParameters.befores.foreach(invoke(_, Some(testClassInstance)))
+    )
 
-  private def runLeaf(testOperation: Operation[AnyRef], description: Description, notifier: RunNotifier) {
+  private def runAfterClasses(testAndParameters: TestAndParameters): Operation[Unit] =
+    Operation(() =>
+      testAndParameters.afterClasses.foreach(invoke(_))
+    )
+
+  private def invoke(method: Method, thisObject: Option[AnyRef] = None) {
+    method.setAccessible(true)
+    method.invoke(thisObject.getOrElse(null))
+  }
+
+  private def runLeaf(testOperation: Operation[_ <: Any], description: Description, notifier: RunNotifier) {
     val eachNotifier = new EachTestNotifier(notifier, description)
     eachNotifier fireTestStarted()
     try {
@@ -109,17 +117,17 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       })
   }
 
-  private def withExpectedExceptionTolerance(testAndParameters: TestAndParameters, test: Operation[AnyRef]): Operation[AnyRef] = Operation(() => {
-      try {
-        test.run
-      } catch {
-        case exceptionWhileRunningTest: Throwable =>
-          val annotation = testAndParameters.frameworkMethod.getAnnotation(classOf[Test])
-          val expectedException = annotation.expected
-          if (!(expectedException isAssignableFrom exceptionWhileRunningTest.getClass)) {
-            throw exceptionWhileRunningTest
-          } else
-            Unit
-      }
+  private def withExpectedExceptionTolerance(testAndParameters: TestAndParameters, test: Operation[_ <: Any]): Operation[_ <: Any] = Operation(() => {
+    try {
+      test.run
+    } catch {
+      case exceptionWhileRunningTest: Throwable =>
+        val annotation = testAndParameters.frameworkMethod.getAnnotation(classOf[Test])
+        val expectedException = annotation.expected
+        if (!(expectedException isAssignableFrom exceptionWhileRunningTest.getClass)) {
+          throw exceptionWhileRunningTest
+        } else
+          Unit
+    }
   })
 }

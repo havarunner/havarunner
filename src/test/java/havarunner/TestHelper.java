@@ -19,14 +19,10 @@ public class TestHelper {
     }
 
     public static void run(HavaRunner havaRunner, RunNotifier runNotifier) {
-        for (TestAndParameters f : havaRunner.getChildren()) {
-            havaRunner.runChild(f, runNotifier);
-        }
+        havaRunner.run(runNotifier);
     }
 
     public static void run(HavaRunner havaRunner) {
-        for (TestAndParameters f : havaRunner.getChildren()) {
-            havaRunner.runChild(f, new RunNotifier());
-        }
+        run(havaRunner, new RunNotifier());
     }
 }

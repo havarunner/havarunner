@@ -8,7 +8,9 @@ private[havarunner] class TestAndParameters(
   val testClass: TestClass,
   val scenario: Object,
   val beforeClasses: Seq[Method],
-  val befores: Seq[Method]) {
+  val befores: Seq[Method],
+  val afterClasses: Seq[Method]
+) {
   def scenarioToString = {
     if (scenario == ScenarioHelper.defaultScenario) {
       ""

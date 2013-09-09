@@ -3,6 +3,7 @@ package havarunner.example;
 import com.google.common.collect.Sets;
 import havarunner.HavaRunner;
 import havarunner.TestWithMultipleScenarios;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -14,13 +15,18 @@ import static junit.framework.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(HavaRunner.class)
-public class BeforeClassExampleTest {
+public class BeforeAndAfterClassExampleTest {
 
-    static Object universe;
+    static Universe universe;
 
     @BeforeClass
     static void create_the_universe() {
-        universe = new Object();
+        universe = new Universe();
+    }
+
+    @AfterClass
+    static void destroy_the_universe() {
+        universe.destroy();
     }
 
     @Test
@@ -58,6 +64,14 @@ public class BeforeClassExampleTest {
                         throw new IllegalArgumentException("The fruit garden does not contain the fruit " + fruit);
                 }
             }
+        }
+    }
+
+    static class Universe {
+        boolean destroyed = false;
+
+        void destroy() {
+            destroyed = true;
         }
     }
 }
