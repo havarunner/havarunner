@@ -41,12 +41,12 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
 
   def runChild(testAndParameters: TestAndParameters, notifier: RunNotifier) {
     val description = describeChild(testAndParameters)
-    val codingConventionException = violatesCodingConventions( // TODO replace Optional with Scala Option and remove Guava
+    val codingConventionException = violatesCodingConventions(
       testAndParameters,
       testAndParameters.testClass
     )
-    if (codingConventionException.isPresent)
-      notifier fireTestAssumptionFailed new Failure(description, codingConventionException.get())
+    if (codingConventionException.isDefined)
+      notifier fireTestAssumptionFailed new Failure(description, codingConventionException.get)
     else
       runValidTest(testAndParameters, notifier, description)
   }

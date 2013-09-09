@@ -1,7 +1,6 @@
 package havarunner
 
 import org.junit.runners.model.{FrameworkMethod, TestClass}
-import com.google.common.base.Optional
 import havarunner.exception.{UnsupportedAnnotationException, MemberIsNotPackagePrivateException, CamelCasedException, CodingConventionException}
 import org.junit._
 import java.lang.reflect.{Modifier, Member}
@@ -9,14 +8,14 @@ import java.lang.reflect.{Modifier, Member}
 private[havarunner] object CodingConventions {
 
   def violatesCodingConventions(testAndParameters: TestAndParameters,
-                                testClass: TestClass) =
+                                testClass: TestClass): Option[CodingConventionException] =
     try {
       ensuringSnakeCased(testAndParameters.frameworkMethod)
       ensuringPackagePrivate(testAndParameters.frameworkMethod)
       ensuringValidTestClass(testClass)
-      Optional absent()
+      None
     } catch {
-      case e: CodingConventionException => Optional of e
+      case e: CodingConventionException => Some(e)
     }
 
   private def ensuringSnakeCased(frameworkMethod: FrameworkMethod) =
