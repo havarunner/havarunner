@@ -7,7 +7,6 @@ import scala.collection.JavaConversions._
 import havarunner.HavaRunnerHelper._
 import havarunner.CodingConventions._
 import havarunner.ScenarioHelper._
-import org.junit.runners.model.Statement
 import org.junit.{Test, Ignore}
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.internal.AssumptionViolatedException
@@ -61,10 +60,16 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     if (testAndParameters.frameworkMethod.getAnnotation(classOf[Ignore]) != null) {
       notifier fireTestIgnored description
     } else {
+      val runWithExceptionTolerance = () => {
+        withExpectedExceptionTolerance(
+          testAndParameters,
+          createTestInvokingStatement(testAndParameters)
+        )
+      }
       executor submit new Runnable {
         def run() {
           runLeaf(
-            toStatement(testAndParameters),
+            runWithExceptionTolerance,
             description,
             notifier
           )
@@ -73,11 +78,11 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def runLeaf(statement: Statement, description: Description, notifier: RunNotifier) {
+  private def runLeaf(runTest: (() => Any), description: Description, notifier: RunNotifier) {
     val eachNotifier = new EachTestNotifier(notifier, description)
     eachNotifier fireTestStarted()
     try {
-      statement evaluate()
+      runTest()
     } catch {
       case e: AssumptionViolatedException => eachNotifier addFailedAssumption e
       case e: Throwable => eachNotifier addFailure e
@@ -86,45 +91,31 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def toStatement(testAndParameters: TestAndParameters) = {
-    new Statement { // TODO replace statements with plain functions
-      def evaluate() {
-        withExpectedExceptionTolerance(
-          createTestInvokingStatement
-        ).evaluate()
+  private def createTestInvokingStatement(testAndParameters: TestAndParameters): (() => Any) = {
+    val testClassInstance = CodeGeneratorHelper.newEnhancedInstance(testAndParameters.testClass.getJavaClass)
+    if (isScenarioClass(testAndParameters.testClass.getJavaClass))
+      createScenarioTestFunction(testAndParameters, testClassInstance)
+    else
+      () => {
+        testAndParameters.befores foreach (before => {
+          before setAccessible true
+          before invoke testClassInstance
+        })
+        testAndParameters.frameworkMethod.invokeExplosively(testClassInstance)
       }
+  }
 
-      def createTestInvokingStatement: Statement = {
-        val testClassInstance = CodeGeneratorHelper.newEnhancedInstance(testAndParameters.testClass.getJavaClass)
-        if (isScenarioClass(testAndParameters.testClass.getJavaClass))
-          runScenarioTest(testAndParameters, testClassInstance)
-        else
-          new Statement() {
-            def evaluate() {
-              testAndParameters.befores foreach (before => {
-                before setAccessible true
-                before invoke testClassInstance
-              })
-              testAndParameters.frameworkMethod.invokeExplosively(testClassInstance)
-            }
+  private def withExpectedExceptionTolerance(testAndParameters: TestAndParameters, runTest: (() => Any)) = {
+    () => {
+      try {
+        runTest()
+      } catch {
+        case exceptionWhileRunningTest: Throwable =>
+          val annotation = testAndParameters.frameworkMethod.getAnnotation(classOf[Test])
+          val expectedException = annotation.expected
+          if (!(expectedException isAssignableFrom exceptionWhileRunningTest.getClass)) {
+            throw exceptionWhileRunningTest
           }
-      }
-
-      def withExpectedExceptionTolerance(testInvokingStatement: Statement) = {
-        new Statement() {
-          def evaluate() {
-            try {
-              testInvokingStatement evaluate()
-            } catch {
-              case exceptionWhileRunningTest: Throwable =>
-                val annotation = testAndParameters.frameworkMethod.getAnnotation(classOf[Test])
-                val expectedException = annotation.expected
-                if (!(expectedException isAssignableFrom exceptionWhileRunningTest.getClass)) {
-                  throw exceptionWhileRunningTest
-                }
-            }
-          }
-        }
       }
     }
   }

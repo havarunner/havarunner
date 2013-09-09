@@ -1,13 +1,11 @@
 package havarunner
 
-import net.sf.cglib.proxy.{MethodProxy, MethodInterceptor, Enhancer}
 import java.lang.reflect.Method
-import org.junit.runners.model.Statement
 import scala.collection.JavaConversions._
 import havarunner.exception.ScenarioMethodNotFound
 
 private[havarunner] object ScenarioHelper {
-  def runScenarioTest(testAndParameters: TestAndParameters, testClassInstance: AnyRef) = {
+  def createScenarioTestFunction(testAndParameters: TestAndParameters, testClassInstance: AnyRef): (() => Any) = {
     val testMethod = findScenarioTestMethod(testAndParameters, testClassInstance)
     withBefores(
       testRunningStatement(testAndParameters, testClassInstance, testMethod),
@@ -17,22 +15,18 @@ private[havarunner] object ScenarioHelper {
   }
 
   private def testRunningStatement(testAndParameters: TestAndParameters, intercepted: AnyRef, testMethod: Method) =
-    new Statement() {
-      def evaluate() {
+    () => {
         testMethod.setAccessible(true)
         testMethod.invoke(intercepted, testAndParameters scenario)
       }
-    }
 
-  private def withBefores(statement: Statement, testAndParameters: TestAndParameters, intercepted: AnyRef) =
-    new Statement() {
-      def evaluate() {
-        testAndParameters.befores.foreach(before => {
-          before.setAccessible(true)
-          before.invoke(intercepted)
-        })
-        statement.evaluate()
-      }
+  private def withBefores(runTest: (() => Any), testAndParameters: TestAndParameters, intercepted: AnyRef) =
+    () => {
+      testAndParameters.befores.foreach(before => {
+        before.setAccessible(true)
+        before.invoke(intercepted)
+      })
+      runTest()
     }
 
   private def findScenarioTestMethod(testAndParameters: TestAndParameters, intercepted: AnyRef) =
