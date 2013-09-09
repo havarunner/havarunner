@@ -9,6 +9,7 @@ import org.junit.runners.model.InitializationError;
 
 import java.util.concurrent.atomic.AtomicReference;
 
+import static havarunner.TestHelper.runAndRecordFailedAssumption;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
@@ -47,19 +48,6 @@ public class CodingConventionsTest {
         HavaRunner havaRunner = new HavaRunner(protected_modifier_example.class);
         AtomicReference<Throwable> expectedFailure = runAndRecordFailedAssumption(havaRunner);
         assertEquals(expectedFailure.get().getClass(), MemberIsNotPackagePrivateException.class);
-    }
-
-    private AtomicReference<Throwable> runAndRecordFailedAssumption(HavaRunner havaRunner) {
-        final AtomicReference<Throwable> expectedFailure = new AtomicReference<>();
-        for (TestAndParameters f : havaRunner.getChildren()) {
-            havaRunner.runChild(f, new RunNotifier() {
-                @Override
-                public void fireTestAssumptionFailed(Failure failure) {
-                    expectedFailure.set(failure.getException());
-                }
-            });
-        }
-        return expectedFailure;
     }
 
     static class CamelCaseExamples {
