@@ -44,8 +44,7 @@ private[havarunner] object CodingConventions {
       classOf[After],
       classOf[AfterClass],
       classOf[Rule],
-      classOf[ClassRule],
-      classOf[FixMethodOrder]
+      classOf[ClassRule]
     )
 
     unsupportedJUnitAnnotations.foreach(unsupportedJUnitAnnotation => {
