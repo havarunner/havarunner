@@ -5,7 +5,7 @@ import havarunner.exception.{UnsupportedAnnotationException, MemberIsNotPackageP
 import org.junit._
 import java.lang.reflect.{Modifier, Member}
 
-private[havarunner] object CodingConventions {
+private[havarunner] object CodingConventionsAndValidations {
 
   def violatesCodingConventions(testAndParameters: TestAndParameters): Option[CodingConventionException] =
     try {

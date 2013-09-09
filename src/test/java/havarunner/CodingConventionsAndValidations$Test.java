@@ -13,7 +13,7 @@ import static havarunner.TestHelper.runAndRecordFailedAssumption;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
-public class CodingConventionsTest {
+public class CodingConventionsAndValidations$Test {
 
     @Test
     public void HavaRunner_fails_if_a_test_method_is_camel_cased() throws InitializationError {

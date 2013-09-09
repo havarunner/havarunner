@@ -5,7 +5,7 @@ import org.junit.runner.notification.{Failure, RunNotifier}
 import java.util.concurrent.{TimeUnit, SynchronousQueue, ThreadPoolExecutor}
 import scala.collection.JavaConversions._
 import havarunner.HavaRunnerHelper._
-import havarunner.CodingConventions._
+import havarunner.CodingConventionsAndValidations._
 import havarunner.ScenarioHelper._
 import org.junit.{Test, Ignore}
 import org.junit.internal.runners.model.EachTestNotifier
