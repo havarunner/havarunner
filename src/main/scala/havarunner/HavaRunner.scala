@@ -14,7 +14,7 @@ import org.junit.internal.AssumptionViolatedException
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
   val executor = new ThreadPoolExecutor(
-    0, Runtime.getRuntime.availableProcessors() * 3,
+    0, Runtime.getRuntime.availableProcessors(),
     60L, TimeUnit.SECONDS,
     new SynchronousQueue[Runnable],
     new ThreadPoolExecutor.CallerRunsPolicy()
