@@ -7,12 +7,11 @@ import java.lang.reflect.{Modifier, Member}
 
 private[havarunner] object CodingConventions {
 
-  def violatesCodingConventions(testAndParameters: TestAndParameters,
-                                testClass: TestClass): Option[CodingConventionException] =
+  def violatesCodingConventions(testAndParameters: TestAndParameters): Option[CodingConventionException] =
     try {
       ensuringSnakeCased(testAndParameters.frameworkMethod)
       ensuringPackagePrivate(testAndParameters.frameworkMethod)
-      ensuringValidTestClass(testClass)
+      ensuringValidTestClass(testAndParameters.testClass)
       None
     } catch {
       case e: CodingConventionException => Some(e)
