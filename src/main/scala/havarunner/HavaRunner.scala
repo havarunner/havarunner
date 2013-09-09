@@ -19,10 +19,6 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     new ThreadPoolExecutor.CallerRunsPolicy()
   )
 
-  val classesToTest = Seq(
-    parentClass
-  ) ++ parentClass.getDeclaredClasses
-
   def getDescription = {
     val description = Description.createSuiteDescription(parentClass)
     getChildren.iterator() foreach (child => description.addChild(describeChild(child)))
@@ -35,10 +31,13 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     executor awaitTermination(1, TimeUnit.HOURS)
   }
 
+  private[havarunner] val classesToTest = Seq(
+    parentClass
+  ) ++ parentClass.getDeclaredClasses
 
-  def getChildren: java.lang.Iterable[TestAndParameters] = toTestParameters(classesToTest)
+  private[havarunner] def getChildren: java.lang.Iterable[TestAndParameters] = toTestParameters(classesToTest)
 
-  def runChild(testAndParameters: TestAndParameters, notifier: RunNotifier) {
+  private[havarunner] def runChild(testAndParameters: TestAndParameters, notifier: RunNotifier) {
     val description = describeChild(testAndParameters)
     val codingConventionException = violatesCodingConventions(
       testAndParameters,
