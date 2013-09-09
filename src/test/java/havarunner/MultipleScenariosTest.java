@@ -12,9 +12,13 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static havarunner.TestHelper.run;
 import static org.junit.Assert.assertEquals;
 
 public class MultipleScenariosTest {
@@ -46,6 +50,17 @@ public class MultipleScenariosTest {
         );
     }
 
+    final static Collection<String> scenarios = Lists.newArrayList();
+
+    @Test
+    public void HavaRunner_passes_each_scenario_object_to_the_scenario_method() throws Exception {
+        run(new HavaRunner(ValidScenarioTest.class));
+        assertEquals(
+            Sets.newHashSet("first", "second"),
+            Sets.newHashSet(scenarios)
+        );
+    }
+
     private AtomicReference<Failure> runInvalidScenarioTestMethod() throws InitializationError {
         final AtomicReference<Failure> expectedFailure = new AtomicReference<>();
         new HavaRunner(InvalidScenarioTest.class).run(new RunNotifier() {
@@ -71,7 +86,7 @@ public class MultipleScenariosTest {
 
         @Override
         public Set<String> scenarios() {
-            return Sets.newHashSet("first", "second");
+            return Sets.newHashSet("foo", "bar");
         }
 
         @Test
@@ -79,4 +94,18 @@ public class MultipleScenariosTest {
 
         }
     }
+
+    static class ValidScenarioTest implements TestWithMultipleScenarios<String> {
+
+        @Override
+        public Set<String> scenarios() {
+            return Sets.newHashSet("first", "second");
+        }
+
+        @Test
+        void this_method_is_missing_the_scenario_argument(String scenario) {
+            scenarios.add(scenario);
+        }
+    }
+
 }

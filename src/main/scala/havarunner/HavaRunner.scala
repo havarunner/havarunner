@@ -7,7 +7,7 @@ import scala.collection.JavaConversions._
 import havarunner.HavaRunnerHelper._
 import havarunner.CodingConventionsAndValidations._
 import havarunner.ScenarioHelper._
-import org.junit.{Test, Ignore}
+import org.junit.Ignore
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.internal.AssumptionViolatedException
 import java.lang.reflect.Method
@@ -66,7 +66,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       executor submit new Runnable {
         def run() {
           runLeaf(
-            withExpectedExceptionTolerance(testAndParameters, testOperation),
+            testOperation,
             description,
             notifier
           )
@@ -116,18 +116,4 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
         testAndParameters.frameworkMethod.invokeExplosively(testClassInstance)
       })
   }
-
-  private def withExpectedExceptionTolerance(testAndParameters: TestAndParameters, test: Operation[_ <: Any]): Operation[_ <: Any] = Operation(() => {
-    try {
-      test.run
-    } catch {
-      case exceptionWhileRunningTest: Throwable =>
-        val annotation = testAndParameters.frameworkMethod.getAnnotation(classOf[Test])
-        val expectedException = annotation.expected
-        if (!(expectedException isAssignableFrom exceptionWhileRunningTest.getClass)) {
-          throw exceptionWhileRunningTest
-        } else
-          Unit
-    }
-  })
 }
