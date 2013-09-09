@@ -20,7 +20,7 @@ public class UnsupportedJUnitAnnotationsTest {
         } catch (UnsupportedAnnotationException e) {
             assertEquals(e.annotationClass(), After.class);
             assertEquals(
-                    "class havarunner.UnsupportedJUnitAnnotationsTest$TestWithBeforeClass uses the unsupported annotation org.junit.After",
+                    "class havarunner.UnsupportedJUnitAnnotationsTest$TestWithUnsupportedJUnitAnnotation uses the unsupported annotation org.junit.After",
                     e.getMessage()
             );
         }
