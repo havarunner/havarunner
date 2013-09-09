@@ -1,4 +1,4 @@
-package havarunner.example;
+package havarunner;
 
 import havarunner.HavaRunner;
 import havarunner.exception.MethodIsNotStatic;
