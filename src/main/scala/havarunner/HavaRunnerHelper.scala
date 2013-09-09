@@ -24,10 +24,22 @@ private[havarunner] object HavaRunnerHelper {
     })
   }
 
-  private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]): List[Method] =
-    testClass.getJavaClass.getDeclaredMethods.filter(method =>
-      method.getAnnotation(annotation) != null
-    ).toList
+  private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]) = {
+    val superclasses: Seq[Class[_ <: Any]] = classWithSuperclasses(testClass.getJavaClass)
+    superclasses.flatMap(clazz =>
+      clazz.getDeclaredMethods.filter(method =>
+        method.getAnnotation(annotation) != null
+      )
+    )
+  }
+
+  private def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] = {
+    if (clazz.getSuperclass != null) {
+      classWithSuperclasses(clazz.getSuperclass, clazz +: superclasses)
+    } else {
+      superclasses
+    }
+  }
 
   def findOnlyConstructor(testClass: TestClass) = {
     val declaredConstructors = testClass.getJavaClass.getDeclaredConstructors
