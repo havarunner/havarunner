@@ -51,11 +51,11 @@ private[havarunner] object CodingConventions {
     unsupportedJUnitAnnotations.foreach(unsupportedJUnitAnnotation => {
       testClass.getAnnotations.foreach(classAnnotation =>
         if (unsupportedJUnitAnnotation == classAnnotation.getClass) {
-          throw new UnsupportedAnnotationException(classAnnotation.getClass, testClass)
+          throw new UnsupportedAnnotationException(classAnnotation.getClass, testClass.getJavaClass)
         }
       )
       if (!testClass.getAnnotatedMethods(unsupportedJUnitAnnotation).isEmpty) {
-        throw new UnsupportedAnnotationException(unsupportedJUnitAnnotation, testClass)
+        throw new UnsupportedAnnotationException(unsupportedJUnitAnnotation, testClass.getJavaClass)
       }
     })
 
