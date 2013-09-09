@@ -64,10 +64,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       executor submit new Runnable {
         def run() {
           runLeaf(
-            toStatement(
-              testAndParameters,
-              newTestClassInstance(testAndParameters.testClass)
-            ),
+            toStatement(testAndParameters),
             description,
             notifier
           )
@@ -89,7 +86,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def toStatement(testAndParameters: TestAndParameters, testClassInstance: Any) = {
+  private def toStatement(testAndParameters: TestAndParameters) = {
     new Statement { // TODO replace statements with plain functions
       def evaluate() {
         withExpectedExceptionTolerance(
@@ -98,8 +95,9 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       }
 
       def createTestInvokingStatement: Statement = {
-        if (isScenarioClass(testClassInstance.getClass))
-          addScenarioInterceptor(testAndParameters, testClassInstance)
+        val testClassInstance = CodeGeneratorHelper.newEnhancedInstance(testAndParameters.testClass.getJavaClass)
+        if (isScenarioClass(testAndParameters.testClass.getJavaClass))
+          runScenarioTest(testAndParameters, testClassInstance)
         else
           new Statement() {
             def evaluate() {

@@ -7,21 +7,16 @@ import scala.collection.JavaConversions._
 import havarunner.exception.ScenarioMethodNotFound
 
 private[havarunner] object ScenarioHelper {
-  def addScenarioInterceptor(testAndParameters: TestAndParameters, testClassInstance: Any) = {
-    val interceptor = new ScenarioInterceptor()
-    val enhancer = new Enhancer()
-    enhancer.setSuperclass(testClassInstance.getClass)
-    enhancer.setCallback(interceptor)
-    val intercepted = enhancer.create()
-    val testMethod = findScenarioTestMethod(testAndParameters, intercepted)
+  def runScenarioTest(testAndParameters: TestAndParameters, testClassInstance: AnyRef) = {
+    val testMethod = findScenarioTestMethod(testAndParameters, testClassInstance)
     withBefores(
-      testRunningStatement(testAndParameters, intercepted, testMethod),
+      testRunningStatement(testAndParameters, testClassInstance, testMethod),
       testAndParameters,
-      intercepted
+      testClassInstance
     )
   }
 
-  private def testRunningStatement(testAndParameters: TestAndParameters, intercepted: Object, testMethod: Method) =
+  private def testRunningStatement(testAndParameters: TestAndParameters, intercepted: AnyRef, testMethod: Method) =
     new Statement() {
       def evaluate() {
         testMethod.setAccessible(true)
@@ -29,7 +24,7 @@ private[havarunner] object ScenarioHelper {
       }
     }
 
-  private def withBefores(statement: Statement, testAndParameters: TestAndParameters, intercepted: Any) =
+  private def withBefores(statement: Statement, testAndParameters: TestAndParameters, intercepted: AnyRef) =
     new Statement() {
       def evaluate() {
         testAndParameters.befores.foreach(before => {
@@ -40,7 +35,7 @@ private[havarunner] object ScenarioHelper {
       }
     }
 
-  private def findScenarioTestMethod(testAndParameters: TestAndParameters, intercepted: Any) =
+  private def findScenarioTestMethod(testAndParameters: TestAndParameters, intercepted: AnyRef) =
     try {
       val scenarioMethod = intercepted.
         getClass.
@@ -68,9 +63,4 @@ private[havarunner] object ScenarioHelper {
     }
 
   val defaultScenario = new Object
-
-  class ScenarioInterceptor extends MethodInterceptor {
-    def intercept(proxiedObject: Object, method: Method, args: Array[AnyRef], methodProxy: MethodProxy) =
-      methodProxy.invokeSuper(proxiedObject, args)
-  }
 }

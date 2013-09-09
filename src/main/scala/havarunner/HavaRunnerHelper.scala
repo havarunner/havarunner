@@ -27,8 +27,6 @@ private[havarunner] object HavaRunnerHelper {
       method.getAnnotation(classOf[Before]) != null
     ).toList
 
-  def newTestClassInstance(testClass: TestClass) = findOnlyConstructor(testClass).newInstance()
-
   def findOnlyConstructor(testClass: TestClass) = {
     val declaredConstructors = testClass.getJavaClass.getDeclaredConstructors
     Assert.assertEquals(
@@ -40,6 +38,8 @@ private[havarunner] object HavaRunnerHelper {
     declaredConstructor.setAccessible(true)
     declaredConstructor
   }
+
+  def isScenarioClass(clazz: Class[_ <: Any]) = classOf[TestWithMultipleScenarios[A]].isAssignableFrom(clazz)
 
   private def findTestMethods(testClass: TestClass): Seq[MethodAndScenario] = {
     scenarios(testClass).flatMap(scenario => {
@@ -59,7 +59,7 @@ private[havarunner] object HavaRunnerHelper {
     }
   }
 
-  def isScenarioClass(clazz: Class[_ <: Any]) = classOf[TestWithMultipleScenarios[A]].isAssignableFrom(clazz)
+  private def newTestClassInstance(testClass: TestClass) = findOnlyConstructor(testClass).newInstance()
 
   private class MethodAndScenario(val scenario: Any, val method: Method)
 
