@@ -64,7 +64,8 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
         runBeforeClasses(testAndParameters) andThen
           (runBefores(testAndParameters, testClassInstance) andThen
             runTest(testAndParameters, testClassInstance)) andThen
-              runAfterClasses(testAndParameters)
+              (runAfters(testAndParameters, testClassInstance)) andThen
+                 runAfterClasses(testAndParameters)
       val testTask = new Runnable {
         def run() {
           runLeaf(
@@ -92,12 +93,17 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       testAndParameters.befores.foreach(invoke(_, Some(testClassInstance)))
     )
 
+  private def runAfters(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[Unit] =
+    Operation(() =>
+      testAndParameters.afters.foreach(invoke(_, Some(testClassInstance)))
+    )
+
   private def runAfterClasses(testAndParameters: TestAndParameters): Operation[Unit] =
     Operation(() =>
       testAndParameters.afterClasses.foreach(invoke(_))
     )
 
-  private def invoke(method: Method, thisObject: Option[AnyRef] = None) {
+  private def invoke(method: Method, thisObject: Option[AnyRef] = None /* when None -> invoke static method */) {
     method.setAccessible(true)
     method.invoke(thisObject.getOrElse(null))
   }
@@ -136,6 +142,7 @@ private object HavaRunner {
           scenario = methodAndScenario.scenario.asInstanceOf[Object],
           beforeClasses = findMethods(testClass, classOf[BeforeClass]),
           befores = findMethods(testClass, classOf[Before]),
+          afters = findMethods(testClass, classOf[After]),
           afterClasses = findMethods(testClass, classOf[AfterClass]),
           runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
         )

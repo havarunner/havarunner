@@ -47,7 +47,6 @@ private[havarunner] object CodingConventionsAndValidations {
 
   private def ensureDoesNotHaveUnsupportedJUnitAnnotations(testClass: TestClass)  {
     val unsupportedJUnitAnnotations = Seq(
-      classOf[After],
       classOf[Rule],
       classOf[ClassRule]
     )

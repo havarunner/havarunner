@@ -9,6 +9,7 @@ private[havarunner] class TestAndParameters(
   val scenario: Object,
   val beforeClasses: Seq[Method],
   val befores: Seq[Method],
+  val afters: Seq[Method],
   val afterClasses: Seq[Method],
   val runSequentially: Boolean
 ) {
