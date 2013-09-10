@@ -60,7 +60,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     if (testAndParameters.frameworkMethod.getAnnotation(classOf[Ignore]) != null) {
       notifier fireTestIgnored description
     } else {
-      val testClassInstance = CodeGeneratorHelper.newEnhancedInstance(testAndParameters.testClass.getJavaClass)
+      val testClassInstance = newTestClassInstance(testAndParameters.testClass)
       val testOperation =
         runBeforeClasses(testAndParameters) andThen
           (runBefores(testAndParameters, testClassInstance) andThen
@@ -187,7 +187,7 @@ private object HavaRunner {
     }
   }
 
-  private def newTestClassInstance(testClass: TestClass) = findOnlyConstructor(testClass).newInstance()
+  private def newTestClassInstance(testClass: TestClass) = findOnlyConstructor(testClass).newInstance().asInstanceOf[AnyRef]
 
   private class MethodAndScenario(val scenario: Any, val method: Method)
 

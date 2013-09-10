@@ -15,7 +15,6 @@ scalaVersion := "2.10.2"
 javacOptions ++= Seq("-source", "1.7")
 
 libraryDependencies ++= Seq(
-  "cglib" % "cglib-nodep" % "2.2.2",
   "junit" % "junit" % "4.11" % "provided, test",
   "com.novocode" % "junit-interface" % "0.9" % "test",
   "com.google.guava" % "guava" % "14.0.1" % "test",
