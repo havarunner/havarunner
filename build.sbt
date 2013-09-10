@@ -8,7 +8,12 @@ crossPaths := false
 
 publishMavenStyle := true
 
-publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+Option(System.getenv("mvnrepo")) match {
+  case Some(repoDir) =>
+    publishTo := Some(Resolver.file("file",  new File(repoDir)))
+  case None =>
+    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+}
 
 scalaVersion := "2.10.2"
 
