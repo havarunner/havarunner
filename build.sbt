@@ -4,6 +4,12 @@ name := "havarunner"
 
 version := System.getProperty("releaseVersion", "0.1.0-SNAPSHOT")
 
+crossPaths := false
+
+publishMavenStyle := true
+
+publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+
 scalaVersion := "2.10.2"
 
 javacOptions ++= Seq("-source", "1.7")
