@@ -1,7 +1,7 @@
 # HavaRunner – a strongly opinionated JUnit runner
 
 [![Build
-Status](https://travis-ci.org/havarunner/HavaRunner.png?branch=master)](https://travis-ci.org/havarunner/HavaRunner)
+Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://travis-ci.org/havarunner/havarunner)
 
 ## Features
 
