@@ -156,9 +156,7 @@ private object HavaRunner {
   private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]) = {
     val superclasses: Seq[Class[_ <: Any]] = classWithSuperclasses(testClass.getJavaClass)
     superclasses.flatMap(clazz =>
-      clazz.getDeclaredMethods.filter(method =>
-        method.getAnnotation(annotation) != null
-      )
+      clazz.getDeclaredMethods.filter(_.getAnnotation(annotation) != null)
     )
   }
 
