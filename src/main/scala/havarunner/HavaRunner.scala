@@ -4,13 +4,16 @@ import org.junit.runner.{Description, Runner}
 import org.junit.runner.notification.{Failure, RunNotifier}
 import java.util.concurrent.{TimeUnit, SynchronousQueue, ThreadPoolExecutor}
 import scala.collection.JavaConversions._
-import havarunner.HavaRunnerHelper._
+import havarunner.HavaRunner._
 import havarunner.CodingConventionsAndValidations._
 import havarunner.ScenarioHelper._
-import org.junit.Ignore
+import org.junit._
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.internal.AssumptionViolatedException
 import java.lang.reflect.Method
+import org.junit.runners.model.{FrameworkMethod, TestClass}
+import java.lang.annotation.Annotation
+import scala.Some
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
   val executor = new ThreadPoolExecutor(
@@ -116,4 +119,77 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
         testAndParameters.frameworkMethod.invokeExplosively(testClassInstance)
       })
   }
+}
+
+private object HavaRunner {
+  private def toTestParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
+    classesToTest.flatMap(aClass => {
+      val testClass = new TestClass(aClass)
+      findTestMethods(testClass).map(methodAndScenario => {
+        new TestAndParameters(
+          new FrameworkMethod(methodAndScenario.method),
+          testClass,
+          scenario = methodAndScenario.scenario.asInstanceOf[Object],
+          beforeClasses = findMethods(testClass, classOf[BeforeClass]),
+          befores = findMethods(testClass, classOf[Before]),
+          afterClasses = findMethods(testClass, classOf[AfterClass])
+        )
+      })
+    })
+  }
+
+  private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]) = {
+    val superclasses: Seq[Class[_ <: Any]] = classWithSuperclasses(testClass.getJavaClass)
+    superclasses.flatMap(clazz =>
+      clazz.getDeclaredMethods.filter(method =>
+        method.getAnnotation(annotation) != null
+      )
+    )
+  }
+
+  private def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] = {
+    if (clazz.getSuperclass != null) {
+      classWithSuperclasses(clazz.getSuperclass, clazz +: superclasses)
+    } else {
+      superclasses
+    }
+  }
+
+  private def findOnlyConstructor(testClass: TestClass) = {
+    val declaredConstructors = testClass.getJavaClass.getDeclaredConstructors
+    Assert.assertEquals(
+      String.format("The class %s should have exactly one no-arg constructor", testClass.getJavaClass.getName),
+      1,
+      declaredConstructors.length
+    )
+    val declaredConstructor = declaredConstructors.head
+    declaredConstructor.setAccessible(true)
+    declaredConstructor
+  }
+
+  private def isScenarioClass(clazz: Class[_ <: Any]) = classOf[TestWithMultipleScenarios[A]].isAssignableFrom(clazz)
+
+  private def findTestMethods(testClass: TestClass): Seq[MethodAndScenario] = {
+    scenarios(testClass).flatMap(scenario => {
+      val testMethods = testClass.getJavaClass.getDeclaredMethods.filter(_.getAnnotation(classOf[Test]) != null)
+      testMethods.map(testMethod => {
+        testMethod.setAccessible(true)
+        new MethodAndScenario(scenario, testMethod)
+      })
+    })
+  }
+
+  private def scenarios(testClass: TestClass): Seq[Any] = {
+    if (isScenarioClass(testClass.getJavaClass)) {
+      newTestClassInstance(testClass).asInstanceOf[TestWithMultipleScenarios[A]].scenarios.toList
+    } else {
+      Seq(defaultScenario)
+    }
+  }
+
+  private def newTestClassInstance(testClass: TestClass) = findOnlyConstructor(testClass).newInstance()
+
+  private class MethodAndScenario(val scenario: Any, val method: Method)
+
+  type A = Any
 }
