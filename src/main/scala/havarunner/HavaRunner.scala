@@ -14,6 +14,7 @@ import java.lang.reflect.Method
 import org.junit.runners.model.{FrameworkMethod, TestClass}
 import java.lang.annotation.Annotation
 import scala.Some
+import havarunner.annotation.RunSequentially
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
   val executor = new ThreadPoolExecutor(
@@ -66,7 +67,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
           (runBefores(testAndParameters, testClassInstance) andThen
             runTest(testAndParameters, testClassInstance)) andThen
               runAfterClasses(testAndParameters)
-      executor submit new Runnable {
+      val testTask = new Runnable {
         def run() {
           runLeaf(
             testOperation,
@@ -74,6 +75,11 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
             notifier
           )
         }
+      }
+      if (testAndParameters.runSequentially) {
+        testTask.run()
+      } else {
+        executor submit testTask
       }
     }
   }
@@ -132,10 +138,21 @@ private object HavaRunner {
           scenario = methodAndScenario.scenario.asInstanceOf[Object],
           beforeClasses = findMethods(testClass, classOf[BeforeClass]),
           befores = findMethods(testClass, classOf[Before]),
-          afterClasses = findMethods(testClass, classOf[AfterClass])
+          afterClasses = findMethods(testClass, classOf[AfterClass]),
+          runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
         )
       })
     })
+  }
+
+  private def isAnnotatedWith(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Boolean = {
+    if (clazz.getAnnotation(annotationClass) != null) {
+      true
+    } else if (clazz.getSuperclass != null) {
+      isAnnotatedWith(clazz.getSuperclass, annotationClass)
+    } else {
+      false
+    }
   }
 
   private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]) = {
