@@ -1,6 +1,6 @@
 package havarunner
 
-trait TestWithMultipleScenarios[T] {
+trait TestWithMultipleScenarios[T] { // TODO remove
   /**
    * @return all the scenarios in which the tests will be run
    */

@@ -13,18 +13,10 @@ private[havarunner] object CodingConventionsAndValidations {
       ensuringSnakeCased(testAndParameters.frameworkMethod)
       ensuringPackagePrivate(testAndParameters.frameworkMethod)
       ensuringValidTestClass(testAndParameters.testClass)
-      testAndParameters.beforeClasses.foreach(ensureMethodIsStatic(_, testAndParameters.testClass.getJavaClass))
-      testAndParameters.afterClasses.foreach(ensureMethodIsStatic(_, testAndParameters.testClass.getJavaClass))
       None
     } catch {
       case e: Exception => Some(e)
     }
-
-  def ensureMethodIsStatic(method: Method, clazz: Class[_ <: Any]) {
-    if (!Modifier.isStatic(method.getModifiers)) {
-      throw new MethodIsNotStatic(method, clazz)
-    }
-  }
 
   private def ensuringSnakeCased(frameworkMethod: FrameworkMethod) {
     if (hasInvalidMethodName(frameworkMethod)) {
@@ -47,6 +39,9 @@ private[havarunner] object CodingConventionsAndValidations {
 
   private def ensureDoesNotHaveUnsupportedJUnitAnnotations(testClass: TestClass)  {
     val unsupportedJUnitAnnotations = Seq(
+      classOf[Before],
+      classOf[AfterClass],
+      classOf[BeforeClass],
       classOf[Rule],
       classOf[ClassRule]
     )

@@ -6,15 +6,13 @@ import java.util.concurrent.{TimeUnit, SynchronousQueue, ThreadPoolExecutor}
 import scala.collection.JavaConversions._
 import havarunner.HavaRunner._
 import havarunner.CodingConventionsAndValidations._
-import havarunner.ScenarioHelper._
 import org.junit._
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.internal.AssumptionViolatedException
 import java.lang.reflect.Method
 import org.junit.runners.model.{FrameworkMethod, TestClass}
 import java.lang.annotation.Annotation
-import scala.Some
-import havarunner.annotation.RunSequentially
+import havarunner.annotation.{Scenarios, RunSequentially}
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
   val executor = new ThreadPoolExecutor(
@@ -55,24 +53,23 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       testAndParameters.frameworkMethod.getName + testAndParameters.scenarioToString
       )
 
-  private def runValidTest(testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
+  private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
     if (testAndParameters.frameworkMethod.getAnnotation(classOf[Ignore]) != null) {
       notifier fireTestIgnored description
     } else {
-      val testClassInstance = newTestClassInstance(testAndParameters.testClass)
-      val testOperation =
-        runBeforeClasses(testAndParameters) andThen
-          (runBefores(testAndParameters, testClassInstance) andThen
-            runTest(testAndParameters, testClassInstance)) andThen
-              (runAfters(testAndParameters, testClassInstance)) andThen
-                 runAfterClasses(testAndParameters)
       val testTask = new Runnable {
         def run() {
-          runLeaf(
-            testOperation,
-            description,
-            notifier
-          )
+          try { // TODO Add exception handler to remove nested curly braces
+            runLeaf(
+              testOperation,
+              description,
+              notifier
+            )
+          } catch {
+            case e: Throwable => notifier fireTestFailure(new Failure(description, e))
+          } finally {
+            afters.run
+          }
         }
       }
       if (testAndParameters.runSequentially) {
@@ -83,29 +80,14 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def runBeforeClasses(testAndParameters: TestAndParameters): Operation[Unit] =
+  private def afters(implicit testAndParameters: TestAndParameters): Operation[Unit] =
     Operation(() =>
-      testAndParameters.beforeClasses.foreach(invoke(_))
+      testAndParameters.afters.foreach(invoke(_, testAndParameters))
     )
 
-  private def runBefores(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[Unit] =
-    Operation(() =>
-      testAndParameters.befores.foreach(invoke(_, Some(testClassInstance)))
-    )
-
-  private def runAfters(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[Unit] =
-    Operation(() =>
-      testAndParameters.afters.foreach(invoke(_, Some(testClassInstance)))
-    )
-
-  private def runAfterClasses(testAndParameters: TestAndParameters): Operation[Unit] =
-    Operation(() =>
-      testAndParameters.afterClasses.foreach(invoke(_))
-    )
-
-  private def invoke(method: Method, thisObject: Option[AnyRef] = None /* when None -> invoke static method */) {
+  private def invoke(method: Method, testAndParameters: TestAndParameters) {
     method.setAccessible(true)
-    method.invoke(thisObject.getOrElse(null))
+    method.invoke(testAndParameters.testInstance)
   }
 
   private def runLeaf(testOperation: Operation[_ <: Any], description: Description, notifier: RunNotifier) {
@@ -121,14 +103,10 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     }
   }
 
-  private def runTest(testAndParameters: TestAndParameters, testClassInstance: AnyRef): Operation[AnyRef] = {
-    if (isScenarioClass(testAndParameters.testClass.getJavaClass))
-      createScenarioTestFunction(testAndParameters, testClassInstance)
-    else
-      Operation(() => {
-        testAndParameters.frameworkMethod.invokeExplosively(testClassInstance)
-      })
-  }
+  private def testOperation(implicit testAndParameters: TestAndParameters): Operation[AnyRef] =
+    Operation(() => {
+      testAndParameters.frameworkMethod.invokeExplosively(testAndParameters.testInstance)
+    })
 }
 
 private object HavaRunner {
@@ -139,11 +117,8 @@ private object HavaRunner {
         new TestAndParameters(
           new FrameworkMethod(methodAndScenario.method),
           testClass,
-          scenario = methodAndScenario.scenario.asInstanceOf[Object],
-          beforeClasses = findMethods(testClass, classOf[BeforeClass]),
-          befores = findMethods(testClass, classOf[Before]),
-          afters = findMethods(testClass, classOf[After]),
-          afterClasses = findMethods(testClass, classOf[AfterClass]),
+          scenario = methodAndScenario.scenario,
+          afters = findMethods(testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
         )
       })
@@ -160,12 +135,15 @@ private object HavaRunner {
     }
   }
 
-  private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]) = {
-    val superclasses: Seq[Class[_ <: Any]] = classWithSuperclasses(testClass.getJavaClass)
+  private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]): Seq[Method] = findMethods(testClass.getJavaClass, annotation)
+
+  private def findMethods(clazz: Class[_], annotation: Class[_ <: Annotation]): Seq[Method] = {
+    val superclasses: Seq[Class[_ <: Any]] = classWithSuperclasses(clazz)
     superclasses.flatMap(clazz =>
       clazz.getDeclaredMethods.filter(_.getAnnotation(annotation) != null)
     )
   }
+
 
   private def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] = {
     if (clazz.getSuperclass != null) {
@@ -175,41 +153,35 @@ private object HavaRunner {
     }
   }
 
-  private def findOnlyConstructor(testClass: TestClass) = {
-    val declaredConstructors = testClass.getJavaClass.getDeclaredConstructors
-    Assert.assertEquals(
-      String.format("The class %s should have exactly one no-arg constructor", testClass.getJavaClass.getName),
-      1,
-      declaredConstructors.length
-    )
-    val declaredConstructor = declaredConstructors.head
-    declaredConstructor.setAccessible(true)
-    declaredConstructor
-  }
+  private def isScenarioClass(clazz: Class[_]) = scenarioMethod(clazz).isDefined
 
-  private def isScenarioClass(clazz: Class[_ <: Any]) = classOf[TestWithMultipleScenarios[A]].isAssignableFrom(clazz)
+  private def scenarioMethod(clazz: Class[_]): Option[Method] = findMethods(clazz, classOf[Scenarios]).headOption.map(method => { method.setAccessible(true); method })
 
   private def findTestMethods(testClass: TestClass): Seq[MethodAndScenario] = {
-    scenarios(testClass).flatMap(scenario => {
-      val testMethods = testClass.getJavaClass.getDeclaredMethods.filter(_.getAnnotation(classOf[Test]) != null)
-      testMethods.map(testMethod => {
-        testMethod.setAccessible(true)
-        new MethodAndScenario(scenario, testMethod)
-      })
-    })
+    val testMethods = testClass.getJavaClass.getDeclaredMethods.
+      filter(_.getAnnotation(classOf[Test]) != null).
+      map(method => { method.setAccessible(true); method })
+    scenarios(testClass) match {
+      case Some(scenarios) =>
+        scenarios.flatMap(scenario =>
+          testMethods.map(new MethodAndScenario(Some(scenario), _))
+        )
+      case None =>
+        testMethods.map(new MethodAndScenario(None, _))
+    }
+
   }
 
-  private def scenarios(testClass: TestClass): Seq[Any] = {
+  private def scenarios(testClass: TestClass): Option[Seq[AnyRef]] = {
     if (isScenarioClass(testClass.getJavaClass)) {
-      newTestClassInstance(testClass).asInstanceOf[TestWithMultipleScenarios[A]].scenarios.toList
+      val scenarios = scenarioMethod(testClass.getJavaClass).get.invoke(null).asInstanceOf[java.lang.Iterable[A]]
+      Some(scenarios.iterator().toSeq)
     } else {
-      Seq(defaultScenario)
+      None
     }
   }
 
-  private def newTestClassInstance(testClass: TestClass) = findOnlyConstructor(testClass).newInstance().asInstanceOf[AnyRef]
+  private class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
 
-  private class MethodAndScenario(val scenario: Any, val method: Method)
-
-  type A = Any
+  type A = AnyRef
 }

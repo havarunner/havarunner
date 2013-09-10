@@ -2,10 +2,10 @@ package havarunner;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import havarunner.annotation.Scenarios;
 import havarunner.example.scenario.Person;
 import havarunner.example.scenario.RestaurantMenuTest;
-import havarunner.exception.ScenarioMethodNotFound;
-import org.junit.Ignore;
+import havarunner.exception.ScenarioConstructorNotFound;
 import org.junit.Test;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -14,8 +14,6 @@ import org.junit.runners.model.InitializationError;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Set;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static havarunner.TestHelper.run;
@@ -36,17 +34,15 @@ public class MultipleScenariosTest {
     @Test
     public void HavaRunner_raises_an_exception_if_the_scenario_method_does_not_have_the_scenario_object_as_only_arg() throws Exception {
         final AtomicReference<Failure> expectedFailure = runInvalidScenarioTestMethod();
-        assertEquals(expectedFailure.get().getException().getClass(), ScenarioMethodNotFound.class);
+        assertEquals(ScenarioConstructorNotFound.class, expectedFailure.get().getException().getClass());
     }
 
     @Test
     public void HavaRunner_prints_a_helpful_error_message_if_the_scenario_method_is_missing() throws Exception {
         final AtomicReference<Failure> expectedFailure = runInvalidScenarioTestMethod();
         assertEquals(
-            expectedFailure.get().getMessage(),
-            "Could not find the scenario method InvalidScenarioTest#this_method_is_missing_the_scenario_argument(java.lang.String). " +
-                "Please add the method this_method_is_missing_the_scenario_argument(java.lang.String) into " +
-                "class havarunner.MultipleScenariosTest$InvalidScenarioTest."
+            "Class InvalidScenarioTest is missing the required scenario constructor InvalidScenarioTest(class java.lang.String)",
+            expectedFailure.get().getMessage()
         );
     }
 
@@ -82,28 +78,38 @@ public class MultipleScenariosTest {
         return count;
     }
 
-    static class InvalidScenarioTest implements TestWithMultipleScenarios<String> {
+    static class InvalidScenarioTest {
 
-        @Override
-        public Set<String> scenarios() {
+        @Scenarios
+        static Set<String> scenarios() {
             return Sets.newHashSet("foo", "bar");
         }
 
         @Test
-        void this_method_is_missing_the_scenario_argument() {
+        void this_test_is_missing_the_scenario_constructor() {
 
         }
     }
 
-    static class ValidScenarioTest implements TestWithMultipleScenarios<String> {
+    static class ValidScenarioTest {
+        final String scenario;
 
-        @Override
-        public Set<String> scenarios() {
+        ValidScenarioTest(String scenario) {
+            this.scenario = scenario;
+        }
+
+        @Scenarios
+        static Set<String> scenarios() {
             return Sets.newHashSet("first", "second");
         }
 
         @Test
-        void this_method_is_missing_the_scenario_argument(String scenario) {
+        void do_something_with_the_scenario() {
+            scenarios.add(scenario);
+        }
+
+        @Test
+        void do_something_else_with_the_scenario() {
             scenarios.add(scenario);
         }
     }
