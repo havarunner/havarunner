@@ -36,9 +36,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     executor awaitTermination(1, TimeUnit.HOURS)
   }
 
-  private[havarunner] val classesToTest = Seq(
-    parentClass
-  ) ++ parentClass.getDeclaredClasses
+  private[havarunner] val classesToTest = parentClass +: parentClass.getDeclaredClasses.toSeq
 
   private[havarunner] def getChildren: java.lang.Iterable[TestAndParameters] = toTestParameters(classesToTest)
 
