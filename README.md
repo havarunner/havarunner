@@ -1,7 +1,7 @@
 # HavaRunner – a strongly opinionated JUnit runner
 
 [![Build
-Status](https://travis-ci.org/laurilehmijoki/HavaRunner.png?branch=master)](https://travis-ci.org/laurilehmijoki/HavaRunner)
+Status](https://travis-ci.org/havarunner/HavaRunner.png?branch=master)](https://travis-ci.org/havarunner/HavaRunner)
 
 ## Features
 
@@ -31,7 +31,7 @@ public class HelloWorldTest {
 }
 ````
 
-Click [here](https://github.com/laurilehmijoki/HavaRunner/tree/master/src/test/java/havarunner/example) for more examples.
+Click [here](https://github.com/havarunner/havarunner/tree/master/src/test/java/havarunner/example) for more examples.
 
 ## Tests
 
