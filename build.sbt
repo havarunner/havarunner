@@ -8,11 +8,10 @@ crossPaths := false
 
 publishMavenStyle := true
 
-Option(System.getenv("mvnrepo")) match {
-  case Some(repoDir) =>
-    publishTo := Some(Resolver.file("file",  new File(repoDir)))
-  case None =>
-    publishTo := Some(Resolver.file("file",  new File(Path.userHome.absolutePath+"/.m2/repository")))
+publishTo <<= version { (v: String) =>
+  val nexus = "https://oss.sonatype.org/"
+  if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
+  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
 scalaVersion := "2.10.2"
