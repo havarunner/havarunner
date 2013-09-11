@@ -2,7 +2,7 @@ organization := "com.github.havarunner"
 
 name := "havarunner"
 
-version := System.getProperty("releaseVersion", "0.1.0-SNAPSHOT")
+version := System.getProperty("releaseVersion", "0.2.0-SNAPSHOT")
 
 crossPaths := false
 
