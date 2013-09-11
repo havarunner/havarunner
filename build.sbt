@@ -1,4 +1,4 @@
-organization := "havarunner"
+organization := "com.github.havarunner"
 
 name := "havarunner"
 

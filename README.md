@@ -15,7 +15,7 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 ````java
 package helloworld;
 
-import havarunner.HavaRunner;
+import com.github.havarunner.HavaRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
