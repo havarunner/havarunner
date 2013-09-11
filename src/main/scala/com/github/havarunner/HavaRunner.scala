@@ -14,6 +14,7 @@ import java.lang.annotation.Annotation
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.annotation.{Scenarios, RunSequentially}
 import com.github.havarunner.HavaRunner._
+import com.github.havarunner.exception.TestDidNotRiseExpectedException
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   val executor = new ThreadPoolExecutor(
@@ -128,8 +129,30 @@ private object HavaRunner {
 
   private def testOperation(implicit testAndParameters: TestAndParameters): Operation[AnyRef] =
     Operation(() => {
-      testAndParameters.frameworkMethod.invokeExplosively(testAndParameters.testInstance)
+      takingExpectedExceptionIntoAccount {
+        testAndParameters.frameworkMethod.invokeExplosively(testAndParameters.testInstance)
+      }
     })
+
+  private def takingExpectedExceptionIntoAccount(testF: => A)(implicit testAndParameters: TestAndParameters): A = {
+    testAndParameters.expectedException match {
+      case Some(expected) =>
+        try {
+          testF
+          throw new TestDidNotRiseExpectedException(expected, testAndParameters)
+        } catch {
+          case e: Throwable =>
+            if (expected != e.getClass) {
+              throw e // The exception was something the test did not anticipate
+            } else {
+              // The test expected this exception. All ok.
+              "ok"
+            }
+        }
+      case None =>
+        testF
+    }
+  }
 
   private def toTestParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
     classesToTest.flatMap(aClass => {
@@ -138,6 +161,7 @@ private object HavaRunner {
         new TestAndParameters(
           new FrameworkMethod(methodAndScenario.method),
           testClass,
+          expectedException = expectedException(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
           afters = findMethods(testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
@@ -154,6 +178,14 @@ private object HavaRunner {
     } else {
       false
     }
+  }
+
+  private def expectedException(method: Method): Option[Class[_ <: Throwable]] = {
+    val expected = method.getAnnotation(classOf[Test]).expected()
+    if (expected == classOf[org.junit.Test.None])
+      None
+    else
+      Some(expected)
   }
 
   private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]): Seq[Method] = findMethods(testClass.getJavaClass, annotation)

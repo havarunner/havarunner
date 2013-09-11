@@ -9,6 +9,7 @@ import com.github.havarunner.exception.ScenarioConstructorNotFound
 private[havarunner] class TestAndParameters(
   val frameworkMethod: FrameworkMethod,
   val testClass: TestClass,
+  val expectedException: Option[Class[_<:Throwable]],
   val scenario: Option[AnyRef],
   val afters: Seq[Method],
   val runSequentially: Boolean

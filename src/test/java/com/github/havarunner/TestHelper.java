@@ -19,6 +19,18 @@ public class TestHelper {
         return expectedFailure;
     }
 
+    public static Failure runAndRecordFailure(HavaRunner havaRunner) {
+        final AtomicReference<Failure> expectedFailure = new AtomicReference<>();
+        RunNotifier runNotifier = new RunNotifier() {
+            @Override
+            public void fireTestFailure(Failure failure) {
+                expectedFailure.set(failure);
+            }
+        };
+        run(havaRunner, runNotifier);
+        return expectedFailure.get();
+    }
+
     public static void run(HavaRunner havaRunner, RunNotifier runNotifier) {
         havaRunner.run(runNotifier);
     }
