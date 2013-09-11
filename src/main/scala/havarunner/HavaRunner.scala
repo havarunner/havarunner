@@ -1,6 +1,6 @@
 package havarunner
 
-import org.junit.runner.{Description, Runner}
+import org.junit.runner.{Request, Description, Runner}
 import org.junit.runner.notification.{Failure, RunNotifier}
 import java.util.concurrent.{TimeUnit, SynchronousQueue, ThreadPoolExecutor}
 import scala.collection.JavaConversions._
@@ -13,8 +13,9 @@ import java.lang.reflect.Method
 import org.junit.runners.model.{FrameworkMethod, TestClass}
 import java.lang.annotation.Annotation
 import havarunner.annotation.{Scenarios, RunSequentially}
+import org.junit.runner.manipulation.{Filter, Filterable}
 
-class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
+class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   val executor = new ThreadPoolExecutor(
     0, Runtime.getRuntime.availableProcessors(),
     60L, TimeUnit.SECONDS,
@@ -22,30 +23,52 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     new ThreadPoolExecutor.CallerRunsPolicy()
   )
 
+  private var filterOption: Option[Filter] = None
+
   def getDescription = {
     val description = Description.createSuiteDescription(parentClass)
-    getChildren.iterator() foreach (child => description.addChild(describeChild(child)))
+    children.iterator() foreach (child => description.addChild(describeChild(child)))
     description
   }
 
   def run(notifier: RunNotifier) {
-    getChildren.iterator() foreach (testAndParameters => runChild(testAndParameters, notifier))
+    children.iterator() foreach (testAndParameters => runChild(testAndParameters, notifier))
     executor shutdown()
     executor awaitTermination(1, TimeUnit.HOURS)
   }
 
-  private[havarunner] val classesToTest = parentClass +: parentClass.getDeclaredClasses.toSeq
+  def filter(filter: Filter) {
+    this.filterOption = Some(filter)
+  }
 
-  private[havarunner] def getChildren: java.lang.Iterable[TestAndParameters] = toTestParameters(classesToTest)
-
-  private[havarunner] def runChild(testAndParameters: TestAndParameters, notifier: RunNotifier) {
+  private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier) {
     val description = describeChild(testAndParameters)
     val testIsInvalidReport = reportInvalidations(testAndParameters)
     if (testIsInvalidReport.isDefined)
       notifier fireTestAssumptionFailed new Failure(description, testIsInvalidReport.get)
     else
-      runValidTest(testAndParameters, notifier, description)
+      runValidTest(testAndParameters, notifier, description, executor)
   }
+
+  private[havarunner] val classesToTest = parentClass +: parentClass.getDeclaredClasses.toSeq
+
+  private[havarunner] def children: java.lang.Iterable[TestAndParameters] =
+    toTestParameters(classesToTest).
+      filter(acceptChild(_, filterOption))
+}
+
+private object HavaRunner {
+  private def acceptChild(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =
+    filterOption.map(filter => {
+      val FilterDescribePattern = "Method (.*)\\((.*)\\)".r
+      filter.describe() match {
+        case FilterDescribePattern(desiredMethodName, desiredClassName) =>
+          val methodNameMatches = testParameters.frameworkMethod.getMethod.getName.equals(desiredMethodName)
+          val classNameMatches: Boolean = testParameters.testClass.getJavaClass.getName.equals(desiredClassName)
+          classNameMatches && methodNameMatches
+        case _ => throw new IllegalArgumentException("Filter#describe returned an unexpected string")
+      }
+    }).getOrElse(true)
 
   private def describeChild(testAndParameters: TestAndParameters) =
     Description createTestDescription(
@@ -53,7 +76,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
       testAndParameters.frameworkMethod.getName + testAndParameters.scenarioToString
       )
 
-  private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
+  private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ThreadPoolExecutor) {
     if (testAndParameters.frameworkMethod.getAnnotation(classOf[Ignore]) != null) {
       notifier fireTestIgnored description
     } else {
@@ -107,9 +130,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner {
     Operation(() => {
       testAndParameters.frameworkMethod.invokeExplosively(testAndParameters.testInstance)
     })
-}
 
-private object HavaRunner {
   private def toTestParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
     classesToTest.flatMap(aClass => {
       val testClass = new TestClass(aClass)

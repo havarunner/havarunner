@@ -24,7 +24,7 @@ public class MultipleScenariosTest {
     @Test
     public void it_constructs_an_example_for_each_scenario() throws InitializationError {
         int numberOfScenarios = Person.values().length;
-        Iterable<TestAndParameters> children = new HavaRunner(RestaurantMenuTest.class).getChildren();
+        Iterable<TestAndParameters> children = new HavaRunner(RestaurantMenuTest.class).children();
         assertEquals(
             numberOfScenarios * numberOfExamples(RestaurantMenuTest.class),
             Lists.newArrayList(children).size()
