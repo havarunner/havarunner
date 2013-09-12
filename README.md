@@ -11,7 +11,7 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
  * Run the same test against multiple scenarios
 * Enclosed tests
  * Group tests with static inner classes
-* Tests are run in parallel by default
+* Run tests in parallel by default
 * Strict coding conventions
  * HavaRunner requires snake\_case in test methods
 * Reduce syntactic noise
