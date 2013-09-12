@@ -1,18 +1,9 @@
-#!/usr/bin/env ruby
+#!/bin/bash
 
-unless ARGV.length == 1 && ARGV[0].match(/\d+\.\d+\.\d+/)
-  puts <<-HELP
-Usage: #{__FILE__} VERSION
+version=$1
 
-VERSION must be a semantic version (http://semver.org).
-  HELP
-  exit 1
-end
-
-version = ARGV[0]
-
-`sbt clean`
-puts `sbt -DreleaseVersion=#{version} publish-signed`
-`git tag #{version}`
-`git push`
-`git push --tags`
+sbt clean
+sbt -DreleaseVersion=$version publish-signed
+git tag $version
+git push
+git push --tags
