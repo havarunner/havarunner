@@ -12,7 +12,7 @@ end
 version = ARGV[0]
 
 `sbt clean`
-puts `sbt -DreleaseVersion=#{version} publish`
+puts `sbt -DreleaseVersion=#{version} publish-signed`
 `git tag #{version}`
 `git push`
 `git push --tags`
