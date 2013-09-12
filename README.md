@@ -48,7 +48,7 @@ Concurrency problems imply a [Code
 Smell](http://en.wikipedia.org/wiki/Code_smell). If you see sequentially-run
 HavaRunner tests in the codebase, try to understand why they cannot be run
 concurrently. From this understanding you might gain valuable insights into the
-architectural problems in the system.
+architectural problems of the system.
 
 ### Full code examples
 
