@@ -31,7 +31,29 @@ public class HelloWorldTest {
 }
 ````
 
-Click [here](https://github.com/havarunner/havarunner/tree/master/src/test/java/havarunner/example) for more examples.
+### Run sequentially
+
+If your tests do not thrive in the concurrent world, you can instruct HavaRunner
+to run them sequentially:
+
+````java
+@RunWith(HavaRunner.class)
+@RunSequentially
+public class HelloWorldTest {
+  // here be test code
+}
+````
+
+Concurrency problems imply a [Code
+Smell](http://en.wikipedia.org/wiki/Code_smell). If you see sequentially-run
+HavaRunner tests in the codebase, try to understand why they cannot be run
+concurrently. From this understanding you might gain valuable insights into the
+architectural problems in the system.
+
+### Full code examples
+
+[Here](https://github.com/havarunner/havarunner/tree/master/src/test/java/havarunner/example)
+you can find complete code examples.
 
 ## Supported JUnit annotations
 
