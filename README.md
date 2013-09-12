@@ -7,6 +7,7 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 
 * Once instance per test
  * Do your computation-intensive setup in the constructor of the test class
+ * Create easy-to-reason-about test classes that rely on `final` instance fields
 * Scenarios
  * Run the same test against multiple scenarios
 * Enclosed tests
