@@ -26,6 +26,7 @@ libraryDependencies ++= Seq(
 )
 
 pomExtra :=
+  <url>https://github.com/havarunner/havarunner</url>
   <licenses>
     <license>
       <name>The MIT Licence (MIT)</name>
