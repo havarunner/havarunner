@@ -31,6 +31,16 @@ public class HelloWorldTest {
 }
 ````
 
+### Run the same test against multiple scenarios
+
+HavaRunner lets you model your use cases with scenarios.
+
+From Merriam-Webster:
+
+<blockquote>Scenario – a description of what could possibly happen</blockquote>
+
+TODO add example here.
+
 ### Run sequentially
 
 If your tests do not thrive in the concurrent world, you can instruct HavaRunner
