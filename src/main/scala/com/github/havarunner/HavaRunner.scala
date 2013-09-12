@@ -15,14 +15,9 @@ import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.annotation.{Scenarios, RunSequentially}
 import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.TestDidNotRiseExpectedException
+import com.github.havarunner.ConcurrencyControl._
 
-class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
-  val executor = new ThreadPoolExecutor(
-    0, Runtime.getRuntime.availableProcessors(),
-    60L, TimeUnit.SECONDS,
-    new SynchronousQueue[Runnable],
-    new ThreadPoolExecutor.CallerRunsPolicy()
-  )
+class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable with ThreadPool {
 
   private var filterOption: Option[Filter] = None
 
@@ -118,7 +113,7 @@ private object HavaRunner {
     val eachNotifier = new EachTestNotifier(notifier, description)
     eachNotifier fireTestStarted()
     try {
-      testOperation.run
+      withThrottle(testOperation)
     } catch {
       case e: AssumptionViolatedException => eachNotifier addFailedAssumption e
       case e: Throwable => eachNotifier addFailure e
