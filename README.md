@@ -28,13 +28,28 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 
 ## Usage
 
+### Hello world
+
 ````java
 @RunWith(HavaRunner.class)
 public class HelloWorldTest {
 
+    final Object world;
+
+    HelloWorldTest() {
+        // You can do your setup in the constructor. Benefit from immutable objects!
+        world = "hello";
+    }
+
     @Test
     void HavaRunner_greets_the_world() {
-        System.out.println("Hello world");
+        System.out.println("hello "+world);
+    }
+
+    @AfterAll
+    void destroy() {
+        // This method will be invoked after all the tests in the class
+        world = null;
     }
 }
 ````
@@ -47,7 +62,42 @@ From Merriam-Webster:
 
 <blockquote>Scenario – a description of what could possibly happen</blockquote>
 
-TODO add example here.
+````java
+@RunWith(HavaRunner.class)
+public class LoginPageTest {
+
+    final User user;
+    final Object loginPage;
+
+    LoginPageTest(User user) {
+        this.user = user;
+        loginPage = "here be html";
+    }
+
+    @Test
+    void login_page_looks_the_same_for_all_users() {
+        if (user == User.ADMIN) {
+            assertNotNull(loginPage);
+        } else if (user == User.ANONYMOUS) {
+            assertNotNull(loginPage);
+        } else {
+            throw new IllegalArgumentException("Unrecognised user " + user);
+        }
+    }
+
+    enum User {
+        ADMIN,
+        ANONYMOUS
+    }
+
+    @Scenarios
+    static Collection<User> users() {
+        Collection<User> users = new ArrayList<>();
+        Collections.addAll(users, User.values());
+        return users;
+    }
+}
+````
 
 ### Run sequentially
 
