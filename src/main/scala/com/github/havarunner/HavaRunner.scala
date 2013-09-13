@@ -4,7 +4,7 @@ import org.junit.runner.{Description, Runner}
 import org.junit.runner.notification.{Failure, RunNotifier}
 import java.util.concurrent._
 import scala.collection.JavaConversions._
-import CodingConventionsAndValidations._
+import Validations._
 import org.junit._
 import org.junit.internal.runners.model.EachTestNotifier
 import java.lang.reflect.InvocationTargetException

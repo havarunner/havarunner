@@ -1,4 +1,4 @@
-# HavaRunner – a strongly opinionated JUnit runner
+# HavaRunner – a JUnit runner
 
 [![Build
 Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://travis-ci.org/havarunner/havarunner)
@@ -13,8 +13,6 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 * **Enclosed tests**
  * Group tests with static inner classes (like with `org.junit.experimental.runners.Enclosed`)
 * **Run tests in parallel by default**
-* **Strict coding conventions**
- * HavaRunner requires snake\_case in test methods
 * **Reduce syntactic noise**
  * HavaRunner lets you omit the `public` access modifier from the methods
 
