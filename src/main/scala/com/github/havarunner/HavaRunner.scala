@@ -7,7 +7,7 @@ import scala.collection.JavaConversions._
 import Validations._
 import org.junit._
 import org.junit.internal.runners.model.EachTestNotifier
-import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.{Method, InvocationTargetException}
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.TestDidNotRiseExpectedException
@@ -27,12 +27,15 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
   }
 
   def run(notifier: RunNotifier) {
-    children.groupBy(_.scenarioAndClass).foreach {
+    val afterAllsAndFutures = children.groupBy(_.scenarioAndClass).map {
       case (scenarioAndClass, testsAndClasses) =>
-        val forkJoinTasks = testsAndClasses flatMap (testAndParameters => runChild(testAndParameters, notifier))
-        forkJoinTasks.foreach(_.get(1, TimeUnit.HOURS))
-        testsAndClasses.headOption.foreach(afterAlls(_).run)
+        val futures: Iterable[FutureTask[_]] = testsAndClasses.flatMap(testAndParameters => runChild(testAndParameters, notifier))
+        AfterAllsAndFutures(afterAlls(testsAndClasses.head), futures)
     }
+    afterAllsAndFutures.foreach(afterAllsAndFutures => {
+      afterAllsAndFutures.futures.foreach(_.get(1, TimeUnit.HOURS))
+      afterAllsAndFutures.afterAlls.run
+    })
     executor shutdown()
     executor awaitTermination(1, TimeUnit.HOURS)
   }
@@ -57,6 +60,8 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
   private[havarunner] def children: java.lang.Iterable[TestAndParameters] =
     parseTestsAndParameters(classesToTest).
       filter(acceptChild(_, filterOption))
+
+  private case class AfterAllsAndFutures(afterAlls: Operation[_], futures: Iterable[FutureTask[_]])
 }
 
 private object HavaRunner {
