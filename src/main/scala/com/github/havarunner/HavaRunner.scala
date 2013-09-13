@@ -86,7 +86,7 @@ private object HavaRunner {
       val testTask = new FutureTask(new Runnable {
         def run() {
           try { // TODO Add exception handler to remove nested curly braces
-            runLeaf(
+            withStartAndFinished(
               testOperation,
               description,
               notifier
@@ -116,7 +116,7 @@ private object HavaRunner {
     method.invoke(testAndParameters.testInstance)
   }
 
-  private def runLeaf(testOperation: Operation[_ <: Any], description: Description, notifier: RunNotifier) {
+  private def withStartAndFinished(testOperation: Operation[_ <: Any], description: Description, notifier: RunNotifier) {
     val eachNotifier = new EachTestNotifier(notifier, description)
     eachNotifier fireTestStarted()
     try {
