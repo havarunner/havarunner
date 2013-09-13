@@ -62,7 +62,7 @@ private object HavaRunner {
           val methodNameMatches = testParameters.frameworkMethod.getMethod.getName.equals(desiredMethodName)
           val classNameMatches: Boolean = testParameters.testClass.getJavaClass.getName.equals(desiredClassName)
           classNameMatches && methodNameMatches
-        case _ => throw new IllegalArgumentException("Filter#describe returned an unexpected string")
+        case unexpected => throw new IllegalArgumentException(s"Filter#describe returned an unexpected string $unexpected")
       }
     }).getOrElse(true)
 
