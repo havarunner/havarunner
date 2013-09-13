@@ -63,7 +63,8 @@ From Merriam-Webster:
 <blockquote>Scenario – a description of what could possibly happen</blockquote>
 
 You can use scenarios by adding a static `@Scenarios` method and a constructor
-that takes in one argument.
+that takes in one argument. HavaRunner will then call your test methods once
+for each scenario.
 
 ````java
 @RunWith(HavaRunner.class)
