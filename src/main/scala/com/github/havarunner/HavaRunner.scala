@@ -85,14 +85,13 @@ private object HavaRunner {
     } else {
       val testTask = new FutureTask(new Runnable {
         def run() {
-          try { // TODO Add exception handler to remove nested curly braces
-            withStartAndFinished(
-              testOperation,
-              description,
-              notifier
-            )
+          try {
+            notifier fireTestStarted description
+            withThrottle(testOperation)
           } catch {
-            case e: Throwable => notifier fireTestFailure(new Failure(description, e))
+            case e: Throwable => notifier fireTestFailure new Failure(description, e)
+          } finally {
+            notifier fireTestFinished description
           }
         }
       }, None)
@@ -110,15 +109,6 @@ private object HavaRunner {
     Operation(() =>
       testAndParameters.afterAll.foreach(invoke(_, testAndParameters))
     )
-
-  private def withStartAndFinished(testOperation: Operation[_ <: Any], description: Description, notifier: RunNotifier) {
-    notifier fireTestStarted description
-    try {
-      withThrottle(testOperation)
-    } finally {
-      notifier fireTestFinished description
-    }
-  }
 
   private def testOperation(implicit testAndParameters: TestAndParameters): Operation[AnyRef] =
     Operation(() => {
