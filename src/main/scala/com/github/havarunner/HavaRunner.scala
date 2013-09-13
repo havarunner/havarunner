@@ -112,12 +112,11 @@ private object HavaRunner {
     )
 
   private def withStartAndFinished(testOperation: Operation[_ <: Any], description: Description, notifier: RunNotifier) {
-    val eachNotifier = new EachTestNotifier(notifier, description)
-    eachNotifier fireTestStarted()
+    notifier fireTestStarted description
     try {
       withThrottle(testOperation)
     } finally {
-      eachNotifier fireTestFinished()
+      notifier fireTestFinished description
     }
   }
 
