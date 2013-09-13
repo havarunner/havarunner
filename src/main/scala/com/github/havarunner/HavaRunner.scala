@@ -141,7 +141,6 @@ private object HavaRunner {
         } catch {
           case e: Throwable =>
             if (expected != e.getClass) {
-              println(e.getClass)
               throw e // The exception was something the test did not anticipate
             } else {
               // The test expected this exception. All ok.
