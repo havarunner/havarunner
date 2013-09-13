@@ -16,6 +16,16 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 * **Reduce syntactic noise**
  * HavaRunner lets you omit the `public` access modifier from the methods
 
+## Install
+
+````xml
+<dependency>
+  <groupId>com.github.havarunner</groupId>
+  <artifactId>havarunner</artifactId>
+  <version>0.4.0</version>
+</dependency>
+````
+
 ## Usage
 
 ````java
