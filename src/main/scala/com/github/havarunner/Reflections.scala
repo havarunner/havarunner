@@ -21,6 +21,11 @@ private[havarunner] object Reflections {
     )
   }
 
+  def invoke(method: Method, testAndParameters: TestAndParameters) {
+    method.setAccessible(true)
+    method.invoke(testAndParameters.testInstance)
+  }
+
   def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] = {
     if (clazz.getSuperclass != null) {
       classWithSuperclasses(clazz.getSuperclass, clazz +: superclasses)

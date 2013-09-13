@@ -7,13 +7,13 @@ import scala.collection.JavaConversions._
 import CodingConventionsAndValidations._
 import org.junit._
 import org.junit.internal.runners.model.EachTestNotifier
-import org.junit.internal.AssumptionViolatedException
-import java.lang.reflect.{InvocationTargetException, Method}
+import java.lang.reflect.InvocationTargetException
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.TestDidNotRiseExpectedException
 import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.Parser._
+import com.github.havarunner.Reflections._
 import scala.Some
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable with ThreadPool {
@@ -110,11 +110,6 @@ private object HavaRunner {
     Operation(() =>
       testAndParameters.afterAll.foreach(invoke(_, testAndParameters))
     )
-
-  private def invoke(method: Method, testAndParameters: TestAndParameters) {
-    method.setAccessible(true)
-    method.invoke(testAndParameters.testInstance)
-  }
 
   private def withStartAndFinished(testOperation: Operation[_ <: Any], description: Description, notifier: RunNotifier) {
     val eachNotifier = new EachTestNotifier(notifier, description)
