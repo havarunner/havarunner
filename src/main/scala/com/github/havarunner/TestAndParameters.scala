@@ -1,13 +1,13 @@
 package com.github.havarunner
 
-import org.junit.runners.model.{TestClass, FrameworkMethod}
+import org.junit.runners.model.TestClass
 import java.lang.reflect.Method
 import scala.collection.mutable
 import _root_.com.github.havarunner.TestAndParameters._
 import com.github.havarunner.exception.ScenarioConstructorNotFound
 
 private[havarunner] class TestAndParameters(
-  val frameworkMethod: FrameworkMethod,
+  val testMethod: Method,
   val testClass: TestClass,
   val expectedException: Option[Class[_<:Throwable]],
   val scenario: Option[AnyRef],

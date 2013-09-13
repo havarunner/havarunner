@@ -1,6 +1,6 @@
 package com.github.havarunner
 
-import org.junit.runners.model.{FrameworkMethod, TestClass}
+import org.junit.runners.model.{TestClass}
 import org.junit.{Test, After}
 import com.github.havarunner.annotation.{Scenarios, RunSequentially}
 import java.lang.annotation.Annotation
@@ -14,7 +14,7 @@ private[havarunner] object Parser {
       val testClass = new TestClass(aClass)
       findTestMethods(testClass).map(methodAndScenario => {
         new TestAndParameters(
-          new FrameworkMethod(methodAndScenario.method),
+          methodAndScenario.method,
           testClass,
           expectedException = expectedException(methodAndScenario.method),
           scenario = methodAndScenario.scenario,

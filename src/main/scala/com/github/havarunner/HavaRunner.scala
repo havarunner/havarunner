@@ -8,7 +8,7 @@ import CodingConventionsAndValidations._
 import org.junit._
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.internal.AssumptionViolatedException
-import java.lang.reflect.Method
+import java.lang.reflect.{InvocationTargetException, Method}
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.TestDidNotRiseExpectedException
@@ -57,7 +57,7 @@ private object HavaRunner {
       val FilterDescribePattern = "Method (.*)\\((.*)\\)".r
       filter.describe() match {
         case FilterDescribePattern(desiredMethodName, desiredClassName) =>
-          val methodNameMatches = testParameters.frameworkMethod.getMethod.getName.equals(desiredMethodName)
+          val methodNameMatches = testParameters.testMethod.getName.equals(desiredMethodName)
           val classNameMatches: Boolean = testParameters.testClass.getJavaClass.getName.equals(desiredClassName)
           classNameMatches && methodNameMatches
         case unexpected => throw new IllegalArgumentException(s"Filter#describe returned an unexpected string $unexpected")
@@ -67,11 +67,11 @@ private object HavaRunner {
   private def describeChild(testAndParameters: TestAndParameters) =
     Description createTestDescription(
       testAndParameters.testClass.getJavaClass,
-      testAndParameters.frameworkMethod.getName + testAndParameters.scenarioToString
+      testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
 
   private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ThreadPoolExecutor) {
-    if (testAndParameters.frameworkMethod.getAnnotation(classOf[Ignore]) != null) {
+    if (testAndParameters.testMethod.getAnnotation(classOf[Ignore]) != null) {
       notifier fireTestIgnored description
     } else {
       val testTask = new Runnable {
@@ -123,7 +123,12 @@ private object HavaRunner {
   private def testOperation(implicit testAndParameters: TestAndParameters): Operation[AnyRef] =
     Operation(() => {
       takingExpectedExceptionIntoAccount {
-        testAndParameters.frameworkMethod.invokeExplosively(testAndParameters.testInstance)
+        try {
+          testAndParameters.testMethod.invoke(testAndParameters.testInstance)
+        } catch {
+          case e: InvocationTargetException =>
+            throw e.getTargetException
+        }
       }
     })
 
@@ -136,6 +141,7 @@ private object HavaRunner {
         } catch {
           case e: Throwable =>
             if (expected != e.getClass) {
+              println(e.getClass)
               throw e // The exception was something the test did not anticipate
             } else {
               // The test expected this exception. All ok.

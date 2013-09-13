@@ -1,6 +1,6 @@
 package com.github.havarunner
 
-import org.junit.runners.model.{FrameworkMethod, TestClass}
+import org.junit.runners.model.TestClass
 import org.junit._
 import java.lang.reflect.{Method, Modifier, Member}
 import scala.Some
@@ -10,26 +10,26 @@ private[havarunner] object CodingConventionsAndValidations {
 
   def reportInvalidations(testAndParameters: TestAndParameters): Option[Exception] =
     try {
-      ensuringSnakeCased(testAndParameters.frameworkMethod)
-      ensuringPackagePrivate(testAndParameters.frameworkMethod)
+      ensuringSnakeCased(testAndParameters.testMethod)
+      ensuringPackagePrivate(testAndParameters.testMethod)
       ensuringValidTestClass(testAndParameters.testClass)
       None
     } catch {
       case e: Exception => Some(e)
     }
 
-  private def ensuringSnakeCased(frameworkMethod: FrameworkMethod) {
-    if (hasInvalidMethodName(frameworkMethod)) {
+  private def ensuringSnakeCased(method: Method) {
+    if (hasInvalidMethodName(method)) {
       throw new CamelCasedException(String.format(
         "Example %s is camed-cased. Please use_snake_cased_example_names.",
-        frameworkMethod.getName
+        method.getName
       ))
     }
   }
 
-  private def ensuringPackagePrivate(frameworkMethod: FrameworkMethod) {
-    if (isNotPackagePrivate(frameworkMethod.getMethod)) {
-      throw new MemberIsNotPackagePrivateException(frameworkMethod.getMethod)
+  private def ensuringPackagePrivate(method: Method) {
+    if (isNotPackagePrivate(method)) {
+      throw new MemberIsNotPackagePrivateException(method)
     }
   }
 
@@ -58,8 +58,8 @@ private[havarunner] object CodingConventionsAndValidations {
     })
   }
 
-  private def hasInvalidMethodName(frameworkMethod: FrameworkMethod) = {
-    val methodName = frameworkMethod.getMethod.getName
+  private def hasInvalidMethodName(method: Method) = {
+    val methodName = method.getName
     methodName.matches(".*[a-z][A-Z].*") && !methodName.contains("_")
   }
 
