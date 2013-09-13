@@ -123,7 +123,7 @@ architectural problems of the system.
 
 ### Full code examples
 
-[Here](https://github.com/havarunner/havarunner/tree/master/src/test/java/havarunner/example)
+[Here](https://github.com/havarunner/havarunner/tree/master/src/test/java/com/github/havarunner/example)
 you can find complete code examples.
 
 ## Supported JUnit annotations
