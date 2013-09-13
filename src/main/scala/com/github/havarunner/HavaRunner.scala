@@ -19,7 +19,7 @@ import com.github.havarunner.ConcurrencyControl._
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable with ThreadPool {
 
-  private var filterOption: Option[Filter] = None
+  private var filterOption: Option[Filter] = None // The Filterable API requires us to use a var
 
   def getDescription = {
     val description = Description.createSuiteDescription(parentClass)
