@@ -122,7 +122,6 @@ private object HavaRunner {
     try {
       withThrottle(testOperation)
     } catch {
-      case e: AssumptionViolatedException => eachNotifier addFailedAssumption e
       case e: Throwable => eachNotifier addFailure e
     } finally {
       eachNotifier fireTestFinished()
