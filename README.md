@@ -72,7 +72,6 @@ HavaRunner supports only a limited set of JUnit annotations. Here they are:
 | Annotation | Semantics | Comment |
 | ---------- | --------- | ------- |
 | `@org.junit.Test` | Same as in JUnit | This fellow you already know. |
-| `@org.junit.After` | Methods with this annotation will be run after **all** the tests in the class. Because of this, its semantics resemble those of `@org.junit.AfterClass`.  | This will be replaced by `@com.github.havarunner.annotation.AfterAll` |
 
 HavaRunner supports none of the other JUnit annotations.
 

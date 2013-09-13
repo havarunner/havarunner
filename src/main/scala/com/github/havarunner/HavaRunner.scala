@@ -31,7 +31,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
       case (scenarioAndClass, testsAndClasses) =>
         val forkJoinTasks = testsAndClasses flatMap (testAndParameters => runChild(testAndParameters, notifier))
         forkJoinTasks.foreach(_.get(1, TimeUnit.HOURS))
-        testsAndClasses.headOption.foreach(afters(_).run)
+        testsAndClasses.headOption.foreach(afterAlls(_).run)
     }
     executor shutdown()
     executor awaitTermination(1, TimeUnit.HOURS)
@@ -45,7 +45,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
     val description = describeChild(testAndParameters)
     val testIsInvalidReport = reportInvalidations(testAndParameters)
     if (testIsInvalidReport.isDefined) {
-      notifier fireTestAssumptionFailed new Failure(description, testIsInvalidReport.get)
+      notifier fireTestFailure  new Failure(description, testIsInvalidReport.get)
       None
     } else {
       runValidTest(testAndParameters, notifier, description, executor)
@@ -106,9 +106,9 @@ private object HavaRunner {
     }
   }
 
-  private def afters(implicit testAndParameters: TestAndParameters): Operation[Unit] =
+  private def afterAlls(implicit testAndParameters: TestAndParameters): Operation[Unit] =
     Operation(() =>
-      testAndParameters.afters.foreach(invoke(_, testAndParameters))
+      testAndParameters.afterAll.foreach(invoke(_, testAndParameters))
     )
 
   private def invoke(method: Method, testAndParameters: TestAndParameters) {

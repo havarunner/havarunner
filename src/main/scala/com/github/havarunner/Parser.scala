@@ -1,7 +1,7 @@
 package com.github.havarunner
 
 import org.junit.{Test, After}
-import com.github.havarunner.annotation.{Scenarios, RunSequentially}
+import com.github.havarunner.annotation.{AfterAll, Scenarios, RunSequentially}
 import java.lang.reflect.Method
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
@@ -16,7 +16,7 @@ private[havarunner] object Parser {
           testClass,
           expectedException = expectedException(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
-          afters = findMethods(testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
+          afterAll = findMethods(testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
         )
       })

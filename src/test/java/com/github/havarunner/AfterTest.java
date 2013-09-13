@@ -1,9 +1,8 @@
 package com.github.havarunner;
 
-import com.github.havarunner.HavaRunner;
+import com.github.havarunner.annotation.AfterAll;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
@@ -12,8 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.github.havarunner.TestHelper.run;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
@@ -43,7 +42,7 @@ public class AfterTest {
                 test2MethodCall = System.currentTimeMillis();
             }
 
-            @After
+            @AfterAll
             void cleanUp() throws InterruptedException {
                 Thread.sleep(1); // Sleep. Otherwise millisecond-precision is not enough.
                 afterMethodCalls.add(System.currentTimeMillis());
@@ -72,7 +71,7 @@ public class AfterTest {
                 fail("This test always fails");
             }
 
-            @org.junit.After
+            @AfterAll
             void destroy_the_world() {
                 worldIsDestroyed = true;
             }
@@ -101,7 +100,7 @@ public class AfterTest {
 
             }
 
-            @org.junit.After
+            @AfterAll
             void destroy_the_world() {
                 worldIsDestroyed = true;
             }
@@ -144,7 +143,7 @@ public class AfterTest {
 
             }
 
-            @org.junit.After
+            @AfterAll
             void destroy_the_world() throws InterruptedException {
                 Thread.sleep(1);
                 worldIsDestroyed = System.currentTimeMillis();
@@ -157,7 +156,7 @@ public class AfterTest {
                 universeIsBuilt = System.currentTimeMillis();
             }
 
-            @org.junit.After
+            @AfterAll
             void destroy_the_universe() throws InterruptedException {
                 Thread.sleep(1);
                 universeIsDestroyed = System.currentTimeMillis();
