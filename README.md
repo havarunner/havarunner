@@ -62,6 +62,9 @@ From Merriam-Webster:
 
 <blockquote>Scenario – a description of what could possibly happen</blockquote>
 
+You can use scenarios by adding a static `@Scenarios` method and a constructor
+that takes in one argument.
+
 ````java
 @RunWith(HavaRunner.class)
 public class LoginPageTest {
