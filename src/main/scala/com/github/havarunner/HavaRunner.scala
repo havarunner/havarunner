@@ -58,7 +58,7 @@ private object HavaRunner {
       filter.describe() match {
         case FilterDescribePattern(desiredMethodName, desiredClassName) =>
           val methodNameMatches = testParameters.testMethod.getName.equals(desiredMethodName)
-          val classNameMatches: Boolean = testParameters.testClass.getJavaClass.getName.equals(desiredClassName)
+          val classNameMatches: Boolean = testParameters.testClass.getName.equals(desiredClassName)
           classNameMatches && methodNameMatches
         case unexpected => throw new IllegalArgumentException(s"Filter#describe returned an unexpected string $unexpected")
       }
@@ -66,7 +66,7 @@ private object HavaRunner {
 
   private def describeChild(testAndParameters: TestAndParameters) =
     Description createTestDescription(
-      testAndParameters.testClass.getJavaClass,
+      testAndParameters.testClass,
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
 

@@ -1,6 +1,5 @@
 package com.github.havarunner
 
-import org.junit.runners.model.TestClass
 import java.lang.reflect.Method
 import scala.collection.mutable
 import _root_.com.github.havarunner.TestAndParameters._
@@ -8,14 +7,14 @@ import com.github.havarunner.exception.ScenarioConstructorNotFound
 
 private[havarunner] class TestAndParameters(
   val testMethod: Method,
-  val testClass: TestClass,
+  val testClass: Class[_],
   val expectedException: Option[Class[_<:Throwable]],
   val scenario: Option[AnyRef],
   val afters: Seq[Method],
   val runSequentially: Boolean
 ) {
 
-  lazy val testInstance = newOrCachedInstance(testClass.getJavaClass, scenario)
+  lazy val testInstance = newOrCachedInstance(testClass, scenario)
 
   def scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 }

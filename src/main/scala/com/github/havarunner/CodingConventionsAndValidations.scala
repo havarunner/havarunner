@@ -1,10 +1,10 @@
 package com.github.havarunner
 
-import org.junit.runners.model.TestClass
 import org.junit._
 import java.lang.reflect.{Method, Modifier, Member}
 import scala.Some
 import com.github.havarunner.exception.{UnsupportedAnnotationException, MemberIsNotPackagePrivateException, CamelCasedException}
+import com.github.havarunner.Reflections._
 
 private[havarunner] object CodingConventionsAndValidations {
 
@@ -33,11 +33,11 @@ private[havarunner] object CodingConventionsAndValidations {
     }
   }
 
-  private def ensuringValidTestClass(testClass: TestClass) {
+  private def ensuringValidTestClass(testClass: Class[_]) {
     ensureDoesNotHaveUnsupportedJUnitAnnotations(testClass)
   }
 
-  private def ensureDoesNotHaveUnsupportedJUnitAnnotations(testClass: TestClass)  {
+  private def ensureDoesNotHaveUnsupportedJUnitAnnotations(testClass: Class[_])  {
     val unsupportedJUnitAnnotations = Seq(
       classOf[Before],
       classOf[AfterClass],
@@ -49,11 +49,11 @@ private[havarunner] object CodingConventionsAndValidations {
     unsupportedJUnitAnnotations.foreach(unsupportedJUnitAnnotation => {
       testClass.getAnnotations.foreach(classAnnotation =>
         if (unsupportedJUnitAnnotation == classAnnotation.getClass) {
-          throw new UnsupportedAnnotationException(classAnnotation.getClass, testClass.getJavaClass)
+          throw new UnsupportedAnnotationException(classAnnotation.getClass, testClass)
         }
       )
-      if (!testClass.getAnnotatedMethods(unsupportedJUnitAnnotation).isEmpty) {
-        throw new UnsupportedAnnotationException(unsupportedJUnitAnnotation, testClass.getJavaClass)
+      if (hasMethodAnnotatedWith(testClass, unsupportedJUnitAnnotation)) {
+        throw new UnsupportedAnnotationException(unsupportedJUnitAnnotation, testClass)
       }
     })
   }
