@@ -3,11 +3,14 @@ package com.github.havarunner;
 import com.github.havarunner.HavaRunner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.github.havarunner.TestHelper.run;
@@ -15,6 +18,38 @@ import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
 public class AfterTest {
+
+    public static class when_the_test_class_contains_multiple_tests {
+        static Long test1MethodCall;
+        static Long test2MethodCall;
+        static List<Long> afterMethodCalls = new CopyOnWriteArrayList<>();
+
+        @Test
+        public void HavaRunner_calls_the_After_method_once_for_the_instance() {
+            run(new HavaRunner(MultipleTests.class));
+            assertEquals(1, afterMethodCalls.size());
+        }
+
+        static class MultipleTests {
+            @Test
+            void test_1() {
+                assertNull(test1MethodCall);
+                test1MethodCall = System.currentTimeMillis();
+            }
+
+            @Test
+            void test_2() {
+                assertNull(test2MethodCall);
+                test2MethodCall = System.currentTimeMillis();
+            }
+
+            @After
+            void cleanUp() throws InterruptedException {
+                Thread.sleep(1); // Sleep. Otherwise millisecond-precision is not enough.
+                afterMethodCalls.add(System.currentTimeMillis());
+            }
+        }
+    }
 
     public static class when_test__fails {
         static boolean worldIsBuilt = false;

@@ -2,7 +2,7 @@ package com.github.havarunner
 
 import org.junit.runner.{Description, Runner}
 import org.junit.runner.notification.{Failure, RunNotifier}
-import java.util.concurrent.{TimeUnit, ThreadPoolExecutor}
+import java.util.concurrent._
 import scala.collection.JavaConversions._
 import CodingConventionsAndValidations._
 import org.junit._
@@ -14,6 +14,7 @@ import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.TestDidNotRiseExpectedException
 import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.Parser._
+import scala.Some
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable with ThreadPool {
 
@@ -26,7 +27,12 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
   }
 
   def run(notifier: RunNotifier) {
-    children.iterator() foreach (testAndParameters => runChild(testAndParameters, notifier))
+    children.groupBy(_.scenarioAndClass).foreach {
+      case (scenarioAndClass, testsAndClasses) =>
+        val forkJoinTasks = testsAndClasses flatMap (testAndParameters => runChild(testAndParameters, notifier))
+        forkJoinTasks.foreach(_.get(1, TimeUnit.HOURS))
+        testsAndClasses.headOption.foreach(afters(_).run)
+    }
     executor shutdown()
     executor awaitTermination(1, TimeUnit.HOURS)
   }
@@ -35,13 +41,15 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
     this.filterOption = Some(filter)
   }
 
-  private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier) {
+  private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[FutureTask[_]] = {
     val description = describeChild(testAndParameters)
     val testIsInvalidReport = reportInvalidations(testAndParameters)
-    if (testIsInvalidReport.isDefined)
+    if (testIsInvalidReport.isDefined) {
       notifier fireTestAssumptionFailed new Failure(description, testIsInvalidReport.get)
-    else
+      None
+    } else {
       runValidTest(testAndParameters, notifier, description, executor)
+    }
   }
 
   private[havarunner] val classesToTest = parentClass +: parentClass.getDeclaredClasses.toSeq
@@ -70,11 +78,12 @@ private object HavaRunner {
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
 
-  private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ThreadPoolExecutor) {
+  private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ForkJoinPool): Option[FutureTask[_]] = {
     if (testAndParameters.testMethod.getAnnotation(classOf[Ignore]) != null) {
       notifier fireTestIgnored description
+      None
     } else {
-      val testTask = new Runnable {
+      val testTask = new FutureTask(new Runnable {
         def run() {
           try { // TODO Add exception handler to remove nested curly braces
             runLeaf(
@@ -84,16 +93,16 @@ private object HavaRunner {
             )
           } catch {
             case e: Throwable => notifier fireTestFailure(new Failure(description, e))
-          } finally {
-            afters.run
           }
         }
-      }
+      }, None)
       if (testAndParameters.runSequentially) {
         testTask.run()
       } else {
-        executor submit testTask
+        val forkJoinTask = ForkJoinTask.adapt(testTask)
+        executor submit forkJoinTask
       }
+      Some(testTask)
     }
   }
 

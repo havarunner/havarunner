@@ -14,7 +14,9 @@ private[havarunner] class TestAndParameters(
   val runSequentially: Boolean
 ) {
 
-  lazy val testInstance = newOrCachedInstance(testClass, scenario)
+  val scenarioAndClass = ScenarioAndClass(testClass, scenario)
+
+  lazy val testInstance = newOrCachedInstance(scenarioAndClass)
 
   def scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 }
@@ -22,13 +24,12 @@ private[havarunner] class TestAndParameters(
 private[havarunner] object TestAndParameters {
   val cache = new mutable.HashMap[ScenarioAndClass, Any]()
 
-  def newOrCachedInstance(clazz: Class[_], scenario: Option[AnyRef]): Any = synchronized {
-    val key = ScenarioAndClass(clazz, scenario)
+  def newOrCachedInstance(key: ScenarioAndClass): Any = synchronized {
     cache.get(key) match {
       case Some(cachedInstance) =>
         cachedInstance
       case None                 =>
-        val testInstance = newInstance(clazz, scenario)
+        val testInstance = newInstance(key.clazz, key.scenario)
         cache(key) = testInstance
         testInstance
     }
@@ -54,6 +55,6 @@ private[havarunner] object TestAndParameters {
         throw new ScenarioConstructorNotFound(clazz, scenario)
     }
   }
-
-  case class ScenarioAndClass(clazz: Class[_], scenario: Option[Any])
 }
+
+private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenario: Option[AnyRef])
