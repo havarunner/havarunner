@@ -2,20 +2,18 @@ package com.github.havarunner
 
 import org.junit.runner.{Description, Runner}
 import org.junit.runner.notification.{Failure, RunNotifier}
-import java.util.concurrent.{TimeUnit, SynchronousQueue, ThreadPoolExecutor}
+import java.util.concurrent.{TimeUnit, ThreadPoolExecutor}
 import scala.collection.JavaConversions._
 import CodingConventionsAndValidations._
 import org.junit._
 import org.junit.internal.runners.model.EachTestNotifier
 import org.junit.internal.AssumptionViolatedException
 import java.lang.reflect.Method
-import org.junit.runners.model.{FrameworkMethod, TestClass}
-import java.lang.annotation.Annotation
 import org.junit.runner.manipulation.{Filter, Filterable}
-import com.github.havarunner.annotation.{Scenarios, RunSequentially}
 import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.TestDidNotRiseExpectedException
 import com.github.havarunner.ConcurrencyControl._
+import com.github.havarunner.Parser._
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable with ThreadPool {
 
@@ -49,7 +47,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
   private[havarunner] val classesToTest = parentClass +: parentClass.getDeclaredClasses.toSeq
 
   private[havarunner] def children: java.lang.Iterable[TestAndParameters] =
-    toTestParameters(classesToTest).
+    parseTestsAndParameters(classesToTest).
       filter(acceptChild(_, filterOption))
 }
 
@@ -129,7 +127,7 @@ private object HavaRunner {
       }
     })
 
-  private def takingExpectedExceptionIntoAccount(testF: => A)(implicit testAndParameters: TestAndParameters): A = {
+  private def takingExpectedExceptionIntoAccount(testF: => AnyRef)(implicit testAndParameters: TestAndParameters): AnyRef = {
     testAndParameters.expectedException match {
       case Some(expected) =>
         try {
@@ -148,88 +146,4 @@ private object HavaRunner {
         testF
     }
   }
-
-  private def toTestParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
-    classesToTest.flatMap(aClass => {
-      val testClass = new TestClass(aClass)
-      findTestMethods(testClass).map(methodAndScenario => {
-        new TestAndParameters(
-          new FrameworkMethod(methodAndScenario.method),
-          testClass,
-          expectedException = expectedException(methodAndScenario.method),
-          scenario = methodAndScenario.scenario,
-          afters = findMethods(testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
-        )
-      })
-    })
-  }
-
-  private def isAnnotatedWith(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Boolean = {
-    if (clazz.getAnnotation(annotationClass) != null) {
-      true
-    } else if (clazz.getSuperclass != null) {
-      isAnnotatedWith(clazz.getSuperclass, annotationClass)
-    } else {
-      false
-    }
-  }
-
-  private def expectedException(method: Method): Option[Class[_ <: Throwable]] = {
-    val expected = method.getAnnotation(classOf[Test]).expected()
-    if (expected == classOf[org.junit.Test.None])
-      None
-    else
-      Some(expected)
-  }
-
-  private def findMethods(testClass: TestClass, annotation: Class[_ <: Annotation]): Seq[Method] = findMethods(testClass.getJavaClass, annotation)
-
-  private def findMethods(clazz: Class[_], annotation: Class[_ <: Annotation]): Seq[Method] = {
-    val superclasses: Seq[Class[_ <: Any]] = classWithSuperclasses(clazz)
-    superclasses.flatMap(clazz =>
-      clazz.getDeclaredMethods.filter(_.getAnnotation(annotation) != null)
-    )
-  }
-
-
-  private def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] = {
-    if (clazz.getSuperclass != null) {
-      classWithSuperclasses(clazz.getSuperclass, clazz +: superclasses)
-    } else {
-      superclasses
-    }
-  }
-
-  private def isScenarioClass(clazz: Class[_]) = scenarioMethod(clazz).isDefined
-
-  private def scenarioMethod(clazz: Class[_]): Option[Method] = findMethods(clazz, classOf[Scenarios]).headOption.map(method => { method.setAccessible(true); method })
-
-  private def findTestMethods(testClass: TestClass): Seq[MethodAndScenario] = {
-    val testMethods = testClass.getJavaClass.getDeclaredMethods.
-      filter(_.getAnnotation(classOf[Test]) != null).
-      map(method => { method.setAccessible(true); method })
-    scenarios(testClass) match {
-      case Some(scenarios) =>
-        scenarios.flatMap(scenario =>
-          testMethods.map(new MethodAndScenario(Some(scenario), _))
-        )
-      case None =>
-        testMethods.map(new MethodAndScenario(None, _))
-    }
-
-  }
-
-  private def scenarios(testClass: TestClass): Option[Seq[AnyRef]] = {
-    if (isScenarioClass(testClass.getJavaClass)) {
-      val scenarios = scenarioMethod(testClass.getJavaClass).get.invoke(null).asInstanceOf[java.lang.Iterable[A]]
-      Some(scenarios.iterator().toSeq)
-    } else {
-      None
-    }
-  }
-
-  private class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
-
-  type A = AnyRef
 }
