@@ -8,7 +8,7 @@ import com.github.havarunner.Reflections._
 
 private[havarunner] object Validations {
 
-  def reportInvalidations(testAndParameters: TestAndParameters): Option[Exception] =
+  def reportInvalidations(implicit testAndParameters: TestAndParameters): Option[Exception] =
     try {
       ensuringValidTestClass(testAndParameters.testClass)
       None

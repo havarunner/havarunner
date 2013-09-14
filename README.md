@@ -26,9 +26,15 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
   <scope>test</scope>
 </dependency>
 <dependency>
-  <groupId>junit</groupId><!-- HavaRunner lets you manage the JUnit dependency. -->
+  <groupId>junit</groupId> <!-- HavaRunner lets you manage the JUnit dependency. -->
   <artifactId>junit</artifactId>
-  <version>4.11</version><!-- Any 4-series JUnit should do. -->
+  <version>4.11</version> <!-- Any 4-series JUnit should do. -->
+  <scope>test</scope>
+</dependency>
+<dependency>
+  <groupId>com.google.guava</groupId> <!-- HavaRunner lets you manage the Guava dependency. -->
+  <artifactId>guava</artifactId>
+  <version>14.0.1</version> <!-- HavaRunner needs the v.14 or higher. -->
   <scope>test</scope>
 </dependency>
 ````

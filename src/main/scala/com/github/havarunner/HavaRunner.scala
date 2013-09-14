@@ -6,15 +6,13 @@ import java.util.concurrent._
 import scala.collection.JavaConversions._
 import Validations._
 import org.junit._
-import org.junit.internal.runners.model.EachTestNotifier
-import java.lang.reflect.{Method, InvocationTargetException}
+import java.lang.reflect.InvocationTargetException
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.TestDidNotRiseExpectedException
 import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.Parser._
 import com.github.havarunner.Reflections._
-import scala.Some
 
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable with ThreadPool {
 
@@ -45,13 +43,13 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
   }
 
   private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[FutureTask[_]] = {
-    val description = describeChild(testAndParameters)
-    val testIsInvalidReport = reportInvalidations(testAndParameters)
+    implicit val description = describeChild
+    val testIsInvalidReport = reportInvalidations
     if (testIsInvalidReport.isDefined) {
       notifier fireTestFailure  new Failure(description, testIsInvalidReport.get)
       None
     } else {
-      runValidTest(testAndParameters, notifier, description, executor)
+      runValidTest
     }
   }
 
@@ -77,7 +75,7 @@ private object HavaRunner {
       }
     }).getOrElse(true)
 
-  private def describeChild(testAndParameters: TestAndParameters) =
+  private def describeChild(implicit testAndParameters: TestAndParameters) =
     Description createTestDescription(
       testAndParameters.testClass,
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString

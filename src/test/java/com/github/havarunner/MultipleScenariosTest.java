@@ -2,12 +2,12 @@ package com.github.havarunner;
 
 import com.github.havarunner.HavaRunner;
 import com.github.havarunner.TestAndParameters;
+import com.github.havarunner.exception.ConstructorNotFound;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.github.havarunner.annotation.Scenarios;
 import com.github.havarunner.example.scenario.Person;
 import com.github.havarunner.example.scenario.RestaurantMenuTest;
-import com.github.havarunner.exception.ScenarioConstructorNotFound;
 import org.junit.Test;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -36,14 +36,14 @@ public class MultipleScenariosTest {
     @Test
     public void HavaRunner_raises_an_exception_if_the_scenario_method_does_not_have_the_scenario_object_as_only_arg() throws Exception {
         final AtomicReference<Failure> expectedFailure = runInvalidScenarioTestMethod();
-        assertEquals(ScenarioConstructorNotFound.class, expectedFailure.get().getException().getClass());
+        assertEquals(ConstructorNotFound.class, expectedFailure.get().getException().getClass());
     }
 
     @Test
     public void HavaRunner_prints_a_helpful_error_message_if_the_scenario_method_is_missing() throws Exception {
         final AtomicReference<Failure> expectedFailure = runInvalidScenarioTestMethod();
         assertEquals(
-            "Class InvalidScenarioTest is missing the required scenario constructor InvalidScenarioTest(class java.lang.String)",
+            "Class InvalidScenarioTest is missing the required constructor. Try adding the following constructor: com.github.havarunner.MultipleScenariosTest$InvalidScenarioTest.<init>(java.lang.String)",
             expectedFailure.get().getMessage()
         );
     }

@@ -3,7 +3,8 @@ package com.github.havarunner
 import java.lang.reflect.Method
 import scala.collection.mutable
 import _root_.com.github.havarunner.TestAndParameters._
-import com.github.havarunner.exception.ScenarioConstructorNotFound
+import _root_.com.github.havarunner.Reflections._
+import com.github.havarunner.HavaRunnerSuite._
 
 private[havarunner] class TestAndParameters(
   val testMethod: Method,
@@ -24,37 +25,13 @@ private[havarunner] class TestAndParameters(
 private[havarunner] object TestAndParameters {
   val cache = new mutable.HashMap[ScenarioAndClass, Any]()
 
-  def newOrCachedInstance(key: ScenarioAndClass): Any = synchronized {
-    cache.get(key) match {
-      case Some(cachedInstance) =>
-        cachedInstance
-      case None                 =>
-        val testInstance = newInstance(key.clazz, key.scenario)
-        cache(key) = testInstance
-        testInstance
-    }
-  }
-
-  def newInstance(clazz: Class[_], scenario: Option[AnyRef]) = reportMissingScenarioConstructor(clazz, scenario) {
-    val constructor = scenario match {
-      case Some(scenario) => clazz.getDeclaredConstructor(scenario.getClass)
-      case None           => clazz.getDeclaredConstructor()
-    }
-    constructor.setAccessible(true)
-    scenario match {
-      case Some(scenario) => constructor.newInstance(scenario)
-      case None           => constructor.newInstance()
-    }
-  }
-
-  def reportMissingScenarioConstructor(clazz: Class[_], scenario: Option[AnyRef])(op: => Any) = {
-    try {
-      op
-    } catch {
-      case e: NoSuchMethodException =>
-        throw new ScenarioConstructorNotFound(clazz, scenario)
+  def newOrCachedInstance(scenarioAndClass: ScenarioAndClass): Any = synchronized {
+    cache.get(scenarioAndClass) getOrElse {
+      val testInstance = instantiate(suiteOption(scenarioAndClass.clazz), scenarioAndClass.scenarioOption, scenarioAndClass.clazz)
+      cache(scenarioAndClass) = testInstance
+      testInstance
     }
   }
 }
 
-private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenario: Option[AnyRef])
+private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])
