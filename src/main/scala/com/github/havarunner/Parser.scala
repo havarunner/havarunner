@@ -54,16 +54,15 @@ private[havarunner] object Parser {
 
   private def findClassesIfSuite(testClass: Class[_]): Seq[Class[_]] =
     if (classOf[HavaRunnerSuite[_]].isAssignableFrom(testClass))
-      suiteMembers.filter(_.getAnnotation(classOf[PartOf]).value() == testClass)
+      suiteMembers(testClass).filter(_.getAnnotation(classOf[PartOf]).value() == testClass)
     else
       Nil
 
-  private lazy val suiteMembers: Seq[Class[_]] = {
-    print("HavaRunner is scanning for suite members (this takes a while) ...")
+  private def suiteMembers(testClass: Class[_]): Seq[Class[_]] = {
     val maybeLoadedClasses: Seq[Option[Class[_]]] =
       ClassPath.
         from(getClass.getClassLoader).
-        getTopLevelClasses.
+        getTopLevelClassesRecursive(testClass.getPackage.getName). // Use a restricting prefix. Otherwise we would load all the classes in the classpath.
         toSeq.
         filterNot(_.getPackageName.matches("^(scala|com.sun|sun|java|javax).*")).
         map(classInfo =>
