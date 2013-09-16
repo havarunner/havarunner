@@ -193,6 +193,10 @@ HavaRunner tests in the codebase, try to understand why they cannot be run
 concurrently. From this understanding you might gain valuable insights into the
 architectural problems of the system.
 
+### Ignoring tests
+
+You can ignore tests by adding the `@org.junit.Ignore` annotation on the test or the test class.
+
 ### Full code examples
 
 [Here](https://github.com/havarunner/havarunner/tree/master/src/test/java/com/github/havarunner/example)

@@ -11,6 +11,7 @@ private[havarunner] class TestAndParameters(
   val testClass: Class[_],
   val expectedException: Option[Class[_<:Throwable]],
   val scenario: Option[AnyRef],
+  val ignored: Boolean,
   val afterAll: Seq[Method],
   val runSequentially: Boolean
 ) {

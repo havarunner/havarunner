@@ -1,6 +1,6 @@
 package com.github.havarunner
 
-import org.junit.{Test, After}
+import org.junit.{Ignore, Test}
 import com.github.havarunner.annotation.{PartOf, AfterAll, Scenarios, RunSequentially}
 import java.lang.reflect.Method
 import scala.collection.JavaConversions._
@@ -17,6 +17,7 @@ private[havarunner] object Parser {
         new TestAndParameters(
           methodAndScenario.method,
           testClass,
+          ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || isAnnotatedWith(testClass, classOf[Ignore]),
           expectedException = expectedException(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
           afterAll = findMethods(testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,

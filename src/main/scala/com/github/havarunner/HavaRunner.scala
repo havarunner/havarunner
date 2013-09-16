@@ -5,7 +5,6 @@ import org.junit.runner.notification.{Failure, RunNotifier}
 import java.util.concurrent._
 import scala.collection.JavaConversions._
 import Validations._
-import org.junit._
 import java.lang.reflect.InvocationTargetException
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.HavaRunner._
@@ -82,7 +81,7 @@ private object HavaRunner {
       )
 
   private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ForkJoinPool): Option[FutureTask[_]] = {
-    if (testAndParameters.testMethod.getAnnotation(classOf[Ignore]) != null) {
+    if (testAndParameters.ignored) {
       notifier fireTestIgnored description
       None
     } else {
