@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.5.3
+
+* Add missing docs into public classes and interfaces
+
 ## 0.5.2
 
 * Fail if the suite member is not within the same package as the suite
