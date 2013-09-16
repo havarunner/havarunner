@@ -23,15 +23,16 @@ private[havarunner] class TestAndParameters(
 }
 
 private[havarunner] object TestAndParameters {
-  val cache = new mutable.HashMap[ScenarioAndClass, Any]()
+  val cache = new mutable.HashMap[ScenarioAndClass, Any] with mutable.SynchronizedMap[ScenarioAndClass, Any]
 
-  def newOrCachedInstance(scenarioAndClass: ScenarioAndClass): Any = synchronized {
-    cache.get(scenarioAndClass) getOrElse {
-      val testInstance = instantiate(suiteOption(scenarioAndClass.clazz), scenarioAndClass.scenarioOption, scenarioAndClass.clazz)
-      cache(scenarioAndClass) = testInstance
-      testInstance
+  def newOrCachedInstance(scenarioAndClass: ScenarioAndClass): Any =
+    scenarioAndClass.clazz.synchronized {
+      cache.get(scenarioAndClass) getOrElse {
+        val testInstance = instantiate(suiteOption(scenarioAndClass.clazz), scenarioAndClass.scenarioOption, scenarioAndClass.clazz)
+        cache(scenarioAndClass) = testInstance
+        testInstance
+      }
     }
-  }
 }
 
 private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])
