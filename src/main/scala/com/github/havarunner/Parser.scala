@@ -63,7 +63,6 @@ private[havarunner] object Parser {
         from(getClass.getClassLoader).
         getTopLevelClassesRecursive(testClass.getPackage.getName). // Use a restricting prefix. Otherwise we would load all the classes in the classpath.
         toSeq.
-        filterNot(_.getPackageName.matches("^(scala|com.sun|sun|java|javax).*")).
         map(classInfo =>
           try {
             Some(classInfo.load)
