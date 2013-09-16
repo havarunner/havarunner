@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.6.0
+
+* Print suite members to stdout before running
+
 ## 0.5.3
 
 * Add missing docs into public classes and interfaces
