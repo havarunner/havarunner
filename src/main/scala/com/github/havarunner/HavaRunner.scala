@@ -13,6 +13,11 @@ import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.Parser._
 import com.github.havarunner.Reflections._
 
+/**
+ * Usage: @org.junit.runner.RunWith(HavaRunner.class)
+ *
+ * @author Lauri Lehmijoki
+ */
 class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable with ThreadPool {
 
   private var filterOption: Option[Filter] = None // The Filterable API requires us to use a var
