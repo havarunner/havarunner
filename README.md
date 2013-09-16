@@ -8,6 +8,8 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 * **Once instance per test**
  * Do your computation-intensive setup in the constructor of the test class
  * Write easy-to-reason-about test classes that rely on `final` instance fields
+* **Suites**
+ * Group your tests by annotating them as `@PartOf` a suite
 * **Scenarios**
  * Run the same test against multiple scenarios
 * **Enclosed tests**
@@ -112,6 +114,62 @@ public class LoginPageTest {
         Collection<User> users = new ArrayList<>();
         Collections.addAll(users, User.values());
         return users;
+    }
+}
+````
+
+### Suites
+
+Suites are global instances that can hold state.
+
+Suites are comprised of *suite members*, and HavaRunner instantiates
+each member by passing it the `suiteObject`.
+
+Because suites are instantiated only once, their constructors are an ideal place
+to perform heavy setup logic, such as launching a web server.
+
+JVM will call the `afterSuite` method of the suite in the shutdown hook.
+
+````java
+package your.app;
+
+@RunWith(HavaRunner.class)
+public class WebApplicationSuiteTest implements HavaRunnerSuite<WebServer> {
+
+    final WebServer webServer;
+
+    public WebApplicationSuiteTest() {
+        this.webServer = new WebServer();
+    }
+
+    @Override
+    public WebServer suiteObject() {
+        return webServer;
+    }
+
+    @Override
+    public void afterSuite() { // JVM calls this method in the shutdown hook
+        webServer.shutDown();
+    }
+}
+````
+
+````java
+package your.app; // The suite member must be in the same package or a subpackage of the suite.
+
+@RunWith(HavaRunner.class)
+@PartOf(WebApplicationSuiteTest.class)
+public class RestTest {
+
+    private final WebServer webServer;
+
+    RestTest(WebServer webServer) { // HavaRunner will pass the suite object to the constructor
+        this.webServer = webServer;
+    }
+
+    @Test
+    void rest_api_responds_200() {
+        assertEquals(200, webServer.httpStatus(""));
     }
 }
 ````
