@@ -29,6 +29,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
   }
 
   def run(notifier: RunNotifier) {
+    reportIfSuite
     val afterAllsAndFutures = children.groupBy(_.scenarioAndClass).map {
       case (scenarioAndClass, testsAndClasses) =>
         val futures: Iterable[FutureTask[_]] = testsAndClasses.flatMap(testAndParameters => runChild(testAndParameters, notifier))
@@ -46,6 +47,13 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
     this.filterOption = Some(filter)
   }
 
+  private[havarunner] def reportIfSuite = {
+    children.filter(_.testContext.isInstanceOf[SuiteContext]).foreach(testAndParameters => {
+      val suiteContext: SuiteContext = testAndParameters.testContext.asInstanceOf[SuiteContext]
+      println(s"[HavaRunner] Running ${testAndParameters.testClass.getName} as a part of ${suiteContext.suiteClass.getName}")
+    })
+  }
+
   private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[FutureTask[_]] = {
     implicit val description = describeChild
     val testIsInvalidReport = reportInvalidations
@@ -59,9 +67,8 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
 
   private[havarunner] val classesToTest = parentClass +: parentClass.getDeclaredClasses.toSeq
 
-  private[havarunner] def children: java.lang.Iterable[TestAndParameters] =
-    parseTestsAndParameters(classesToTest).
-      filter(acceptChild(_, filterOption))
+  private[havarunner] lazy val children: java.lang.Iterable[TestAndParameters] =
+    parseTestsAndParameters(classesToTest).filter(acceptChild(_, filterOption))
 
   private case class AfterAllsAndFutures(afterAlls: Operation[_], futures: Iterable[FutureTask[_]])
 }

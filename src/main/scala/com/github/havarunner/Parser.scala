@@ -11,20 +11,28 @@ import java.util.logging.{Level, Logger}
 private[havarunner] object Parser {
 
   def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
-    val localAndSuiteClasses = classesToTest ++ classesToTest.flatMap(findClassesIfSuite)
-    localAndSuiteClasses.flatMap(testClass => {
-      findTestMethods(testClass).map(methodAndScenario => {
+    localAndSuiteTests(classesToTest).flatMap((testClassAndSource: TestClassAndSource) => {
+      findTestMethods(testClassAndSource.testClass).map(methodAndScenario => {
         new TestAndParameters(
           methodAndScenario.method,
-          testClass,
-          ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || isAnnotatedWith(testClass, classOf[Ignore]),
+          testClassAndSource.testClass,
+          ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || isAnnotatedWith(testClassAndSource.testClass, classOf[Ignore]),
           expectedException = expectedException(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
-          afterAll = findMethods(testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
+          testContext = testClassAndSource.testContext,
+          afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
         )
       })
     })
+  }
+
+  private def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[TestClassAndSource] = {
+    val nonSuiteTests = classesToTest.map(TestClassAndSource(_))
+    val suiteTests = classesToTest.flatMap(classToTest =>
+      findSuiteMembers(classToTest).map(suiteMember => TestClassAndSource(suiteMember, SuiteContext(classToTest)))
+    )
+    nonSuiteTests ++ suiteTests
   }
 
   private def expectedException(method: Method): Option[Class[_ <: Throwable]] = {
@@ -51,7 +59,7 @@ private[havarunner] object Parser {
     }
   }
 
-  private def findClassesIfSuite(testClass: Class[_]): Seq[Class[_]] =
+  private def findSuiteMembers(testClass: Class[_]): Seq[Class[_]] =
     if (classOf[HavaRunnerSuite[_]].isAssignableFrom(testClass))
       suiteMembers(testClass).filter(_.getAnnotation(classOf[PartOf]).value() == testClass)
     else
@@ -91,5 +99,11 @@ private[havarunner] object Parser {
 
   private class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
 
+
   private type A = AnyRef
 }
+
+private[havarunner] case class TestClassAndSource(testClass: Class[_], testContext: TestContext = DefaultContext)
+private[havarunner] trait TestContext
+private[havarunner] case class SuiteContext(suiteClass: Class[_]) extends TestContext
+private[havarunner] case object DefaultContext extends TestContext
