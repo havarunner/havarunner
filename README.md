@@ -24,18 +24,21 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 <dependency>
   <groupId>com.github.havarunner</groupId>
   <artifactId>havarunner</artifactId>
-  <!-- Here you can find the latest version number: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.github.havarunner%22%20AND%20a%3A%22havarunner%22 -->
+  <!-- Here you can find the latest version number: -->
+  <!-- http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.github.havarunner%22%20AND%20a%3A%22havarunner%22 -->
   <version>x.y.z</version>
   <scope>test</scope>
 </dependency>
 <dependency>
-  <groupId>junit</groupId> <!-- HavaRunner lets you manage the JUnit dependency. -->
+  <!-- HavaRunner lets you manage the JUnit dependency. -->
+  <groupId>junit</groupId>
   <artifactId>junit</artifactId>
   <version>4.11</version> <!-- Any 4-series JUnit should do. -->
   <scope>test</scope>
 </dependency>
 <dependency>
-  <groupId>com.google.guava</groupId> <!-- HavaRunner lets you manage the Guava dependency. -->
+  <!-- HavaRunner lets you manage the Guava dependency. -->
+  <groupId>com.google.guava</groupId>
   <artifactId>guava</artifactId>
   <version>14.0.1</version> <!-- HavaRunner needs the v.14 or higher. -->
   <scope>test</scope>
@@ -156,7 +159,8 @@ public class WebApplicationSuiteTest implements HavaRunnerSuite<WebServer> {
 ````
 
 ````java
-package your.app; // The suite member must be in the same package or a subpackage of the suite.
+// The suite member must be in the same package or a subpackage of the suite.
+package your.app;
 
 @RunWith(HavaRunner.class)
 @PartOf(WebApplicationSuiteTest.class)
@@ -164,7 +168,8 @@ public class RestTest {
 
     private final WebServer webServer;
 
-    RestTest(WebServer webServer) { // HavaRunner will pass the suite object to the constructor
+    // HavaRunner will pass the suite object to the constructor
+    RestTest(WebServer webServer) {
         this.webServer = webServer;
     }
 
@@ -193,7 +198,10 @@ public class RestForDifferentUsersTest {
 
     @Test
     void users_receive_personal_response() {
-        assertEquals("<html><body><title>hello "+user+"</title></body></html>", webServer.htmlDocument("/", user));
+        assertEquals(
+            "<html><body><title>hello "+user+"</title></body></html>",
+            webServer.htmlDocument("/", user)
+        );
     }
 
     @Scenarios
