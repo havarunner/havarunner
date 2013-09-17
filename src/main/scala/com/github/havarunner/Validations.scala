@@ -5,46 +5,46 @@ import scala.Some
 import com.github.havarunner.exception.{SuiteMemberDoesNotBelongToSuitePackage, UnsupportedAnnotationException}
 import com.github.havarunner.Reflections._
 import com.github.havarunner.annotation.PartOf
+import java.lang.annotation.Annotation
 
 private[havarunner] object Validations {
 
   def reportInvalidations(implicit testAndParameters: TestAndParameters): Option[Exception] =
-    try {
-      ensureDoesNotHaveUnsupportedJUnitAnnotations(testAndParameters.testClass)
-      ensureHasValidSuiteConfig(testAndParameters.testClass)
+    suiteConfigError orElse
+      reportUnsupportedClassAnnotations.find(_.isDefined).flatMap(identity) orElse
+      reportUnsupportedMethodAnnotations.find(_.isDefined).flatMap(identity)
+
+  private def suiteConfigError(implicit testAndParameters: TestAndParameters): Option[SuiteMemberDoesNotBelongToSuitePackage] =
+    if (isAnnotatedWith(testAndParameters.testClass, classOf[PartOf])) {
+      val suiteClass: Class[_ <: HavaRunnerSuite[_]] = testAndParameters.testClass.getAnnotation(classOf[PartOf]).value()
+      if (!testAndParameters.testClass.getPackage.getName.startsWith(suiteClass.getPackage.getName))
+        Some(new SuiteMemberDoesNotBelongToSuitePackage(testAndParameters.testClass, suiteClass))
+      else
+        None
+    } else
       None
-    } catch {
-      case e: Exception => Some(e)
-    }
 
-  private def ensureHasValidSuiteConfig(testClass: Class[_]) {
-    if (isAnnotatedWith(testClass, classOf[PartOf])) {
-      val suiteClass: Class[_ <: HavaRunnerSuite[_]] = testClass.getAnnotation(classOf[PartOf]).value()
-      if (!testClass.getPackage.getName.startsWith(suiteClass.getPackage.getName)) {
-        throw new SuiteMemberDoesNotBelongToSuitePackage(testClass, suiteClass)
-      }
-    }
-  }
-
-  private def ensureDoesNotHaveUnsupportedJUnitAnnotations(testClass: Class[_]) {
-    val unsupportedJUnitAnnotations = Seq(
-      classOf[After],
-      classOf[Before],
-      classOf[AfterClass],
-      classOf[BeforeClass],
-      classOf[Rule],
-      classOf[ClassRule]
-    )
-
-    unsupportedJUnitAnnotations.foreach(unsupportedJUnitAnnotation => {
-      testClass.getAnnotations.foreach(classAnnotation =>
-        if (unsupportedJUnitAnnotation == classAnnotation.getClass) {
-          throw new UnsupportedAnnotationException(classAnnotation.getClass, testClass)
-        }
-      )
-      if (hasMethodAnnotatedWith(testClass, unsupportedJUnitAnnotation)) {
-        throw new UnsupportedAnnotationException(unsupportedJUnitAnnotation, testClass)
-      }
+  private def reportUnsupportedMethodAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
+    unsupportedJUnitAnnotations.map(unsupportedAnnotation => {
+      if (hasMethodAnnotatedWith(testAndParameters.testClass, unsupportedAnnotation))
+        Some(new UnsupportedAnnotationException(unsupportedAnnotation, testAndParameters.testClass))
+      else
+        None
     })
-  }
+
+  private def reportUnsupportedClassAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
+    unsupportedJUnitAnnotations.flatMap(unsupportedAnnotation => {
+      testAndParameters.testClass.getAnnotations.filter(_.getClass == unsupportedAnnotation).map(usedAnnotation =>
+        Some(new UnsupportedAnnotationException(usedAnnotation.getClass, testAndParameters.testClass))
+      )
+    })
+
+  private val unsupportedJUnitAnnotations = Seq(
+    classOf[After],
+    classOf[Before],
+    classOf[AfterClass],
+    classOf[BeforeClass],
+    classOf[Rule],
+    classOf[ClassRule]
+  )
 }
