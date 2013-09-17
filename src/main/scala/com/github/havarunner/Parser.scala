@@ -43,9 +43,7 @@ private[havarunner] object Parser {
       Some(expected)
   }
 
-  private def isScenarioClass(clazz: Class[_]) = scenarioMethod(clazz).isDefined
-
-  private def scenarioMethod(clazz: Class[_]): Option[Method] = findMethods(clazz, classOf[Scenarios]).headOption.map(method => { method.setAccessible(true); method })
+  private def scenarioMethodOpt(clazz: Class[_]): Option[Method] = findMethods(clazz, classOf[Scenarios]).headOption.map(method => { method.setAccessible(true); method })
 
   private def findTestMethods(testClass: Class[_]): Seq[MethodAndScenario] = {
     val testMethods = findMethods(testClass, classOf[Test]).map(method => { method.setAccessible(true); method })
@@ -77,14 +75,11 @@ private[havarunner] object Parser {
   }
 
 
-  private def scenarios(testClass: Class[_]): Option[Seq[AnyRef]] = {
-    if (isScenarioClass(testClass)) {
-      val scenarios = scenarioMethod(testClass).get.invoke(null).asInstanceOf[java.lang.Iterable[A]]
-      Some(scenarios.iterator().toSeq)
-    } else {
-      None
+  private def scenarios(testClass: Class[_]): Option[Seq[AnyRef]] =
+    scenarioMethodOpt(testClass) map { scenarioMethod =>
+      val scenarios = scenarioMethod.invoke(null).asInstanceOf[java.lang.Iterable[A]]
+      scenarios.iterator().toSeq
     }
-  }
 
   private class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
 
