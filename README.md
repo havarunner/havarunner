@@ -174,6 +174,37 @@ public class RestTest {
 }
 ````
 
+#### Scenario tests in a suite
+
+````java
+@RunWith(HavaRunner.class)
+@PartOf(WebApplicationSuiteTest.class)
+public class RestForDifferentUsersTest {
+
+    private final WebServer webServer;
+    private final String user;
+
+    // The first arg is the suite object, the second one is the scenario object.
+    public RestForDifferentUsersTest(WebServer webServer, String user) {
+        this.webServer = webServer;
+        this.user = user;
+    }
+
+    @Test
+    void users_receive_personal_response() {
+        assertEquals("<html><body><title>hello "+user+"</title></body></html>", webServer.htmlDocument("/", user));
+    }
+
+    @Scenarios
+    static ArrayList<String> users() {
+        ArrayList<String> users = new ArrayList<>();
+        users.add("Kalevi");
+        users.add("Pasi");
+        return users;
+    }
+}
+````
+
 ### Run sequentially
 
 If your tests do not thrive in the concurrent world, you can instruct HavaRunner

@@ -18,4 +18,8 @@ public class WebServer {
     public String htmlDocument(String url) {
         return "<html><body><title>hello HawaRunner</title></body></html>";
     }
+
+    public String htmlDocument(String url, String user) {
+        return "<html><body><title>hello "+user+"</title></body></html>";
+    }
 }
