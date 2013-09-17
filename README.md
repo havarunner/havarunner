@@ -230,6 +230,15 @@ architectural problems of the system.
 [Here](https://github.com/havarunner/havarunner/tree/master/src/test/java/com/github/havarunner/example)
 you can find complete code examples.
 
+## Project goals
+
+* Minimise or eliminate the need to describe test configurations in Maven
+  pom.xml
+* Create a tool for fast tests – run everything in parallel by default
+* Encourage users to write easy-to-understand tests that build on immutable data
+  and intuitive abstractions such as suite and scenario
+* Provide a model for ensuring that all the tests in the codebase are run in CI
+
 ## Supported JUnit annotations
 
 HavaRunner supports only a limited set of JUnit annotations. Here they are:
