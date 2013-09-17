@@ -24,7 +24,8 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 <dependency>
   <groupId>com.github.havarunner</groupId>
   <artifactId>havarunner</artifactId>
-  <version>0.4.0</version>
+  <!-- Here you can find the latest version number: http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.github.havarunner%22%20AND%20a%3A%22havarunner%22 -->
+  <version>x.y.z</version>
   <scope>test</scope>
 </dependency>
 <dependency>
