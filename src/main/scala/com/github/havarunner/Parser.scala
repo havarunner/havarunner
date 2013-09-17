@@ -71,18 +71,7 @@ private[havarunner] object Parser {
         from(getClass.getClassLoader).
         getTopLevelClassesRecursive(testClass.getPackage.getName). // Use a restricting prefix. Otherwise we would load all the classes in the classpath.
         toSeq.
-        map(classInfo =>
-          try {
-            Some(classInfo.load)
-          } catch {
-            case e: java.lang.NoClassDefFoundError =>
-              Logger.getLogger(getClass.getName).log(
-                Level.FINE,
-                "While scanning for test classes, HavaRunner encountered a potential problem: " + e.getMessage
-              )
-              None
-          }
-        )
+        map(classInfo => Some(classInfo.load))
     val loadedClasses: Seq[Class[_]] = maybeLoadedClasses.flatMap(identity(_))
     loadedClasses.filter(_.isAnnotationPresent(classOf[PartOf]))
   }

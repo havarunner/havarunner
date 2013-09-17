@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.6.1
+
+* Do not fail silently if class-loading fails
+
 ## 0.6.0
 
 * Print suite members to stdout before running
