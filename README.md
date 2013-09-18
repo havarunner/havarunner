@@ -5,16 +5,17 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 
 ## Features
 
-* **Once instance per test**
- * Do your computation-intensive setup in the constructor of the test class
- * Write easy-to-reason-about test classes that rely on `final` instance fields
+* **Run tests in parallel by default**
+ * Speed up development cycles with faster tests
 * **Suites**
  * Group your tests by annotating them as `@PartOf` a suite
 * **Scenarios**
  * Run the same test against multiple scenarios
 * **Enclosed tests**
  * Group tests with static inner classes (like with `org.junit.experimental.runners.Enclosed`)
-* **Run tests in parallel by default**
+* **Once instance per test**
+ * Do your computation-intensive setup in the constructor of the test class
+ * Write easy-to-reason-about test classes that rely on `final` instance fields
 * **Reduce syntactic noise**
  * HavaRunner lets you omit the `public` access modifier from the methods
 
