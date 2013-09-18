@@ -2,11 +2,11 @@ package com.github.havarunner
 
 import org.junit.{Ignore, Test}
 import com.github.havarunner.annotation.{PartOf, AfterAll, Scenarios, RunSequentially}
+import com.github.havarunner.SuiteCache._
 import java.lang.reflect.Method
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
 import com.google.common.reflect.ClassPath
-import java.util.logging.{Level, Logger}
 
 private[havarunner] object Parser {
 
@@ -26,6 +26,13 @@ private[havarunner] object Parser {
       })
     })
   }
+
+  def suiteOption(implicit clazz: Class[_]): Option[HavaRunnerSuite[_]] =
+    Option(clazz.getAnnotation(classOf[PartOf])) map {
+      partOfAnnotation =>
+        val suiteClass = partOfAnnotation.value()
+        fromSuiteInstanceCache(suiteClass)
+    }
 
   private def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[TestClassAndSource] = {
     val nonSuiteTests = classesToTest.map(TestClassAndSource(_))

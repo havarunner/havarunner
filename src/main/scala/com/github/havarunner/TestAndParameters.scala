@@ -1,10 +1,7 @@
 package com.github.havarunner
 
 import java.lang.reflect.Method
-import scala.collection.mutable
-import _root_.com.github.havarunner.TestAndParameters._
-import _root_.com.github.havarunner.Reflections._
-import com.github.havarunner.HavaRunnerSuite._
+import com.github.havarunner.TestInstanceCache._
 
 private[havarunner] class TestAndParameters(
   val testMethod: Method,
@@ -19,22 +16,9 @@ private[havarunner] class TestAndParameters(
 
   val scenarioAndClass = ScenarioAndClass(testClass, scenario)
 
-  lazy val testInstance = newOrCachedInstance(scenarioAndClass)
+  lazy val testInstance = fromTestInstanceCache(scenarioAndClass)
 
   def scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
-}
-
-private[havarunner] object TestAndParameters {
-  val cache = new mutable.HashMap[ScenarioAndClass, Any] with mutable.SynchronizedMap[ScenarioAndClass, Any]
-
-  def newOrCachedInstance(scenarioAndClass: ScenarioAndClass): Any =
-    scenarioAndClass.clazz.synchronized {
-      cache.get(scenarioAndClass) getOrElse {
-        val testInstance = instantiate(suiteOption(scenarioAndClass.clazz), scenarioAndClass.scenarioOption, scenarioAndClass.clazz)
-        cache(scenarioAndClass) = testInstance
-        testInstance
-      }
-    }
 }
 
 private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])

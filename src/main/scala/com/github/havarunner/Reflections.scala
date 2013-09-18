@@ -1,13 +1,9 @@
 package com.github.havarunner
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.{Member, Constructor, Method}
-import com.github.havarunner.Reflections._
-import scala.{Array, Some}
-import com.github.havarunner.HavaRunnerSuite._
+import java.lang.reflect.Method
+import scala.Some
 import com.github.havarunner.exception.ConstructorNotFound
-import scala.collection.mutable
-import scala.annotation.tailrec
 
 private[havarunner] object Reflections {
   def isAnnotatedWith(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Boolean =
