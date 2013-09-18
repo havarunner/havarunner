@@ -6,14 +6,14 @@ import org.junit.Test;
 import static com.github.havarunner.TestHelper.run;
 import static org.junit.Assert.assertTrue;
 
-public class EnclosedStaticClassesTest {
+public class StaticNestedClassesTest {
     static boolean parentCalled;
     static boolean childCalled;
     static boolean grandchildCalled;
     static boolean grandGrandchildCalled;
 
     @Test
-    public void HavaRunner_supports_recursive_static_inner_classes() {
+    public void HavaRunner_supports_static_inner_classes_recursively() {
         run(new HavaRunner(Parent.class));
         assertTrue(parentCalled);
         assertTrue(childCalled);

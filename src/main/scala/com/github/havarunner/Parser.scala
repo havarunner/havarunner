@@ -3,28 +3,38 @@ package com.github.havarunner
 import org.junit.{Ignore, Test}
 import com.github.havarunner.annotation.{PartOf, AfterAll, Scenarios, RunSequentially}
 import com.github.havarunner.SuiteCache._
-import java.lang.reflect.Method
+import java.lang.reflect.{Modifier, Method}
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
 import com.google.common.reflect.ClassPath
 
 private[havarunner] object Parser {
 
-  def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
-    localAndSuiteTests(classesToTest).flatMap((testClassAndSource: TestClassAndSource) => {
-      findTestMethods(testClassAndSource.testClass).map(methodAndScenario => {
+  def parseTestsAndParameters(classesToTest: Seq[ClassAndOuter]): Seq[TestAndParameters ] = {
+    val tests: Seq[TestAndParameters] = localAndSuiteTests(classesToTest).flatMap((testClassAndSource: TestClassAndSource) => {
+      findTestMethods(testClassAndSource.classAndOuter).map(methodAndScenario => {
         new TestAndParameters(
-          methodAndScenario.method,
-          testClassAndSource.testClass,
-          ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || isAnnotatedWith(testClassAndSource.testClass, classOf[Ignore]),
+          testMethod = methodAndScenario.method,
+          testClass = testClassAndSource.classAndOuter.clazz,
+          outerClass = testClassAndSource.classAndOuter.outer,
+          outerTest = None,
+          ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || isAnnotatedWith(testClassAndSource.classAndOuter.clazz, classOf[Ignore]),
           expectedException = expectedException(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
-          partOf = suiteOption(testClassAndSource.testClass),
+          partOf = suiteOption(testClassAndSource.classAndOuter.clazz),
           testContext = testClassAndSource.testContext,
-          afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
+          afterAll = findMethods(testClassAndSource.classAndOuter.clazz, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
+          runSequentially = classesToTest.exists(classAndEnclosed => isAnnotatedWith(classAndEnclosed.clazz, classOf[RunSequentially]))
         )
       })
+    })
+    tests.map(test => {
+      val outer: Option[TestAndParameters] =
+        if (!Modifier.isStatic(test.testClass.getModifiers))
+          test.outerClass.flatMap(clazz => tests.find(_.testClass == clazz))
+        else
+          None
+      test.copy(outerTest = outer)
     })
   }
 
@@ -35,10 +45,10 @@ private[havarunner] object Parser {
         fromSuiteInstanceCache(suiteClass)
     }
 
-  private def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[TestClassAndSource] = {
+  private def localAndSuiteTests(classesToTest: Seq[ClassAndOuter]): Seq[TestClassAndSource] = {
     val nonSuiteTests = classesToTest.map(TestClassAndSource(_))
     val suiteTests = classesToTest.flatMap(classToTest =>
-      findSuiteMembers(classToTest).map(suiteMember => TestClassAndSource(suiteMember, SuiteContext(classToTest)))
+      findSuiteMembers(classToTest.clazz).map((suiteMember: ClassAndOuter) => TestClassAndSource(suiteMember, SuiteContext(classToTest.clazz)))
     )
     nonSuiteTests ++ suiteTests
   }
@@ -53,21 +63,23 @@ private[havarunner] object Parser {
 
   private def scenarioMethodOpt(clazz: Class[_]): Option[Method] = findMethods(clazz, classOf[Scenarios]).headOption.map(method => { method.setAccessible(true); method })
 
-  private def findTestMethods(testClass: Class[_]): Seq[MethodAndScenario] = {
-    val testMethods = findMethods(testClass, classOf[Test]).map(method => { method.setAccessible(true); method })
-    scenarios(testClass) match {
+  private def findTestMethods(testClass: ClassAndOuter): Seq[MethodAndScenario] = {
+    val testMethods = findMethods(testClass.clazz, classOf[Test]).map(method => { method.setAccessible(true); method })
+    scenarios(testClass.clazz) match {
       case Some(scenarios) =>
         scenarios.flatMap(scenario =>
-          testMethods.map(new MethodAndScenario(Some(scenario), _))
+          testMethods.map(MethodAndScenario(Some(scenario), _))
         )
       case None =>
-        testMethods.map(new MethodAndScenario(None, _))
+        testMethods.map(MethodAndScenario(None, _))
     }
   }
 
-  private def findSuiteMembers(testClass: Class[_]): Seq[Class[_]] =
+  private def findSuiteMembers(testClass: Class[_]): Seq[ClassAndOuter] =
     if (classOf[HavaRunnerSuite[_]].isAssignableFrom(testClass))
-      suiteMembers(testClass).filter(_.getAnnotation(classOf[PartOf]).value() == testClass)
+      suiteMembers(testClass).
+        filter(_.getAnnotation(classOf[PartOf]).value() == testClass).
+        map(clazz => ClassAndOuter(clazz, Option(clazz.getDeclaringClass)))
     else
       Nil
 
@@ -89,13 +101,13 @@ private[havarunner] object Parser {
       scenarios.iterator().toSeq
     }
 
-  private class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
-
+  private case class MethodAndScenario(scenario: Option[AnyRef], method: Method)
 
   private type A = AnyRef
 }
 
-private[havarunner] case class TestClassAndSource(testClass: Class[_], testContext: TestContext = DefaultContext)
+private[havarunner] case class ClassAndOuter(clazz: Class[_], outer: Option[Class[_]])
+private[havarunner] case class TestClassAndSource(classAndOuter: ClassAndOuter, testContext: TestContext = DefaultContext)
 private[havarunner] trait TestContext
 private[havarunner] case class SuiteContext(suiteClass: Class[_]) extends TestContext
 private[havarunner] case object DefaultContext extends TestContext

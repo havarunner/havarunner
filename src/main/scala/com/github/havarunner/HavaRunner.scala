@@ -67,7 +67,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
 
   private[havarunner] val classesToTest = withSubclasses(parentClass)
 
-  private[havarunner] lazy val children: java.lang.Iterable[TestAndParameters] =
+  private[havarunner] lazy val children: java.lang.Iterable[TestAndParameters ] =
     parseTestsAndParameters(classesToTest).filter(acceptChild(_, filterOption))
 
   private case class AfterAllsAndFutures(afterAlls: Operation[_], futures: Iterable[FutureTask[_]])
@@ -92,7 +92,7 @@ private object HavaRunner {
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
 
-  private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ForkJoinPool): Option[FutureTask[_]] = {
+  private def runValidTest(implicit testAndParameters: TestAndParameters , notifier: RunNotifier, description: Description, executor: ForkJoinPool): Option[FutureTask[_]] =
     if (testAndParameters.ignored) {
       notifier fireTestIgnored description
       None
@@ -117,18 +117,17 @@ private object HavaRunner {
       }
       Some(testTask)
     }
-  }
 
-  private def afterAlls(implicit testAndParameters: TestAndParameters): Operation[Unit] =
+  private def afterAlls(implicit testAndParameters: TestAndParameters ): Operation[Unit] =
     Operation(() =>
       testAndParameters.afterAll.foreach(invoke(_, testAndParameters))
     )
 
-  private def testOperation(implicit testAndParameters: TestAndParameters): Operation[AnyRef] =
+  private def testOperation(implicit testAndParameters: TestAndParameters ): Operation[AnyRef] =
     Operation(() => {
       takingExpectedExceptionIntoAccount {
         try {
-          testAndParameters.testMethod.invoke(testAndParameters.testInstance)
+          testAndParameters.testMethod.invoke(TestInstanceCache.fromTestInstanceCache)
         } catch {
           case e: InvocationTargetException =>
             throw e.getTargetException

@@ -26,14 +26,10 @@ private[havarunner] object SuiteCache {
 private[havarunner] object TestInstanceCache {
   private val cache = new mutable.HashMap[ScenarioAndClass, Any] with mutable.SynchronizedMap[ScenarioAndClass, Any]
 
-  def fromTestInstanceCache(testAndParameters: TestAndParameters): Any =
+  def fromTestInstanceCache(implicit testAndParameters: TestAndParameters): Any =
     testAndParameters.scenarioAndClass.clazz.synchronized {
       cache.get(testAndParameters.scenarioAndClass) getOrElse {
-        val testInstance = instantiate(
-          testAndParameters.partOf,
-          testAndParameters.scenarioAndClass.scenarioOption,
-          testAndParameters.scenarioAndClass.clazz
-        )
+        val testInstance = instantiate(testAndParameters)
         cache(testAndParameters.scenarioAndClass) = testInstance
         testInstance
       }

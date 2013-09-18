@@ -1,7 +1,7 @@
 package com.github.havarunner
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.Method
+import java.lang.reflect.{Modifier, Method}
 import scala.Some
 import com.github.havarunner.exception.ConstructorNotFound
 
@@ -15,55 +15,36 @@ private[havarunner] object Reflections {
       false
     }
 
-  def instantiate(implicit suiteOption: Option[HavaRunnerSuite[_]], scenarioOption: Option[AnyRef], clazz: Class[_]) = {
-    val (constructor, argsOption) = resolveConstructorAndArgs(suiteOption, scenarioOption, clazz)
-    constructor.setAccessible(true)
-    argsOption match {
-      case Some(args) => constructor.newInstance(args.toSeq.asInstanceOf[Seq[AnyRef]]:_*)
-      case None       => constructor.newInstance()
+  def instantiate(testAndParameters: TestAndParameters) =
+    withHelpfulConstructorMissingReport(testAndParameters) {
+      val constructorArgClasses: Seq[Class[_]] = Seq(
+        testAndParameters.outerTest.map(_.testClass),
+        testAndParameters.partOf.map(_.suiteObject.getClass),
+        testAndParameters.scenario.map(_.getClass)
+      ).flatten
+      val args: Seq[_] = Seq(
+        testAndParameters.outerTest.map(TestInstanceCache.fromTestInstanceCache(_)),
+        testAndParameters.partOf.map(_.suiteObject),
+        testAndParameters.scenario
+      ).flatten
+      val constructor = testAndParameters.testClass.getDeclaredConstructor(constructorArgClasses.asInstanceOf[Seq[Class[_]]]:_*)
+      constructor.setAccessible(true)
+      constructor.newInstance(args.asInstanceOf[Seq[AnyRef]]: _*)
     }
-  }
 
-  def withSubclasses(clazz: Class[_], accumulator: Seq[Class[_]] = Seq()): Seq[Class[_]] =
+  def withSubclasses(clazz: Class[_], accumulator: Seq[ClassAndOuter] = Seq(), outer: Option[Class[_]] = None): Seq[ClassAndOuter] =
     if (clazz.getDeclaredClasses.isEmpty) {
-      clazz +: accumulator
+      ClassAndOuter(clazz, outer) +: accumulator
     } else {
-      clazz +: clazz.getDeclaredClasses.flatMap(withSubclasses(_, accumulator))
+      ClassAndOuter(clazz, outer) +: clazz.getDeclaredClasses.flatMap(withSubclasses(_, accumulator, Some(clazz)))
     }
 
-  private def resolveConstructorAndArgs(
-                                         implicit suiteOption: Option[HavaRunnerSuite[_]],
-                                         scenarioOption: Option[AnyRef],
-                                         clazz: Class[_]
-                                         ) =
-    withHelpfulConstructorMissingReport {
-      (suiteOption, scenarioOption) match {
-        case (Some(suite), Some(scenario)) =>
-          (
-            clazz.getDeclaredConstructor(suite.suiteObject.getClass, scenario.getClass),
-            Some(suite.suiteObject :: scenario :: Nil)
-          )
-        case (Some(suite), None) =>
-          (
-            clazz.getDeclaredConstructor(suite.suiteObject.getClass),
-            Some(suite.suiteObject :: Nil)
-          )
-        case (None, Some(scenario)) =>
-          (
-            clazz.getDeclaredConstructor(scenario.getClass),
-            Some(scenario :: Nil)
-          )
-        case (None, None) =>
-          (clazz.getDeclaredConstructor(), None)
-      }
-    }
-
-  private def withHelpfulConstructorMissingReport[T](op: => T)(implicit clazz: Class[_], scenario: Option[AnyRef]) =
+  private def withHelpfulConstructorMissingReport[T](testAndParameters: TestAndParameters)(op: => T) =
     try {
       op
     } catch {
       case e: NoSuchMethodException =>
-        throw new ConstructorNotFound(clazz, e)
+        throw new ConstructorNotFound(testAndParameters.testClass, e)
     }
 
   def findMethods(clazz: Class[_], annotation: Class[_ <: Annotation]): Seq[Method] =
@@ -71,9 +52,9 @@ private[havarunner] object Reflections {
       clazz.getDeclaredMethods.filter(_.getAnnotation(annotation) != null)
     )
 
-  def invoke(method: Method, testAndParameters: TestAndParameters) {
+  def invoke(implicit method: Method, testAndParameters: TestAndParameters ) {
     method.setAccessible(true)
-    method.invoke(testAndParameters.testInstance)
+    method.invoke(TestInstanceCache.fromTestInstanceCache)
   }
 
   def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] =

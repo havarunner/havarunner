@@ -5,7 +5,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(HavaRunner.class)
-public class EnclosedExampleTest {
+public class NestedStaticExampleTest {
 
     static class enclosed_example {
 
@@ -17,22 +17,22 @@ public class EnclosedExampleTest {
     static class parent {
         @Test
         void you_can_use_inner_classes_recursively() {
-            System.out.println("hello recursive example @ " + getClass().getSimpleName());
+            System.out.println("hello nested static example @ " + getClass().getSimpleName());
         }
         static class child {
             @Test
             void you_can_use_inner_classes_recursively() {
-                System.out.println("hello recursive example @ " + getClass().getSimpleName());
+                System.out.println("hello nested static example @ " + getClass().getSimpleName());
             }
             static class grandchild {
                 @Test
                 void you_can_use_inner_classes_recursively() {
-                    System.out.println("hello recursive example @ " + getClass().getSimpleName());
+                    System.out.println("hello nested static example @ " + getClass().getSimpleName());
                 }
                 static class grandgrandchild {
                     @Test
                     void you_can_use_inner_classes_recursively() {
-                        System.out.println("hello recursive example @ " + getClass().getSimpleName());
+                        System.out.println("hello nested static example @ " + getClass().getSimpleName());
                     }
                 }
             }
