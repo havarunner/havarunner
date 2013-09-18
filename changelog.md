@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## HEAD (probably will be 0.7.0)
+
+* Support recursive `static class` test definitions
+
 ## 0.6.1
 
 * Do not fail silently if class-loading fails

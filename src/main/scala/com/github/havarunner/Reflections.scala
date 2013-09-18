@@ -7,6 +7,7 @@ import scala.{Array, Some}
 import com.github.havarunner.HavaRunnerSuite._
 import com.github.havarunner.exception.ConstructorNotFound
 import scala.collection.mutable
+import scala.annotation.tailrec
 
 private[havarunner] object Reflections {
   def isAnnotatedWith(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Boolean =
@@ -26,6 +27,13 @@ private[havarunner] object Reflections {
       case None       => constructor.newInstance()
     }
   }
+
+  def withSubclasses(clazz: Class[_], accumulator: Seq[Class[_]] = Seq()): Seq[Class[_]] =
+    if (clazz.getDeclaredClasses.isEmpty) {
+      clazz +: accumulator
+    } else {
+      clazz +: clazz.getDeclaredClasses.flatMap(withSubclasses(_, accumulator))
+    }
 
   private def resolveConstructorAndArgs(
                                          implicit suiteOption: Option[HavaRunnerSuite[_]],

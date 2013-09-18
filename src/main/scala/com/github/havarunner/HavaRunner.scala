@@ -65,7 +65,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
     }
   }
 
-  private[havarunner] val classesToTest = parentClass +: parentClass.getDeclaredClasses.toSeq
+  private[havarunner] val classesToTest = withSubclasses(parentClass)
 
   private[havarunner] lazy val children: java.lang.Iterable[TestAndParameters] =
     parseTestsAndParameters(classesToTest).filter(acceptChild(_, filterOption))
