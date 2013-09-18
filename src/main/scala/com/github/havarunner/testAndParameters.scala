@@ -8,6 +8,7 @@ private[havarunner] class TestAndParameters(
   val testClass: Class[_],
   val expectedException: Option[Class[_<:Throwable]],
   val scenario: Option[AnyRef],
+  val partOf: Option[HavaRunnerSuite[_]],
   val ignored: Boolean,
   val testContext: TestContext,
   val afterAll: Seq[Method],
@@ -16,7 +17,7 @@ private[havarunner] class TestAndParameters(
 
   val scenarioAndClass = ScenarioAndClass(testClass, scenario)
 
-  lazy val testInstance = fromTestInstanceCache(scenarioAndClass)
+  lazy val testInstance = fromTestInstanceCache(this)
 
   def scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 }

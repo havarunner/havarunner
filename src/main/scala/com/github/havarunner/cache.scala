@@ -2,7 +2,6 @@ package com.github.havarunner
 
 import scala.collection.mutable
 import com.github.havarunner.Reflections._
-import com.github.havarunner.Parser._
 
 private[havarunner] object SuiteCache {
   private val cache = new mutable.HashMap[Class[_ <: HavaRunnerSuite[_]], HavaRunnerSuite[_]] with mutable.SynchronizedMap[Class[_ <: HavaRunnerSuite[_]], HavaRunnerSuite[_]]
@@ -27,11 +26,15 @@ private[havarunner] object SuiteCache {
 private[havarunner] object TestInstanceCache {
   private val cache = new mutable.HashMap[ScenarioAndClass, Any] with mutable.SynchronizedMap[ScenarioAndClass, Any]
 
-  def fromTestInstanceCache(scenarioAndClass: ScenarioAndClass): Any =
-    scenarioAndClass.clazz.synchronized {
-      cache.get(scenarioAndClass) getOrElse {
-        val testInstance = instantiate(suiteOption(scenarioAndClass.clazz), scenarioAndClass.scenarioOption, scenarioAndClass.clazz)
-        cache(scenarioAndClass) = testInstance
+  def fromTestInstanceCache(testAndParameters: TestAndParameters): Any =
+    testAndParameters.scenarioAndClass.clazz.synchronized {
+      cache.get(testAndParameters.scenarioAndClass) getOrElse {
+        val testInstance = instantiate(
+          testAndParameters.partOf,
+          testAndParameters.scenarioAndClass.scenarioOption,
+          testAndParameters.scenarioAndClass.clazz
+        )
+        cache(testAndParameters.scenarioAndClass) = testInstance
         testInstance
       }
     }
