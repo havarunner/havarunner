@@ -28,7 +28,7 @@ private[havarunner] object Parser {
     })
   }
 
-  def suiteOption(implicit clazz: Class[_]): Option[HavaRunnerSuite[_]] =
+  private def suiteOption(implicit clazz: Class[_]): Option[HavaRunnerSuite[_]] =
     Option(clazz.getAnnotation(classOf[PartOf])) map {
       partOfAnnotation =>
         val suiteClass = partOfAnnotation.value()
