@@ -22,7 +22,7 @@ private[havarunner] object Parser {
           partOf = suiteOption(testClassAndSource.testClass),
           testContext = testClassAndSource.testContext,
           afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]))
+          runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]) || isAnnotatedWith(testClassAndSource.testClass, classOf[RunSequentially]))
         )
       })
     })

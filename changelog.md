@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.7.1
+
+* Run suite members sequentially
+
 ## 0.7.0
 
 * Support recursive `static class` test definitions
