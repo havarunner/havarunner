@@ -13,7 +13,6 @@ public class SequentialSuiteMembersTest {
     @Test
     public void HavaRunner_runs_suite_members_sequentially_if_they_contain_the_RunSequentially_annotation() {
         run(new HavaRunner(Suite.class));
-        assertEquals("main", suiteMemberThread.getName());
-        System.out.println(suiteMemberThread);
+        assertEquals(Thread.currentThread().getName(), suiteMemberThread.getName());
     }
 }
