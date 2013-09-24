@@ -6,7 +6,7 @@ import org.junit.Test;
 
 @RunSequentially
 @PartOf(Suite.class)
-public class SequentialSuiteMember {
+class SequentialSuiteMember {
 
     public SequentialSuiteMember(String suiteObject) {
 
