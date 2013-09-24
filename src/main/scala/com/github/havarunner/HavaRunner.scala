@@ -124,7 +124,7 @@ private object HavaRunner {
       testAndParameters.afterAll.foreach(invoke(_, testAndParameters))
     )
 
-  private def testOperation(implicit testAndParameters: TestAndParameters): Operation[AnyRef] =
+  private def testOperation(implicit testAndParameters: TestAndParameters): Operation[Any] =
     Operation(() => {
       takingExpectedExceptionIntoAccount {
         try {
@@ -136,7 +136,7 @@ private object HavaRunner {
       }
     })
 
-  private def takingExpectedExceptionIntoAccount(testF: => AnyRef)(implicit testAndParameters: TestAndParameters): AnyRef = {
+  private def takingExpectedExceptionIntoAccount(testF: => AnyRef)(implicit testAndParameters: TestAndParameters) {
     testAndParameters.expectedException match {
       case Some(expected) =>
         try {
@@ -146,9 +146,6 @@ private object HavaRunner {
           case e: Throwable =>
             if (expected != e.getClass) {
               throw e // The exception was something the test did not anticipate
-            } else {
-              // The test expected this exception. All ok.
-              "ok"
             }
         }
       case None =>
