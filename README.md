@@ -267,6 +267,20 @@ HavaRunner tests in the codebase, try to understand why they cannot be run
 concurrently. From this understanding you might gain valuable insights into the
 architectural problems of the system.
 
+### Using the JUnit assumption API
+
+````java
+@RunWith(HavaRunner.class)
+public class AssumeThatExample {
+    boolean weHaveFlt = false;
+
+    @Test
+    void when_we_fare_the_galaxies() {
+        assumeTrue(weHaveFlt); // HavaRunner ignores this test, because the assumption does not hold
+    }
+}
+````
+
 ### Full code examples
 
 [Here](https://github.com/havarunner/havarunner/tree/master/src/test/java/com/github/havarunner/example)

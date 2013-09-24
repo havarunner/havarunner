@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.8.0
+
+* Support the JUnit assumption API
+
 ## 0.7.1
 
 * Run suite members sequentially

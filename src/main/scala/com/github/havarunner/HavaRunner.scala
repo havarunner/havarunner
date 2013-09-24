@@ -12,6 +12,7 @@ import com.github.havarunner.exception.TestDidNotRiseExpectedException
 import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.Parser._
 import com.github.havarunner.Reflections._
+import org.junit.internal.AssumptionViolatedException
 
 /**
  * Usage: @org.junit.runner.RunWith(HavaRunner.class)
@@ -102,8 +103,6 @@ private object HavaRunner {
           try {
             notifier fireTestStarted description
             withThrottle(testOperation)
-          } catch {
-            case e: Throwable => notifier fireTestFailure new Failure(description, e)
           } finally {
             notifier fireTestFinished description
           }
@@ -124,32 +123,37 @@ private object HavaRunner {
       testAndParameters.afterAll.foreach(invoke(_, testAndParameters))
     )
 
-  private def testOperation(implicit testAndParameters: TestAndParameters): Operation[Any] =
+  private def testOperation(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description): Operation[Any] =
     Operation(() => {
-      takingExpectedExceptionIntoAccount {
-        try {
-          testAndParameters.testMethod.invoke(testAndParameters.testInstance)
-        } catch {
-          case e: InvocationTargetException =>
-            throw e.getTargetException
-        }
+      maybeThrowingException {
+        testAndParameters.testMethod.invoke(testAndParameters.testInstance)
+      } match {
+        case Some(exception) if exception.isInstanceOf[AssumptionViolatedException] =>
+          println(s"[HavaRunner] Ignored $testAndParameters, because it did not meet an assumption")
+          notifier fireTestIgnored description
+        case Some(exception) if testAndParameters.expectedException.isDefined =>
+          if (exception.getClass == testAndParameters.expectedException.get) {
+            // Expected exception. All ok.
+          }
+        case Some(exception) =>
+          notifier fireTestFailure new Failure(description, exception)
+        case None =>
+          failIfExpectedExceptionNotThrown
       }
     })
 
-  private def takingExpectedExceptionIntoAccount(testF: => AnyRef)(implicit testAndParameters: TestAndParameters) {
-    testAndParameters.expectedException match {
-      case Some(expected) =>
-        try {
-          testF
-          throw new TestDidNotRiseExpectedException(expected, testAndParameters)
-        } catch {
-          case e: Throwable =>
-            if (expected != e.getClass) {
-              throw e // The exception was something the test did not anticipate
-            }
-        }
-      case None =>
-        testF
-    }
+  def failIfExpectedExceptionNotThrown(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
+    testAndParameters.expectedException.foreach(expected =>
+      notifier fireTestFailure new Failure(description, new TestDidNotRiseExpectedException(testAndParameters.expectedException.get, testAndParameters))
+    )
   }
+
+  private def maybeThrowingException(testF: => AnyRef)(implicit testAndParameters: TestAndParameters): Option[Throwable] =
+    try {
+      testF
+      None
+    } catch {
+      case e: InvocationTargetException => Some(e.getTargetException)
+      case e: Throwable => Some(e)
+    }
 }

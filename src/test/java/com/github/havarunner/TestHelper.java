@@ -1,6 +1,7 @@
 package com.github.havarunner;
 
 import com.github.havarunner.HavaRunner;
+import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
@@ -29,6 +30,18 @@ public class TestHelper {
         };
         run(havaRunner, runNotifier);
         return expectedFailure.get();
+    }
+
+    public static Description runAndRecordIgnored(HavaRunner havaRunner) {
+        final AtomicReference<Description> expectedIgnore = new AtomicReference<>();
+        RunNotifier runNotifier = new RunNotifier() {
+            @Override
+            public void fireTestIgnored(Description description) {
+                expectedIgnore.set(description);
+            }
+        };
+        run(havaRunner, runNotifier);
+        return expectedIgnore.get();
     }
 
     public static void run(HavaRunner havaRunner, RunNotifier runNotifier) {
