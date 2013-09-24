@@ -18,6 +18,8 @@ scalaVersion := "2.10.2"
 
 javacOptions ++= Seq("-source", "1.7")
 
+parallelExecution in Test := false
+
 libraryDependencies ++= Seq(
   "junit" % "junit" % "4.11" % "provided, test",
   "com.google.guava" % "guava" % "14.0.1" % "provided",
