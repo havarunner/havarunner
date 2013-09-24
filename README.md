@@ -276,7 +276,7 @@ public class AssumeThatExample {
 
     @Test
     void when_we_fare_the_galaxies() {
-        assumeTrue(weHaveFlt); // HavaRunner ignores this test, because the assumption does not hold
+        org.junit.Assume.assumeTrue(weHaveFlt); // HavaRunner ignores this test, because the assumption does not hold
     }
 }
 ````
