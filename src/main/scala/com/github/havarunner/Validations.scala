@@ -15,14 +15,13 @@ private[havarunner] object Validations {
       reportUnsupportedMethodAnnotations.find(_.isDefined).flatMap(identity)
 
   private def suiteConfigError(implicit testAndParameters: TestAndParameters): Option[SuiteMemberDoesNotBelongToSuitePackage] =
-    if (isAnnotatedWith(testAndParameters.testClass, classOf[PartOf])) {
-      val suiteClass: Class[_ <: HavaRunnerSuite[_]] = testAndParameters.testClass.getAnnotation(classOf[PartOf]).value()
+    findAnnotationRecursively(testAndParameters.testClass, classOf[PartOf]) flatMap { (partOfAnnotation: Annotation) =>
+      val suiteClass: Class[_ <: HavaRunnerSuite[_]] = partOfAnnotation.asInstanceOf[PartOf].value()
       if (!testAndParameters.testClass.getPackage.getName.startsWith(suiteClass.getPackage.getName))
         Some(new SuiteMemberDoesNotBelongToSuitePackage(testAndParameters.testClass, suiteClass))
       else
         None
-    } else
-      None
+    }
 
   private def reportUnsupportedMethodAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
     unsupportedJUnitAnnotations.map(unsupportedAnnotation => {

@@ -16,24 +16,25 @@ private[havarunner] object Parser {
         new TestAndParameters(
           methodAndScenario.method,
           testClassAndSource.testClass,
-          ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || isAnnotatedWith(testClassAndSource.testClass, classOf[Ignore]),
+          ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || findAnnotationRecursively(testClassAndSource.testClass, classOf[Ignore]).isDefined,
           expectedException = expectedException(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
           partOf = suiteOption(testClassAndSource.testClass),
           testContext = testClassAndSource.testContext,
           afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          runSequentially = classesToTest.exists(isAnnotatedWith(_, classOf[RunSequentially]) || isAnnotatedWith(testClassAndSource.testClass, classOf[RunSequentially]))
+          runSequentially = classesToTest.exists(
+            findAnnotationRecursively(_, classOf[RunSequentially]).isDefined || findAnnotationRecursively(testClassAndSource.testClass, classOf[RunSequentially]).isDefined
+          )
         )
       })
     })
   }
 
   private def suiteOption(implicit clazz: Class[_]): Option[HavaRunnerSuite[_]] =
-    Option(clazz.getAnnotation(classOf[PartOf])) map {
-      partOfAnnotation =>
-        val suiteClass = partOfAnnotation.value()
-        fromSuiteInstanceCache(suiteClass)
-    }
+    findAnnotationRecursively(clazz, classOf[PartOf]).
+      map(_.asInstanceOf[PartOf]).
+      map(_.value()).
+      map(fromSuiteInstanceCache)
 
   private def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[TestClassAndSource] = {
     val nonSuiteTests = classesToTest.map(TestClassAndSource(_))

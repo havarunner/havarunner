@@ -6,13 +6,11 @@ import scala.Some
 import com.github.havarunner.exception.ConstructorNotFound
 
 private[havarunner] object Reflections {
-  def isAnnotatedWith(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Boolean =
-    if (clazz.getAnnotation(annotationClass) != null) {
-      true
-    } else if (clazz.getSuperclass != null) {
-      isAnnotatedWith(clazz.getSuperclass, annotationClass)
-    } else {
-      false
+  def findAnnotationRecursively(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Option[Annotation] =
+    Option(clazz.getAnnotation(annotationClass)) orElse {
+      Option(clazz.getSuperclass) flatMap {
+        superclass => findAnnotationRecursively(superclass, annotationClass)
+      }
     }
 
   def instantiate(implicit suiteOption: Option[HavaRunnerSuite[_]], scenarioOption: Option[AnyRef], clazz: Class[_]) = {

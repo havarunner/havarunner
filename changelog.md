@@ -5,6 +5,7 @@ This project uses [Semantic Versioning](http://semver.org)
 ## 0.8.0
 
 * Support the JUnit assumption API
+* Allow abstract classes to define suite membership
 
 ## 0.7.1
 
