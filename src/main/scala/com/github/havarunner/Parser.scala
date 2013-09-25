@@ -68,11 +68,12 @@ private[havarunner] object Parser {
 
   private def findSuiteMembers(testClass: Class[_]): Seq[Class[_]] =
     if (classOf[HavaRunnerSuite[_]].isAssignableFrom(testClass))
-      suiteMembers(testClass).filter(_.getAnnotation(classOf[PartOf]).value() == testClass)
+      allSuiteMembers(testClass) filter
+        (findAnnotationRecursively(_, classOf[PartOf]).exists(_.asInstanceOf[PartOf].value() == testClass))
     else
       Nil
 
-  private def suiteMembers(testClass: Class[_]): Seq[Class[_]] = {
+  private def allSuiteMembers(testClass: Class[_]): Seq[Class[_]] = {
     val maybeLoadedClasses: Seq[Option[Class[_]]] =
       ClassPath.
         from(getClass.getClassLoader).
@@ -80,7 +81,7 @@ private[havarunner] object Parser {
         toSeq.
         map(classInfo => Some(classInfo.load))
     val loadedClasses: Seq[Class[_]] = maybeLoadedClasses.flatMap(identity(_))
-    loadedClasses.filter(_.isAnnotationPresent(classOf[PartOf]))
+    loadedClasses.filter(findAnnotationRecursively(_, classOf[PartOf]).isDefined)
   }
 
 
