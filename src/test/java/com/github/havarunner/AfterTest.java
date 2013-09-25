@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import static com.github.havarunner.TestHelper.run;
+import static com.github.havarunner.TestHelper.runAndIgnoreErrors;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
@@ -56,7 +57,7 @@ public class AfterTest {
 
         @Test
         public void HavaRunner_calls_the_After_method_even_if_the_test_throws_an_exception() {
-            run(new HavaRunner(AfterFailingTest.class));
+            runAndIgnoreErrors(new HavaRunner(AfterFailingTest.class));
             assertTrue(worldIsBuilt);
             assertTrue(worldIsDestroyed);
         }

@@ -48,7 +48,16 @@ public class TestHelper {
         havaRunner.run(runNotifier);
     }
 
-    public static void run(HavaRunner havaRunner) {
+    public static void runAndIgnoreErrors(HavaRunner havaRunner) {
         run(havaRunner, new RunNotifier());
+    }
+
+    public static void run(HavaRunner havaRunner) {
+        run(havaRunner, new RunNotifier() {
+            @Override
+            public void fireTestFailure(Failure failure) {
+                throw new RuntimeException(failure.getMessage());
+            }
+        });
     }
 }

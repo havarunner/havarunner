@@ -3,8 +3,10 @@ package com.github.havarunner.suite.suitedefinedinparent;
 import com.github.havarunner.HavaRunner;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.runner.notification.Failure;
 
 import static com.github.havarunner.TestHelper.run;
+import static com.github.havarunner.TestHelper.runAndRecordFailure;
 import static org.junit.Assert.assertTrue;
 
 public class SuiteDefinedInParentTest {
