@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.8.3
+
+* Tolerate assumeThat calls in constructor when @AfterAll is present
+
 ## 0.8.2
 
 * Allow static inner classes to be suite members
