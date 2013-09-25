@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.8.2
+
+* Allow static inner classes to be suite members
+
 ## 0.8.1
 
 * When running suite, find the tests whose suite membership is declared in an

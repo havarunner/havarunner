@@ -11,4 +11,15 @@ class SuiteMember extends AbstractSuiteMember {
     public void hello() {
         SuiteDefinedInParentTest.suiteMethodCalled = true;
     }
+
+    static class InnerSuiteMember extends AbstractSuiteMember {
+        InnerSuiteMember(String suiteObject) {
+
+        }
+
+        @Test
+        public void hello_inner() {
+            SuiteDefinedInParentTest.innerSuiteMethodCalled = true;
+        }
+    }
 }

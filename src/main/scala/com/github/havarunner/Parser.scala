@@ -81,9 +81,9 @@ private[havarunner] object Parser {
         toSeq.
         map(classInfo => Some(classInfo.load))
     val loadedClasses: Seq[Class[_]] = maybeLoadedClasses.flatMap(identity(_))
-    loadedClasses.filter(findAnnotationRecursively(_, classOf[PartOf]).isDefined)
+    val loadedClassesWithInnerClasses = loadedClasses.flatMap(clazz => clazz +: clazz.getDeclaredClasses) // Guava finds only top-level classes, not inner classes.
+    loadedClassesWithInnerClasses.filter(findAnnotationRecursively(_, classOf[PartOf]).isDefined)
   }
-
 
   private def scenarios(testClass: Class[_]): Option[Seq[AnyRef]] =
     scenarioMethodOpt(testClass) map { scenarioMethod =>
