@@ -129,8 +129,8 @@ private object HavaRunner {
         testAndParameters.testMethod.invoke(testAndParameters.testInstance)
       } match {
         case Some(exception) if exception.isInstanceOf[AssumptionViolatedException] =>
-          println(s"[HavaRunner] Ignored $testAndParameters, because it did not meet an assumption")
-          notifier fireTestIgnored description
+          val msg = s"[HavaRunner] Ignored $testAndParameters, because it did not meet an assumption"
+          notifier fireTestAssumptionFailed new Failure(description, new AssumptionViolatedException(msg))
         case Some(exception) if testAndParameters.expectedException.isDefined =>
           if (exception.getClass == testAndParameters.expectedException.get) {
             // Expected exception. All ok.

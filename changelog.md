@@ -2,6 +2,11 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.8.5
+
+* Invoke the assumption-failed API, not the ignore API, when an assumption
+  failed
+
 ## 0.8.4
 
 * Do not include abstract classes in the test class set

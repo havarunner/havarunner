@@ -5,7 +5,6 @@ import com.github.havarunner.exception.UnsupportedAnnotationException;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static com.github.havarunner.TestHelper.runAndRecordFailedAssumption;
 import static com.github.havarunner.TestHelper.runAndRecordFailure;
 import static org.junit.Assert.assertEquals;
 
