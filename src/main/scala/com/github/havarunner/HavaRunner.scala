@@ -31,15 +31,21 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
 
   def run(notifier: RunNotifier) {
     reportIfSuite
-    val afterAllsAndFutures = children.groupBy(_.scenarioAndClass).map {
-      case (scenarioAndClass, testsAndClasses) =>
-        val futures: Iterable[FutureTask[_]] = testsAndClasses.flatMap(testAndParameters => runChild(testAndParameters, notifier))
-        AfterAllsAndFutures(afterAlls(testsAndClasses.head), futures)
-    }
-    afterAllsAndFutures.foreach(afterAllsAndFutures => {
-      afterAllsAndFutures.futures.foreach(_.get(1, TimeUnit.HOURS))
-      afterAllsAndFutures.afterAlls.run
-    })
+    children
+      .groupBy(_.scenarioAndClass)
+      .map {
+        case (scenarioAndClass, testsAndClasses) =>
+          val futures: Iterable[FutureTask[_]] = testsAndClasses.flatMap(testAndParameters => runChild(testAndParameters, notifier))
+          AfterAllsAndFutures(
+            afterAlls(testsAndClasses.head), // head is enough, since all the tests share the same instance, because we've grouped by #scenarioAndClass
+            futures
+          )
+      }
+      .par // Go parallel here, so that we can run the afteralls concurrently
+      .foreach(afterAllsAndFutures => {
+        afterAllsAndFutures.futures.foreach(_.get(1, TimeUnit.HOURS))
+        afterAllsAndFutures.afterAlls.run
+      })
     executor shutdown()
     executor awaitTermination(1, TimeUnit.HOURS)
   }

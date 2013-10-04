@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.8.6
+
+* Run the `@AfterAll` methods in parallel
+
 ## 0.8.5
 
 * Invoke the assumption-failed API, not the ignore API, when an assumption
