@@ -2,9 +2,9 @@ package com.github.havarunner
 
 import java.lang.annotation.Annotation
 import java.lang.reflect.{InvocationTargetException, Method}
-import scala.Some
 import com.github.havarunner.exception.ConstructorNotFound
 import org.junit.internal.AssumptionViolatedException
+import com.github.havarunner.TestInstanceCache._
 
 private[havarunner] object Reflections {
   def findAnnotationRecursively(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Option[Annotation] =
@@ -73,7 +73,7 @@ private[havarunner] object Reflections {
   def invoke(method: Method, testAndParameters: TestAndParameters) {
     method.setAccessible(true)
     try {
-      method.invoke(testAndParameters.testInstance)
+      method.invoke(fromTestInstanceCache(testAndParameters))
     } catch {
       case e: InvocationTargetException =>
         if (e.getTargetException.getClass == classOf[AssumptionViolatedException]) {

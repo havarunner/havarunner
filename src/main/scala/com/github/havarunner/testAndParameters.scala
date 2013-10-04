@@ -17,8 +17,6 @@ private[havarunner] class TestAndParameters(
 
   val scenarioAndClass = ScenarioAndClass(testClass, scenario)
 
-  lazy val testInstance = fromTestInstanceCache(this)
-
   def scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 
   override def toString =

@@ -13,6 +13,7 @@ import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.Parser._
 import com.github.havarunner.Reflections._
 import org.junit.internal.AssumptionViolatedException
+import com.github.havarunner.TestInstanceCache._
 
 /**
  * Usage: @org.junit.runner.RunWith(HavaRunner.class)
@@ -132,7 +133,7 @@ private object HavaRunner {
   private def testOperation(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description): Operation[Any] =
     Operation(() => {
       maybeThrowingException {
-        testAndParameters.testMethod.invoke(testAndParameters.testInstance)
+        testAndParameters.testMethod.invoke(fromTestInstanceCache(testAndParameters))
       } match {
         case Some(exception) if exception.isInstanceOf[AssumptionViolatedException] =>
           val msg = s"[HavaRunner] Ignored $testAndParameters, because it did not meet an assumption"
