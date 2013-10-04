@@ -13,7 +13,7 @@ private[havarunner] object Parser {
   def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
     localAndSuiteTests(classesToTest).flatMap((testClassAndSource: TestClassAndSource) => {
       findTestMethods(testClassAndSource.testClass).map(methodAndScenario => {
-        new TestAndParameters(
+        TestAndParameters(
           methodAndScenario.method,
           testClassAndSource.testClass,
           ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || findAnnotationRecursively(testClassAndSource.testClass, classOf[Ignore]).isDefined,

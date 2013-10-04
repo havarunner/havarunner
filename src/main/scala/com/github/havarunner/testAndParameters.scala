@@ -3,16 +3,16 @@ package com.github.havarunner
 import java.lang.reflect.Method
 import com.github.havarunner.TestInstanceCache._
 
-private[havarunner] class TestAndParameters(
-  val testMethod: Method,
-  val testClass: Class[_],
-  val expectedException: Option[Class[_<:Throwable]],
-  val scenario: Option[AnyRef],
-  val partOf: Option[HavaRunnerSuite[_]],
-  val ignored: Boolean,
-  val testContext: TestContext,
-  val afterAll: Seq[Method],
-  val runSequentially: Boolean
+private[havarunner] case class TestAndParameters(
+  testMethod: Method,
+  testClass: Class[_],
+  expectedException: Option[Class[_<:Throwable]],
+  scenario: Option[AnyRef],
+  partOf: Option[HavaRunnerSuite[_]],
+  ignored: Boolean,
+  testContext: TestContext,
+  afterAll: Seq[Method],
+  runSequentially: Boolean
 ) {
 
   val scenarioAndClass = ScenarioAndClass(testClass, scenario)
