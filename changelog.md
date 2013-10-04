@@ -2,6 +2,11 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.8.7
+
+* Remove started/finished stdout spam
+* Internal refactorings
+
 ## 0.8.6
 
 * Run the `@AfterAll` methods in parallel
