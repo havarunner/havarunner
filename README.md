@@ -303,6 +303,7 @@ HavaRunner supports only a limited set of JUnit annotations. Here they are:
 | ---------- | --------- | ------- |
 | `@org.junit.Test` | Same as in JUnit | This fellow you already know. |
 | `@org.junit.Ignore` | Same as in JUnit | This fellow you already know. |
+| `@org.junit.Rule` | Same as in JUnit | HavaRunner supports only TestRules, not Method rules. |
 
 HavaRunner supports none of the other JUnit annotations.
 

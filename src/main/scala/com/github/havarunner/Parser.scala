@@ -1,6 +1,6 @@
 package com.github.havarunner
 
-import org.junit.{Ignore, Test}
+import org.junit.{Rule, Ignore, Test}
 import com.github.havarunner.annotation.{PartOf, AfterAll, Scenarios, RunSequentially}
 import com.github.havarunner.SuiteCache._
 import java.lang.reflect.{Modifier, Method}
@@ -14,8 +14,9 @@ private[havarunner] object Parser {
     localAndSuiteTests(classesToTest).flatMap((testClassAndSource: TestClassAndSource) => {
       findTestMethods(testClassAndSource.testClass).map(methodAndScenario => {
         TestAndParameters(
-          methodAndScenario.method,
-          testClassAndSource.testClass,
+          testMethod = methodAndScenario.method,
+          testClass = testClassAndSource.testClass,
+          rules = findFields(testClassAndSource.testClass, classOf[Rule]).map(f => { f.setAccessible(true); f }),
           ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || findAnnotationRecursively(testClassAndSource.testClass, classOf[Ignore]).isDefined,
           expectedException = expectedException(methodAndScenario.method),
           scenario = methodAndScenario.scenario,

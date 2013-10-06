@@ -5,7 +5,7 @@ import org.junit.runner.notification.{Failure, RunNotifier}
 import java.util.concurrent._
 import scala.collection.JavaConversions._
 import Validations._
-import java.lang.reflect.InvocationTargetException
+import java.lang.reflect.{Field, InvocationTargetException}
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.TestDidNotRiseExpectedException
@@ -14,6 +14,8 @@ import com.github.havarunner.Parser._
 import com.github.havarunner.Reflections._
 import org.junit.internal.AssumptionViolatedException
 import com.github.havarunner.TestInstanceCache._
+import org.junit.runners.model.Statement
+import org.junit.rules.TestRule
 
 /**
  * Usage: @org.junit.runner.RunWith(HavaRunner.class)
@@ -132,24 +134,46 @@ private object HavaRunner {
 
   private def testOperation(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description): Operation[Any] =
     Operation(() => {
-      maybeThrowingException {
-        testAndParameters.testMethod.invoke(fromTestInstanceCache(testAndParameters))
-      } match {
-        case Some(exception) if exception.isInstanceOf[AssumptionViolatedException] =>
-          val msg = s"[HavaRunner] Ignored $testAndParameters, because it did not meet an assumption"
-          notifier fireTestAssumptionFailed new Failure(description, new AssumptionViolatedException(msg))
-        case Some(exception) if testAndParameters.expectedException.isDefined =>
-          if (exception.getClass == testAndParameters.expectedException.get) {
-            // Expected exception. All ok.
-          }
-        case Some(exception) =>
-          notifier fireTestFailure new Failure(description, exception)
-        case None =>
-          failIfExpectedExceptionNotThrown
+      runWithRules {
+        runWithExceptionHandling
       }
     })
 
-  def failIfExpectedExceptionNotThrown(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
+  private def runWithRules(f: => Any)(implicit testAndParameters: TestAndParameters) {
+    val inner = new Statement {
+      def evaluate() {
+        f
+      }
+    }
+    val withRulesApplied = testAndParameters
+      .rules
+      .foldLeft(inner) {
+      (accumulator: Statement, rule: Field) => {
+        val testRule: TestRule = rule.get(fromTestInstanceCache(testAndParameters)).asInstanceOf[TestRule]
+        testRule.apply(accumulator, describeChild)
+      }}
+    withRulesApplied.evaluate()
+  }
+
+  private def runWithExceptionHandling(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
+    maybeThrowingException {
+      testAndParameters.testMethod.invoke(fromTestInstanceCache(testAndParameters))
+    } match {
+      case Some(exception) if exception.isInstanceOf[AssumptionViolatedException] =>
+        val msg = s"[HavaRunner] Ignored $testAndParameters, because it did not meet an assumption"
+        notifier fireTestAssumptionFailed new Failure(description, new AssumptionViolatedException(msg))
+      case Some(exception) if testAndParameters.expectedException.isDefined =>
+        if (exception.getClass == testAndParameters.expectedException.get) {
+          // Expected exception. All ok.
+        }
+      case Some(exception) =>
+        notifier fireTestFailure new Failure(description, exception)
+      case None =>
+        failIfExpectedExceptionNotThrown
+    }
+  }
+
+  private def failIfExpectedExceptionNotThrown(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
     testAndParameters.expectedException.foreach(expected =>
       notifier fireTestFailure new Failure(description, new TestDidNotRiseExpectedException(testAndParameters.expectedException.get, testAndParameters))
     )

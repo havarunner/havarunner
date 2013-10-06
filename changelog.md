@@ -2,6 +2,11 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## HEAD
+
+* Support JUnit
+  [TestRules](http://junit-team.github.io/junit/javadoc/4.10/org/junit/rules/TestRule.html)
+
 ## 0.8.7
 
 * Remove started/finished stdout spam

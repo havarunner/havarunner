@@ -1,7 +1,7 @@
 package com.github.havarunner
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.{InvocationTargetException, Method}
+import java.lang.reflect.{Field, InvocationTargetException, Method}
 import com.github.havarunner.exception.ConstructorNotFound
 import org.junit.internal.AssumptionViolatedException
 import com.github.havarunner.TestInstanceCache._
@@ -68,6 +68,11 @@ private[havarunner] object Reflections {
   def findMethods(clazz: Class[_], annotation: Class[_ <: Annotation]): Seq[Method] =
     classWithSuperclasses(clazz).flatMap(clazz =>
       clazz.getDeclaredMethods.filter(_.getAnnotation(annotation) != null)
+    )
+
+  def findFields(clazz: Class[_], annotation: Class[_ <: Annotation]): Seq[Field] =
+    classWithSuperclasses(clazz).flatMap(clazz =>
+      clazz.getDeclaredFields.filter(_.getAnnotation(annotation) != null)
     )
 
   def invoke(method: Method, testAndParameters: TestAndParameters) {

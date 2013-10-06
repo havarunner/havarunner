@@ -43,7 +43,6 @@ private[havarunner] object Validations {
     classOf[Before],
     classOf[AfterClass],
     classOf[BeforeClass],
-    classOf[Rule],
     classOf[ClassRule]
   )
 }

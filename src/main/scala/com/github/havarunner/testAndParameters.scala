@@ -1,11 +1,11 @@
 package com.github.havarunner
 
-import java.lang.reflect.Method
-import com.github.havarunner.TestInstanceCache._
+import java.lang.reflect.{Field, Method}
 
 private[havarunner] case class TestAndParameters(
   testMethod: Method,
   testClass: Class[_],
+  rules: Seq[Field],
   expectedException: Option[Class[_<:Throwable]],
   scenario: Option[AnyRef],
   partOf: Option[HavaRunnerSuite[_]],
