@@ -2,7 +2,7 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## HEAD
+## 0.9.0
 
 * Support JUnit
   [TestRules](http://junit-team.github.io/junit/javadoc/4.10/org/junit/rules/TestRule.html)
