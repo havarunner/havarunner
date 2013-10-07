@@ -9,6 +9,7 @@ import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static com.github.havarunner.TestHelper.run;
@@ -16,8 +17,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class RuleTest {
-    static Collection<Description> firstRuleApplications= Lists.newArrayList();
-    static Collection<Description> secondRuleApplications = Lists.newArrayList();
+    static Collection<Description> firstRuleApplications= Collections.synchronizedList(Lists.<Description>newArrayList());
+    static Collection<Description> secondRuleApplications = Collections.synchronizedList(Lists.<Description>newArrayList());
     static boolean firstTestRun;
     static boolean secondTestRun;
 
