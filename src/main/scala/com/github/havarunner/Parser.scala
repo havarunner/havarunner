@@ -88,14 +88,11 @@ private[havarunner] object Parser {
 
   private def scenarios(testClass: Class[_]): Option[Seq[AnyRef]] =
     scenarioMethodOpt(testClass) map { scenarioMethod =>
-      val scenarios = scenarioMethod.invoke(null).asInstanceOf[java.lang.Iterable[A]]
+      val scenarios = scenarioMethod.invoke(null).asInstanceOf[java.lang.Iterable[AnyRef]]
       scenarios.iterator().toSeq
     }
 
   private class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
-
-
-  private type A = AnyRef
 }
 
 private[havarunner] case class TestClassAndSource(testClass: Class[_], testContext: TestContext = DefaultContext)
