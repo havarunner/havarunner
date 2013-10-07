@@ -53,7 +53,10 @@ private[havarunner] object Parser {
       Some(expected)
   }
 
-  private def scenarioMethodOpt(clazz: Class[_]): Option[Method] = findMethods(clazz, classOf[Scenarios]).headOption.map(method => { method.setAccessible(true); method })
+  private def scenarioMethodOpt(clazz: Class[_]): Option[Method] =
+    findMethods(clazz, classOf[Scenarios]).
+      headOption.
+      map(method => { method.setAccessible(true); method })
 
   private def findTestMethods(testClass: Class[_]): Seq[MethodAndScenario] = {
     val testMethods = findMethods(testClass, classOf[Test]).map(method => { method.setAccessible(true); method })
