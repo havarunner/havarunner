@@ -8,7 +8,7 @@ import org.junit.runner.notification.Failure;
 import org.testapp.suite.TestAppSuite;
 
 import static com.github.havarunner.TestHelper.runAndRecordFailure;
-import static junit.framework.Assert.assertNotNull;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertEquals;
 
 public class InvalidSuiteConfigTest {
