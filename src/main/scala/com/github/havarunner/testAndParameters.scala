@@ -7,6 +7,7 @@ private[havarunner] case class TestAndParameters(
   testClass: Class[_],
   rules: Seq[Field],
   expectedException: Option[Class[_<:Throwable]],
+  timeout: Option[Long],
   scenario: Option[AnyRef],
   partOf: Option[HavaRunnerSuite[_]],
   ignored: Boolean,

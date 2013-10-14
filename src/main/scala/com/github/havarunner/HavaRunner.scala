@@ -8,7 +8,7 @@ import Validations._
 import java.lang.reflect.{Field, InvocationTargetException}
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.HavaRunner._
-import com.github.havarunner.exception.TestDidNotRiseExpectedException
+import com.github.havarunner.exception.{TestDidNotRiseExpectedException}
 import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.Parser._
 import com.github.havarunner.Reflections._
@@ -135,7 +135,7 @@ private object HavaRunner {
   private def testOperation(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description): Operation[Any] =
     Operation(() => {
       runWithRules {
-        runWithExceptionHandling
+        runTest
       }
     })
 
@@ -155,9 +155,11 @@ private object HavaRunner {
     withRulesApplied.evaluate()
   }
 
-  private def runWithExceptionHandling(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
+  private def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
     maybeThrowingException {
-      testAndParameters.testMethod.invoke(fromTestInstanceCache(testAndParameters))
+      maybeTimeouting {
+        testAndParameters.testMethod.invoke(fromTestInstanceCache(testAndParameters))
+      }
     } match {
       case Some(exception) if exception.isInstanceOf[AssumptionViolatedException] =>
         val msg = s"[HavaRunner] Ignored $testAndParameters, because it did not meet an assumption"
@@ -173,13 +175,26 @@ private object HavaRunner {
     }
   }
 
+  private def maybeTimeouting(op: => Any)(implicit testAndParameters: TestAndParameters) {
+    testAndParameters.timeout.map(timeout => {
+      val start = System.currentTimeMillis()
+      op
+      val duration = System.currentTimeMillis() - start
+      if (duration >= timeout) {
+        throw new RuntimeException(s"Test timed out after $duration milliseconds")
+      }
+    }).getOrElse({
+      op
+    })
+  }
+
   private def failIfExpectedExceptionNotThrown(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
     testAndParameters.expectedException.foreach(expected =>
       notifier fireTestFailure new Failure(description, new TestDidNotRiseExpectedException(testAndParameters.expectedException.get, testAndParameters))
     )
   }
 
-  private def maybeThrowingException(testF: => AnyRef)(implicit testAndParameters: TestAndParameters): Option[Throwable] =
+  private def maybeThrowingException(testF: => Any)(implicit testAndParameters: TestAndParameters): Option[Throwable] =
     try {
       testF
       None

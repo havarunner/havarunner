@@ -19,6 +19,7 @@ private[havarunner] object Parser {
           rules = findFields(testClassAndSource.testClass, classOf[Rule]).map(f => { f.setAccessible(true); f }),
           ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || findAnnotationRecursively(testClassAndSource.testClass, classOf[Ignore]).isDefined,
           expectedException = expectedException(methodAndScenario.method),
+          timeout = timeout(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
           partOf = suiteOption(testClassAndSource.testClass),
           testContext = testClassAndSource.testContext,
@@ -51,6 +52,14 @@ private[havarunner] object Parser {
       None
     else
       Some(expected)
+  }
+  
+  private def timeout(method: Method): Option[Long] = {
+    val timeoutInMillis = method.getAnnotation(classOf[Test]).timeout()
+    if (timeoutInMillis == 0)
+      None
+    else
+      Some(timeoutInMillis)
   }
 
   private def scenarioMethodOpt(clazz: Class[_]): Option[Method] =

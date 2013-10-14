@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.9.1
+
+* Add missing support for @Test(timeout = x)
+
 ## 0.9.0
 
 * Support JUnit
