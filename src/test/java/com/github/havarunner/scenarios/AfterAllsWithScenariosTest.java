@@ -7,6 +7,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -15,7 +16,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class AfterAllsWithScenariosTest {
-    private static List<String> afterAllMethodsCalled = Lists.newArrayList();
+    private static List<String> afterAllMethodsCalled = Collections.synchronizedList(Lists.<String>newArrayList());
 
     @Test
     public void HavaRunner_will_call_the_AfterAll_methods_for_all_the_scenario_instances() {
