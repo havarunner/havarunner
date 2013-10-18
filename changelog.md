@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.9.3
+
+* Do not fail if a test assumption fails and there is a `@Rule`
+
 ## 0.9.2
 
 * Do not run the whole test set sequentially if one of the tests is marked with `@RunSequentially`

@@ -149,9 +149,16 @@ private object HavaRunner {
       .rules
       .foldLeft(inner) {
       (accumulator: Statement, rule: Field) => {
-        val testRule: TestRule = rule.get(fromTestInstanceCache(testAndParameters)).asInstanceOf[TestRule]
-        testRule.apply(accumulator, describeChild)
-      }}
+        try {
+          val testRule: TestRule = rule.get(fromTestInstanceCache(testAndParameters)).asInstanceOf[TestRule]
+          testRule.apply(accumulator, describeChild)
+        } catch {
+          case e: InvocationTargetException =>
+            if (e.getCause.getClass == classOf[AssumptionViolatedException]) inner
+            else throw e
+        }
+      }
+    }
     withRulesApplied.evaluate()
   }
 
