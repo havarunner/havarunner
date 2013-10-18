@@ -31,7 +31,9 @@ private[havarunner] object Parser {
   }
 
   private def runSequentially(clazz: Class[_]): Boolean =
-    clazz.getDeclaredAnnotations.exists(_.annotationType() == classOf[RunSequentially]) != null || (clazz.getDeclaringClass != null && runSequentially(clazz.getDeclaringClass))
+    clazz.getAnnotation(classOf[RunSequentially]) != null ||
+      (clazz.getSuperclass != null && runSequentially(clazz.getSuperclass)) ||
+      (clazz.getDeclaringClass != null && runSequentially(clazz.getDeclaringClass))
 
   private def suiteOption(implicit clazz: Class[_]): Option[HavaRunnerSuite[_]] =
     findAnnotationRecursively(clazz, classOf[PartOf]).
