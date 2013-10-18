@@ -24,13 +24,14 @@ private[havarunner] object Parser {
           partOf = suiteOption(testClassAndSource.testClass),
           testContext = testClassAndSource.testContext,
           afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          runSequentially = classesToTest.exists(
-            findAnnotationRecursively(_, classOf[RunSequentially]).isDefined || findAnnotationRecursively(testClassAndSource.testClass, classOf[RunSequentially]).isDefined
-          )
+          runSequentially = runSequentially(testClassAndSource.testClass)
         )
       })
     })
   }
+
+  private def runSequentially(clazz: Class[_]): Boolean =
+    clazz.getDeclaredAnnotations.exists(_.annotationType() == classOf[RunSequentially]) != null || (clazz.getDeclaringClass != null && runSequentially(clazz.getDeclaringClass))
 
   private def suiteOption(implicit clazz: Class[_]): Option[HavaRunnerSuite[_]] =
     findAnnotationRecursively(clazz, classOf[PartOf]).

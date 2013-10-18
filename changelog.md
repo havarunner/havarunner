@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.9.2
+
+* Do not run the whole test set sequentially if one of the tests is marked with `@RunSequentially`
+
 ## 0.9.1
 
 * Add missing support for @Test(timeout = x)

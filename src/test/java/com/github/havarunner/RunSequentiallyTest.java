@@ -1,6 +1,5 @@
 package com.github.havarunner;
 
-import com.github.havarunner.HavaRunner;
 import com.github.havarunner.annotation.RunSequentially;
 import org.junit.Test;
 
@@ -50,9 +49,11 @@ public class RunSequentiallyTest {
     @RunSequentially
     static class SequentialEnclosingTest {
 
-        @Test
-        void examples_in_this_class_are_run_sequentially() {
-            sequentialEnclosingTestThread = Thread.currentThread();
+        static class EnclosedTest {
+            @Test
+            void examples_in_this_class_are_run_sequentially() {
+                sequentialEnclosingTestThread = Thread.currentThread();
+            }
         }
     }
 }
