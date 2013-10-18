@@ -8,18 +8,17 @@ private[havarunner] object SuiteCache {
 
   def fromSuiteInstanceCache(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] =
     suiteClass.synchronized {
-      cache.get(suiteClass) getOrElse {
+      cache.getOrElseUpdate(suiteClass, {
         val noArgConstructor = suiteClass.getDeclaredConstructor()
         noArgConstructor.setAccessible(true)
         val havaRunnerSuiteInstance: HavaRunnerSuite[_] = noArgConstructor.newInstance()
-        cache(suiteClass) = havaRunnerSuiteInstance
         Runtime.getRuntime.addShutdownHook(new Thread(new Runnable() {
           def run() {
             havaRunnerSuiteInstance.afterSuite()
           }
         }))
         havaRunnerSuiteInstance
-      }
+      })
     }
 }
 
@@ -28,7 +27,7 @@ private[havarunner] object TestInstanceCache {
 
   def fromTestInstanceCache(testAndParameters: TestAndParameters): Any =
     testAndParameters.scenarioAndClass.clazz.synchronized {
-      cache.get(testAndParameters.scenarioAndClass) getOrElse {
+      cache.getOrElseUpdate(testAndParameters.scenarioAndClass, {
         val testInstance = instantiate(
           testAndParameters.partOf,
           testAndParameters.scenarioAndClass.scenarioOption,
@@ -36,6 +35,6 @@ private[havarunner] object TestInstanceCache {
         )
         cache(testAndParameters.scenarioAndClass) = testInstance
         testInstance
-      }
+      })
     }
 }
