@@ -71,7 +71,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
       notifier fireTestFailure  new Failure(description, testIsInvalidReport.get)
       None
     } else {
-      runValidTest
+      runOrIgnoreValidChild
     }
   }
 
@@ -102,29 +102,32 @@ private object HavaRunner {
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
 
-  private def runValidTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ForkJoinPool): Option[FutureTask[_]] = {
+  private def runOrIgnoreValidChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ForkJoinPool): Option[FutureTask[_]] =
     if (testAndParameters.ignored) {
       notifier fireTestIgnored description
       None
     } else {
-      val testTask = new FutureTask(new Runnable {
-        def run() {
-          try {
-            notifier fireTestStarted description
-            withThrottle(testOperation)
-          } finally {
-            notifier fireTestFinished description
-          }
-        }
-      }, None)
-      if (testAndParameters.runSequentially) {
-        testTask.run()
-      } else {
-        val forkJoinTask = ForkJoinTask.adapt(testTask)
-        executor submit forkJoinTask
-      }
-      Some(testTask)
+      run(notifier, description, testAndParameters, executor)
     }
+
+  def run(implicit notifier: RunNotifier, description: Description, testAndParameters: TestAndParameters, executor: ForkJoinPool): Some[FutureTask[None.type]] = {
+    val testTask = new FutureTask(new Runnable {
+      def run() {
+        try {
+          notifier fireTestStarted description
+          withThrottle(testOperation)
+        } finally {
+          notifier fireTestFinished description
+        }
+      }
+    }, None)
+    if (testAndParameters.runSequentially) {
+      testTask.run()
+    } else {
+      val forkJoinTask = ForkJoinTask.adapt(testTask)
+      executor submit forkJoinTask
+    }
+    Some(testTask)
   }
 
   private def afterAlls(implicit testAndParameters: TestAndParameters): Operation[Unit] =
