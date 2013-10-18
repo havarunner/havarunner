@@ -107,10 +107,10 @@ private object HavaRunner {
       notifier fireTestIgnored description
       None
     } else {
-      run
+      runOrSchedule
     }
 
-  def run(implicit notifier: RunNotifier, description: Description, testAndParameters: TestAndParameters, executor: ForkJoinPool): Some[FutureTask[None.type]] = {
+  private def runOrSchedule(implicit notifier: RunNotifier, description: Description, testAndParameters: TestAndParameters, executor: ForkJoinPool): Some[FutureTask[None.type]] = {
     val testTask = new FutureTask(new Runnable {
       def run() {
         try {
