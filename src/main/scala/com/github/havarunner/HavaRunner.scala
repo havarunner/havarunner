@@ -107,7 +107,7 @@ private object HavaRunner {
       notifier fireTestIgnored description
       None
     } else {
-      run(notifier, description, testAndParameters, executor)
+      run
     }
 
   def run(implicit notifier: RunNotifier, description: Description, testAndParameters: TestAndParameters, executor: ForkJoinPool): Some[FutureTask[None.type]] = {
