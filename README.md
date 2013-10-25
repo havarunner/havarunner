@@ -34,7 +34,7 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
   <!-- HavaRunner lets you manage the JUnit dependency. -->
   <groupId>junit</groupId>
   <artifactId>junit</artifactId>
-  <version>4.11</version> <!-- Any 4-series JUnit should do. -->
+  <version>4.11</version> <!-- Any JUnit above 4.10 should do. -->
   <scope>test</scope>
 </dependency>
 <dependency>
