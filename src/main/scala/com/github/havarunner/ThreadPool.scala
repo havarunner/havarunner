@@ -4,7 +4,7 @@ import java.util.concurrent.ForkJoinPool
 
 private[havarunner] trait ThreadPool {
   implicit val executor: ForkJoinPool = new ForkJoinPool(
-    Runtime.getRuntime().availableProcessors(),
+    ConcurrencyControl.concurrencyLevel,
     ForkJoinPool.defaultForkJoinWorkerThreadFactory,
     null,
     true

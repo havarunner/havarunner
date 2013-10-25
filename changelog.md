@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## HEAD
+
+* Non-blocking sequential tests
+
 ## 0.9.4
 
 * Use ForkJoinPool asyncMode = true
