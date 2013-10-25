@@ -1,58 +1,114 @@
 package com.github.havarunner;
 
 import com.github.havarunner.annotation.RunSequentially;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import org.junit.Test;
+import org.junit.experimental.runners.Enclosed;
+import org.junit.runner.RunWith;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.github.havarunner.TestHelper.run;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
+@RunWith(Enclosed.class)
 public class RunSequentiallyTest {
 
-    static Thread sequentialTestThread;
-    @Test
-    public void HavaRunner_runs_tests_sequentially_when_the_RunSequentially_annotation_is_present_in_the_explicit_test_class() {
-        run(new HavaRunner(SequentialTest.class));
-        assertEquals(Thread.currentThread(), sequentialTestThread);
-    }
-
-    static Thread test_that_extends_a_sequential_test_Thread;
-    @Test
-    public void HavaRunner_runs_tests_sequentially_when_the_RunSequentially_annotation_is_present_in_the_class_hierarchy() {
-        run(new HavaRunner(test_that_extends_a_sequential_test.class));
-        assertEquals(Thread.currentThread(), test_that_extends_a_sequential_test_Thread);
-    }
-
-    static Thread sequentialEnclosingTestThread;
-    @Test
-    public void HavaRunner_runs_tests_sequentially_when_the_RunSequentially_annotation_is_present_in_the_enclosing_class() {
-        run(new HavaRunner(SequentialEnclosingTest.class));
-        assertEquals(Thread.currentThread(), sequentialEnclosingTestThread);
-    }
-
-    @RunSequentially
-    static class SequentialTest {
+    public static class marking_tests_as_sequential {
+        @Test
+        public void HavaRunner_runs_tests_sequentially_when_the_RunSequentially_annotation_is_present_in_the_explicit_test_class() {
+            assertTestsAreSequential(SequentialTest.class);
+        }
 
         @Test
-        void examples_in_this_class_are_run_sequentially() {
-            sequentialTestThread = Thread.currentThread();
+        public void HavaRunner_runs_tests_sequentially_when_the_RunSequentially_annotation_is_present_in_the_class_hierarchy() {
+            assertTestsAreSequential(test_that_extends_a_sequential_test.class);
         }
-    }
-
-    static class test_that_extends_a_sequential_test extends SequentialTest {
 
         @Test
-        void examples_in_this_class_are_run_sequentially() {
-            test_that_extends_a_sequential_test_Thread = Thread.currentThread();
+        public void HavaRunner_runs_tests_sequentially_when_the_RunSequentially_annotation_is_present_in_the_enclosing_class() {
+            assertTestsAreSequential(SequentialEnclosingTest.class);
         }
-    }
 
-    @RunSequentially
-    static class SequentialEnclosingTest {
+        @Test
+        public void two_sequential_tests_do_not_run_at_the_same_time() {
 
-        static class EnclosedTest {
+        }
+
+        private void assertTestsAreSequential(Class testClass) {
+            for (TestAndParameters testAndParameters : new HavaRunner(testClass).children()) {
+                assertTrue(testAndParameters.runSequentially());
+            }
+        }
+
+        @RunSequentially
+        static class SequentialTest {
+
             @Test
             void examples_in_this_class_are_run_sequentially() {
-                sequentialEnclosingTestThread = Thread.currentThread();
+            }
+        }
+
+        static class test_that_extends_a_sequential_test extends SequentialTest {
+
+            @Test
+            void examples_in_this_class_are_run_sequentially() {
+            }
+        }
+
+        @RunSequentially
+        static class SequentialEnclosingTest {
+
+            static class EnclosedTest {
+                @Test
+                void examples_in_this_class_are_run_sequentially() {
+                }
+            }
+        }
+    }
+
+    public static class running_two_sequential_tests {
+        static final List<String> ints = Collections.synchronizedList(Lists.<String>newArrayList());
+
+        @Test
+        public void should_work_as_expected() {
+            run(new HavaRunner(SequentialTest.class));
+            if (ints.get(0).equals("from first")) { // The order in which the tests are run varies from JVM to JVM
+                assertTrue(allEqual(ints.subList(0, 100), "from first"));
+                assertTrue(allEqual(ints.subList(100, 200), "from second"));
+            } else {
+                assertTrue(allEqual(ints.subList(0, 100), "from second"));
+                assertTrue(allEqual(ints.subList(100, 200), "from first"));
+            }
+        }
+
+        private boolean allEqual(List<String> list, final String expected) {
+            return Iterables.all(list, new Predicate<String>() {
+                public boolean apply(String input) {
+                    return input.equals(expected);
+                }
+            });
+        }
+
+        @RunSequentially
+        static class SequentialTest {
+
+            @Test
+            void first() {
+                for (int i = 0; i < 100; i++) {
+                    ints.add("from first");
+                }
+            }
+
+            @Test
+            void second() {
+                for (int i = 0; i < 100; i++) {
+                    ints.add("from second");
+                }
             }
         }
     }

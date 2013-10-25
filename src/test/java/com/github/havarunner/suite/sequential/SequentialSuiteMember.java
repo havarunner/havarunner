@@ -14,6 +14,5 @@ class SequentialSuiteMember {
 
     @Test
     public void test() {
-        SequentialSuiteMembersTest.suiteMemberThread = Thread.currentThread();
     }
 }

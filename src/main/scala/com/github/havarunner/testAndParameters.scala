@@ -14,7 +14,7 @@ private[havarunner] case class TestAndParameters(
   testContext: TestContext,
   afterAll: Seq[Method],
   runSequentially: Boolean
-) {
+) extends MaybeSequential {
 
   val scenarioAndClass = ScenarioAndClass(testClass, scenario)
 
@@ -31,3 +31,7 @@ private[havarunner] case class TestAndParameters(
 }
 
 private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])
+
+private[havarunner] trait MaybeSequential {
+  def runSequentially: Boolean
+}
