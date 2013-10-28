@@ -51,9 +51,6 @@ private[havarunner] object Validations {
     AnnotationAndReason(classOf[BeforeClass]) ::
     AnnotationAndReason(classOf[ClassRule]) :: Nil
 
-  /**
-   * Sequential tests may use the @After and @Before methods.
-   */
   private val unsupportedAnnotationsWhenSequential =
     allUnsupportedAnnotations
       .filterNot(_.annotationClass == classOf[After])
