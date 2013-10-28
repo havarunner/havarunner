@@ -4,7 +4,7 @@ import org.junit._
 import scala.Some
 import com.github.havarunner.exception.{SuiteMemberDoesNotBelongToSuitePackage, UnsupportedAnnotationException}
 import com.github.havarunner.Reflections._
-import com.github.havarunner.annotation.PartOf
+import com.github.havarunner.annotation.{RunSequentially, PartOf}
 import java.lang.annotation.Annotation
 
 private[havarunner] object Validations {
@@ -24,17 +24,17 @@ private[havarunner] object Validations {
     }
 
   private def reportUnsupportedMethodAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
-    unsupportedJUnitAnnotations.map(unsupportedAnnotation => {
-      if (hasMethodAnnotatedWith(testAndParameters.testClass, unsupportedAnnotation))
-        Some(new UnsupportedAnnotationException(unsupportedAnnotation, testAndParameters.testClass))
+    unsupportedJUnitAnnotations.map(annotationAndReason => {
+      if (hasMethodAnnotatedWith(testAndParameters.testClass, annotationAndReason.annotationClass))
+        Some(new UnsupportedAnnotationException(annotationAndReason.annotationClass, testAndParameters.testClass, annotationAndReason.customReason))
       else
         None
     })
 
   private def reportUnsupportedClassAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
-    unsupportedJUnitAnnotations.flatMap(unsupportedAnnotation => {
-      testAndParameters.testClass.getAnnotations.filter(_.getClass == unsupportedAnnotation).map(usedAnnotation =>
-        Some(new UnsupportedAnnotationException(usedAnnotation.getClass, testAndParameters.testClass))
+    unsupportedJUnitAnnotations.flatMap(annotationAndReason => {
+      testAndParameters.testClass.getAnnotations.filter(_.getClass == annotationAndReason.annotationClass).map(usedAnnotation =>
+        Some(new UnsupportedAnnotationException(usedAnnotation.getClass, testAndParameters.testClass, annotationAndReason.customReason))
       )
     })
 
@@ -45,17 +45,19 @@ private[havarunner] object Validations {
       allUnsupportedAnnotations
 
   private val allUnsupportedAnnotations =
-    classOf[After] ::
-    classOf[Before] ::
-    classOf[AfterClass] ::
-    classOf[BeforeClass] ::
-    classOf[ClassRule] :: Nil
+    AnnotationAndReason(classOf[After], Some(s"Only tests that are @${classOf[RunSequentially].getSimpleName} may use @${classOf[After].getSimpleName}")) ::
+    AnnotationAndReason(classOf[Before], Some(s"Only tests that are @${classOf[RunSequentially].getSimpleName} may use @${classOf[Before].getSimpleName}")) ::
+    AnnotationAndReason(classOf[AfterClass]) ::
+    AnnotationAndReason(classOf[BeforeClass]) ::
+    AnnotationAndReason(classOf[ClassRule]) :: Nil
 
   /**
    * Sequential tests may use the @After and @Before methods.
    */
   private val unsupportedAnnotationsWhenSequential =
     allUnsupportedAnnotations
-      .filterNot(_ == classOf[After])
-      .filterNot(_ == classOf[Before])
+      .filterNot(_.annotationClass == classOf[After])
+      .filterNot(_.annotationClass == classOf[Before])
+
+  private case class AnnotationAndReason(annotationClass: Class[_ <: Annotation], customReason: Option[String] = None)
 }
