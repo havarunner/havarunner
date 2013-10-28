@@ -7,10 +7,7 @@ import java.lang.reflect.{Modifier, Method}
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
 import com.google.common.reflect.ClassPath
-import com.github.havarunner.TestClassAndSource
-import com.github.havarunner.TestAndParameters
 import scala.Some
-import com.github.havarunner.SuiteContext
 
 private[havarunner] object Parser {
 
