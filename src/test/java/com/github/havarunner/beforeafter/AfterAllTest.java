@@ -1,5 +1,6 @@
-package com.github.havarunner;
+package com.github.havarunner.beforeafter;
 
+import com.github.havarunner.HavaRunner;
 import com.github.havarunner.annotation.AfterAll;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -17,7 +18,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.*;
 
 @RunWith(Enclosed.class)
-public class AfterTest {
+public class AfterAllTest {
 
     public static class when_the_test_class_contains_multiple_tests {
         static Long test1MethodCall;

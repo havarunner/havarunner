@@ -1,18 +1,22 @@
 package com.github.havarunner
 
-import org.junit.{Rule, Ignore, Test}
+import org.junit._
 import com.github.havarunner.annotation.{PartOf, AfterAll, Scenarios, RunSequentially}
 import com.github.havarunner.SuiteCache._
 import java.lang.reflect.{Modifier, Method}
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
 import com.google.common.reflect.ClassPath
+import com.github.havarunner.TestClassAndSource
+import com.github.havarunner.TestAndParameters
+import scala.Some
+import com.github.havarunner.SuiteContext
 
 private[havarunner] object Parser {
 
-  def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] = {
-    localAndSuiteTests(classesToTest).flatMap((testClassAndSource: TestClassAndSource) => {
-      findTestMethods(testClassAndSource.testClass).map(methodAndScenario => {
+  def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] =
+    localAndSuiteTests(classesToTest).flatMap((testClassAndSource: TestClassAndSource) =>
+      findTestMethods(testClassAndSource.testClass).map(methodAndScenario =>
         TestAndParameters(
           testMethod = methodAndScenario.method,
           testClass = testClassAndSource.testClass,
@@ -24,11 +28,12 @@ private[havarunner] object Parser {
           partOf = suiteOption(testClassAndSource.testClass),
           testContext = testClassAndSource.testContext,
           afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
+          after = findMethods(testClassAndSource.testClass, classOf[After]),
+          before = findMethods(testClassAndSource.testClass, classOf[Before]),
           runSequentially = runSequentially(testClassAndSource.testClass)
         )
-      })
-    })
-  }
+      )
+    )
 
   private def runSequentially(clazz: Class[_]): Boolean =
     clazz.getAnnotation(classOf[RunSequentially]) != null ||

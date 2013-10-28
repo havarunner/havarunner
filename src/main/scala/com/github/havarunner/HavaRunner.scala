@@ -5,7 +5,7 @@ import org.junit.runner.notification.{Failure, RunNotifier}
 import java.util.concurrent._
 import scala.collection.JavaConversions._
 import Validations._
-import java.lang.reflect.{Field, InvocationTargetException}
+import java.lang.reflect.{Method, Field, InvocationTargetException}
 import org.junit.runner.manipulation.{Filter, Filterable}
 import com.github.havarunner.HavaRunner._
 import com.github.havarunner.exception.{TestDidNotRiseExpectedException}
@@ -71,7 +71,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable wi
       notifier fireTestFailure  new Failure(description, testIsInvalidReport.get)
       None
     } else {
-      runOrIgnoreValidChild
+      scheduleOrIgnore
     }
   }
 
@@ -102,7 +102,7 @@ private object HavaRunner {
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
 
-  private def runOrIgnoreValidChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ForkJoinPool): Option[FutureTask[_]] =
+  private def scheduleOrIgnore(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, executor: ForkJoinPool): Option[FutureTask[_]] =
     if (testAndParameters.ignored) {
       notifier fireTestIgnored description
       None
@@ -127,7 +127,7 @@ private object HavaRunner {
 
   private def afterAlls(implicit testAndParameters: TestAndParameters): Operation[Unit] =
     Operation(() =>
-      testAndParameters.afterAll.foreach(invoke(_, testAndParameters))
+      testAndParameters.afterAll.foreach(invoke(_))
     )
 
   private def testOperation(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description): Operation[Any] =
@@ -148,7 +148,7 @@ private object HavaRunner {
       .foldLeft(inner) {
       (accumulator: Statement, rule: Field) => {
         try {
-          val testRule: TestRule = rule.get(fromTestInstanceCache(testAndParameters)).asInstanceOf[TestRule]
+          val testRule: TestRule = rule.get(testInstance).asInstanceOf[TestRule]
           testRule.apply(accumulator, describeChild)
         } catch {
           case e: InvocationTargetException =>
@@ -162,8 +162,11 @@ private object HavaRunner {
 
   private def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
     maybeThrowingException {
-      maybeTimeouting {
-        testAndParameters.testMethod.invoke(fromTestInstanceCache(testAndParameters))
+      try {
+        invokeEach(testAndParameters.before)
+        maybeTimeouting { testAndParameters.testMethod.invoke(testInstance) }
+      } finally {
+        invokeEach(testAndParameters.after)
       }
     } match {
       case Some(exception) if exception.isInstanceOf[AssumptionViolatedException] =>
@@ -188,9 +191,7 @@ private object HavaRunner {
       if (duration >= timeout) {
         throw new RuntimeException(s"Test timed out after $duration milliseconds")
       }
-    }).getOrElse({
-      op
-    })
+    }).getOrElse(op)
   }
 
   private def failIfExpectedExceptionNotThrown(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {

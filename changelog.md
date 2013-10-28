@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## HEAD
+
+* Support @Before and @After when sequential
+
 ## 0.9.5
 
 * Non-blocking sequential tests

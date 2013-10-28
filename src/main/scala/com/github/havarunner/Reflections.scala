@@ -75,10 +75,10 @@ private[havarunner] object Reflections {
       clazz.getDeclaredFields.filter(_.getAnnotation(annotation) != null)
     )
 
-  def invoke(method: Method, testAndParameters: TestAndParameters) {
+  def invoke(method: Method)(implicit testAndParameters: TestAndParameters) {
     method.setAccessible(true)
     try {
-      method.invoke(fromTestInstanceCache(testAndParameters))
+      method.invoke(testInstance(testAndParameters))
     } catch {
       case e: InvocationTargetException =>
         if (e.getTargetException.getClass == classOf[AssumptionViolatedException]) {
@@ -87,6 +87,10 @@ private[havarunner] object Reflections {
           throw e
         }
     }
+  }
+
+  def invokeEach(methods: Seq[Method])(implicit testAndParameters: TestAndParameters) {
+    methods.foreach(invoke(_))
   }
 
   def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] =

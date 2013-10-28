@@ -38,11 +38,24 @@ private[havarunner] object Validations {
       )
     })
 
-  private val unsupportedJUnitAnnotations = Seq(
-    classOf[After],
-    classOf[Before],
-    classOf[AfterClass],
-    classOf[BeforeClass],
-    classOf[ClassRule]
-  )
+  private def unsupportedJUnitAnnotations(implicit maybeSequential: MaybeSequential) =
+    if (maybeSequential.runSequentially)
+      unsupportedAnnotationsWhenSequential
+    else
+      allUnsupportedAnnotations
+
+  private val allUnsupportedAnnotations =
+    classOf[After] ::
+    classOf[Before] ::
+    classOf[AfterClass] ::
+    classOf[BeforeClass] ::
+    classOf[ClassRule] :: Nil
+
+  /**
+   * Sequential tests may use the @After and @Before methods.
+   */
+  private val unsupportedAnnotationsWhenSequential =
+    allUnsupportedAnnotations
+      .filterNot(_ == classOf[After])
+      .filterNot(_ == classOf[Before])
 }

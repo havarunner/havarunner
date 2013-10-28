@@ -13,6 +13,8 @@ private[havarunner] case class TestAndParameters(
   ignored: Boolean,
   testContext: TestContext,
   afterAll: Seq[Method],
+  after: Seq[Method],
+  before: Seq[Method],
   runSequentially: Boolean
 ) extends MaybeSequential {
 

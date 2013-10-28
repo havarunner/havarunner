@@ -1,11 +1,12 @@
 package com.github.havarunner;
 
-import com.github.havarunner.HavaRunner;
+import com.github.havarunner.annotation.RunSequentially;
 import com.github.havarunner.exception.UnsupportedAnnotationException;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 
+import static com.github.havarunner.TestHelper.run;
 import static com.github.havarunner.TestHelper.runAndRecordFailure;
 import static org.junit.Assert.assertEquals;
 
@@ -22,6 +23,16 @@ public class UnsupportedJUnitAnnotationsTest {
         );
     }
 
+    @Test
+    public void sequential_tests_may_use_Before() {
+        run(new HavaRunner(SequentialTest.class));
+    }
+
+    @Test
+    public void sequential_tests_may_use_After() {
+        run(new HavaRunner(SequentialTest.class));
+    }
+
     static class TestWithUnsupportedJUnitAnnotation {
         @Before
         void HavaRunner_does_not_support_the_After_annotation() {
@@ -29,6 +40,22 @@ public class UnsupportedJUnitAnnotationsTest {
 
         @Test
         void this_test_will_not_be_run_because_the_BeforeClass_annotation_is_present() {
+
+        }
+    }
+
+    @RunSequentially
+    static class SequentialTest {
+        @Before
+        void before() {
+        }
+
+        @After
+        void after() {
+        }
+
+        @Test
+        void test() {
 
         }
     }
