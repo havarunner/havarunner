@@ -2,7 +2,7 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## HEAD
+## 0.10.0
 
 * Support @Before and @After when sequential
 
