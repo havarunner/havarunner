@@ -78,7 +78,7 @@ private[havarunner] object Reflections {
   def invoke(method: Method)(implicit testAndParameters: TestAndParameters) {
     method.setAccessible(true)
     try {
-      method.invoke(testInstance(testAndParameters))
+      method.invoke(testInstance)
     } catch {
       case e: InvocationTargetException =>
         if (e.getTargetException.getClass == classOf[AssumptionViolatedException]) {
