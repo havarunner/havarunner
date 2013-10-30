@@ -98,15 +98,17 @@ public class RunSequentiallyTest {
         static class SequentialTest {
 
             @Test
-            void first() {
+            void first() throws InterruptedException {
                 for (int i = 0; i < 100; i++) {
+                    Thread.sleep(1);
                     ints.add("from first");
                 }
             }
 
             @Test
-            void second() {
+            void second() throws InterruptedException {
                 for (int i = 0; i < 100; i++) {
+                    Thread.sleep(1);
                     ints.add("from second");
                 }
             }

@@ -14,8 +14,8 @@ private[havarunner] object Reflections {
       }
     }
 
-  def instantiate(implicit suiteOption: Option[HavaRunnerSuite[_]], scenarioOption: Option[AnyRef], clazz: Class[_]) = {
-    val (constructor, argsOption) = resolveConstructorAndArgs(suiteOption, scenarioOption, clazz)
+  def instantiate(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters) = {
+    val (constructor, argsOption) = resolveConstructorAndArgs
     constructor.setAccessible(true)
     argsOption match {
       case Some(args) => constructor.newInstance(args.toSeq.asInstanceOf[Seq[AnyRef]]:_*)
@@ -30,13 +30,10 @@ private[havarunner] object Reflections {
       clazz +: clazz.getDeclaredClasses.flatMap(findDeclaredClasses(_, accumulator))
     }
 
-  private def resolveConstructorAndArgs(
-                                         implicit suiteOption: Option[HavaRunnerSuite[_]],
-                                         scenarioOption: Option[AnyRef],
-                                         clazz: Class[_]
-                                         ) =
+  private def resolveConstructorAndArgs(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters) =
     withHelpfulConstructorMissingReport {
-      (suiteOption, scenarioOption) match {
+      val clazz = testAndParameters.testClass
+      (suiteInstanceOption, testAndParameters.scenarioAndClass.scenarioOption) match {
         case (Some(suite), Some(scenario)) =>
           (
             clazz.getDeclaredConstructor(suite.suiteObject.getClass, scenario.getClass),
@@ -57,12 +54,12 @@ private[havarunner] object Reflections {
       }
     }
 
-  private def withHelpfulConstructorMissingReport[T](op: => T)(implicit clazz: Class[_], scenario: Option[AnyRef]) =
+  private def withHelpfulConstructorMissingReport[T](op: => T)(implicit testAndParameters: TestAndParameters) =
     try {
       op
     } catch {
       case e: NoSuchMethodException =>
-        throw new ConstructorNotFound(clazz, e)
+        throw new ConstructorNotFound(testAndParameters.testClass, e)
     }
 
   def findMethods(clazz: Class[_], annotation: Class[_ <: Annotation]): Seq[Method] =
@@ -75,10 +72,10 @@ private[havarunner] object Reflections {
       clazz.getDeclaredFields.filter(_.getAnnotation(annotation) != null)
     )
 
-  def invoke(method: Method)(implicit testAndParameters: TestAndParameters) {
+  def invoke(method: Method)(implicit testInstance: TestInstance) {
     method.setAccessible(true)
     try {
-      method.invoke(testInstance)
+      method.invoke(testInstance.instance)
     } catch {
       case e: InvocationTargetException =>
         if (e.getTargetException.getClass == classOf[AssumptionViolatedException]) {
@@ -89,8 +86,8 @@ private[havarunner] object Reflections {
     }
   }
 
-  def invokeEach(methods: Seq[Method])(implicit testAndParameters: TestAndParameters) {
-    methods.foreach(invoke(_))
+  def invokeEach(methods: Seq[Method])(implicit testInstance: TestInstance) {
+    methods.foreach(invoke)
   }
 
   def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] =

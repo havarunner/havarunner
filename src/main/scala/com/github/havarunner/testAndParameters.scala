@@ -9,7 +9,7 @@ private[havarunner] case class TestAndParameters(
   expectedException: Option[Class[_<:Throwable]],
   timeout: Option[Long],
   scenario: Option[AnyRef],
-  partOf: Option[HavaRunnerSuite[_]],
+  partOf: Option[Class[_ <:HavaRunnerSuite[_]]],
   ignored: Boolean,
   testContext: TestContext,
   afterAll: Seq[Method],
@@ -33,6 +33,8 @@ private[havarunner] case class TestAndParameters(
 }
 
 private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])
+
+private[havarunner] case class TestInstance(instance: Any)
 
 private[havarunner] trait MaybeSequential {
   def runSequentially: Boolean
