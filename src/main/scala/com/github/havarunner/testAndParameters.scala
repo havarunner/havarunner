@@ -34,6 +34,8 @@ private[havarunner] case class TestAndParameters(
 
 private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])
 
+private[havarunner] case class TestInstance(instance: Any)
+
 private[havarunner] trait MaybeSequential {
   def runSequentially: Boolean
 }

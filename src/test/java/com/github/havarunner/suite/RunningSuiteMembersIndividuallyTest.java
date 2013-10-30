@@ -18,6 +18,7 @@ import static com.github.havarunner.TestHelper.run;
 import static com.github.havarunner.TestHelper.runAndRecordFailure;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(Enclosed.class)
 public class RunningSuiteMembersIndividuallyTest {
@@ -98,12 +99,17 @@ public class RunningSuiteMembersIndividuallyTest {
 
         @Test
         public void HavaRunner_gives_a_helpful_error_message_if_the_suite_test_does_not_have_the_required_constructor() {
-            Failure failure = runAndRecordFailure(new HavaRunner(TestWithoutTheRequiredSuiteConstructor.class));
-            assertEquals(ConstructorNotFound.class, failure.getException().getClass());
-            assertEquals(
-                "Class TestWithoutTheRequiredSuiteConstructor is missing the required constructor. Try adding the following constructor: com.github.havarunner.suite.RunningSuiteMembersIndividuallyTest$when_suite_member_is_missing_the_suite_object_constructor$TestWithoutTheRequiredSuiteConstructor.<init>(java.lang.String)",
-                failure.getException().getMessage()
-            );
+            try {
+                run(new HavaRunner(TestWithoutTheRequiredSuiteConstructor.class));
+            } catch (ConstructorNotFound expected) {
+                assertEquals(ConstructorNotFound.class, expected.getClass());
+                assertEquals(
+                    "Class TestWithoutTheRequiredSuiteConstructor is missing the required constructor. Try adding the following constructor: com.github.havarunner.suite.RunningSuiteMembersIndividuallyTest$when_suite_member_is_missing_the_suite_object_constructor$TestWithoutTheRequiredSuiteConstructor.<init>(java.lang.String)",
+                    expected.getMessage()
+                );
+            } catch (Exception e) {
+                fail("Unexpected: " + e.getMessage());
+            }
         }
 
 
