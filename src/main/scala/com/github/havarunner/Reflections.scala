@@ -94,14 +94,13 @@ private[havarunner] object Reflections {
   }
 
   def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] =
-    if (clazz.getSuperclass != null) {
+    if (clazz.getSuperclass != null)
       classWithSuperclasses(clazz.getSuperclass, clazz +: superclasses)
-    } else {
+    else
       superclasses
-    }
 
   def hasMethodAnnotatedWith(clazz: Class[_], annotationClass: Class[_ <: Annotation]) =
     classWithSuperclasses(clazz).
       flatMap(_.getDeclaredMethods).
       exists(_.getAnnotation(annotationClass) != null)
-  }
+}
