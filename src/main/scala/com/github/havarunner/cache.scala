@@ -41,9 +41,7 @@ private[havarunner] object TestInstanceCache {
   private def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
     testAndParameters.scenarioAndClass.clazz.synchronized {
       cache.getOrElseUpdate(testAndParameters.scenarioAndClass, {
-        val testInstance = TestInstance(instantiate)
-        cache(testAndParameters.scenarioAndClass) = testInstance
-        testInstance
+        TestInstance(instantiate)
       })
     }
 }
