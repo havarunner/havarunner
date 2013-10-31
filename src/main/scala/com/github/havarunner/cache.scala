@@ -13,13 +13,18 @@ private[havarunner] object SuiteCache {
   def suiteInstance(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] =
     suiteClass.synchronized {
       cache.getOrElseUpdate(suiteClass, {
-        val noArgConstructor = suiteClass.getDeclaredConstructor()
-        noArgConstructor.setAccessible(true)
-        val havaRunnerSuiteInstance: HavaRunnerSuite[_] = noArgConstructor.newInstance()
+        val havaRunnerSuiteInstance: HavaRunnerSuite[_] = instantiateSuite(suiteClass)
         registerShutdownHook(havaRunnerSuiteInstance)
         havaRunnerSuiteInstance
       })
     }
+
+  private def instantiateSuite(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] = {
+    val noArgConstructor = suiteClass.getDeclaredConstructor()
+    noArgConstructor.setAccessible(true)
+    val havaRunnerSuiteInstance: HavaRunnerSuite[_] = noArgConstructor.newInstance()
+    havaRunnerSuiteInstance
+  }
 
   private def registerShutdownHook(havaRunnerSuiteInstance: HavaRunnerSuite[_]) {
     Runtime.getRuntime.addShutdownHook(new Thread(new Runnable() {
