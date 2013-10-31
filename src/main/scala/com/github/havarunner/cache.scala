@@ -16,14 +16,18 @@ private[havarunner] object SuiteCache {
         val noArgConstructor = suiteClass.getDeclaredConstructor()
         noArgConstructor.setAccessible(true)
         val havaRunnerSuiteInstance: HavaRunnerSuite[_] = noArgConstructor.newInstance()
-        Runtime.getRuntime.addShutdownHook(new Thread(new Runnable() {
-          def run() {
-            havaRunnerSuiteInstance.afterSuite()
-          }
-        }))
+        registerShutdownHook(havaRunnerSuiteInstance)
         havaRunnerSuiteInstance
       })
     }
+
+  private def registerShutdownHook(havaRunnerSuiteInstance: HavaRunnerSuite[_]) {
+    Runtime.getRuntime.addShutdownHook(new Thread(new Runnable() {
+      def run() {
+        havaRunnerSuiteInstance.afterSuite()
+      }
+    }))
+  }
 }
 
 private[havarunner] object TestInstanceCache {
