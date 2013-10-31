@@ -3,13 +3,14 @@ package com.github.havarunner
 import scala.collection.mutable
 import com.github.havarunner.Reflections._
 import com.github.havarunner.ConcurrencyControl._
+import com.github.havarunner.SuiteCache._
 import scala.concurrent._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 private[havarunner] object SuiteCache {
   private val cache = new mutable.HashMap[Class[_ <: HavaRunnerSuite[_]], HavaRunnerSuite[_]] with mutable.SynchronizedMap[Class[_ <: HavaRunnerSuite[_]], HavaRunnerSuite[_]]
 
-  def fromSuiteInstanceCache(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] = // TODO go async with suites
+  def suiteInstance(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] =
     suiteClass.synchronized {
       cache.getOrElseUpdate(suiteClass, {
         val noArgConstructor = suiteClass.getDeclaredConstructor()
@@ -30,19 +31,17 @@ private[havarunner] object TestInstanceCache {
 
   def testInstance(implicit testAndParameters: TestAndParameters): Future[TestInstance] =
     future {
+      testAndParameters.partOf map suiteInstance
+    } map { implicit suiteOption =>
       withThrottle {
         cachedTestInstance
       }
     }
 
-  private def cachedTestInstance(implicit testAndParameters: TestAndParameters): TestInstance =
+  private def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
     testAndParameters.scenarioAndClass.clazz.synchronized {
       cache.getOrElseUpdate(testAndParameters.scenarioAndClass, {
-        val testInstance = TestInstance(instantiate(
-          testAndParameters.partOf,
-          testAndParameters.scenarioAndClass.scenarioOption,
-          testAndParameters.scenarioAndClass.clazz
-        ))
+        val testInstance = TestInstance(instantiate)
         cache(testAndParameters.scenarioAndClass) = testInstance
         testInstance
       })

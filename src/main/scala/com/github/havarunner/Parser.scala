@@ -37,11 +37,10 @@ private[havarunner] object Parser {
       (clazz.getSuperclass != null && runSequentially(clazz.getSuperclass)) ||
       (clazz.getDeclaringClass != null && runSequentially(clazz.getDeclaringClass))
 
-  private def suiteOption(implicit clazz: Class[_]): Option[HavaRunnerSuite[_]] =
+  private def suiteOption(implicit clazz: Class[_]): Option[Class[_ <:HavaRunnerSuite[_]]] =
     findAnnotationRecursively(clazz, classOf[PartOf]).
       map(_.asInstanceOf[PartOf]).
-      map(_.value()).
-      map(fromSuiteInstanceCache)
+      map(_.value())
 
   private def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[TestClassAndSource] = {
     val nonSuiteTests = classesToTest.map(TestClassAndSource(_))

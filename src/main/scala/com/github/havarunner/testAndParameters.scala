@@ -9,7 +9,7 @@ private[havarunner] case class TestAndParameters(
   expectedException: Option[Class[_<:Throwable]],
   timeout: Option[Long],
   scenario: Option[AnyRef],
-  partOf: Option[HavaRunnerSuite[_]],
+  partOf: Option[Class[_ <:HavaRunnerSuite[_]]],
   ignored: Boolean,
   testContext: TestContext,
   afterAll: Seq[Method],
