@@ -43,7 +43,7 @@ private[havarunner] object TestInstanceCache {
     }
 
   private def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
-    testAndParameters.scenarioAndClass.clazz.synchronized {
+    testAndParameters.testClass.synchronized {
       cache.getOrElseUpdate(testAndParameters.scenarioAndClass, {
         TestInstance(instantiate)
       })
