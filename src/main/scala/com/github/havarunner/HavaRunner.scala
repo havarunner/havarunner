@@ -53,7 +53,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
     waitAndHandleRestOfErrors(afterAllFutures)
   }
 
-  def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Option[_]]]) {
+  private def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Option[_]]]) {
     val allTests = Future.sequence(afterAllFutures)
     var failure: Option[Throwable] = None
     allTests onFailure {
