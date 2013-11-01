@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.10.2
+
+* Fail if the enclosed class is non-static
+
 ## 0.10.1
 
 * Show a helpful error if parallel test uses @Before or @After

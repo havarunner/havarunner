@@ -2,17 +2,25 @@ package com.github.havarunner
 
 import org.junit._
 import scala.Some
-import com.github.havarunner.exception.{SuiteMemberDoesNotBelongToSuitePackage, UnsupportedAnnotationException}
+import com.github.havarunner.exception.{ContainsNonStaticInnerClassException, SuiteMemberDoesNotBelongToSuitePackage, UnsupportedAnnotationException}
 import com.github.havarunner.Reflections._
 import com.github.havarunner.annotation.{RunSequentially, PartOf}
 import java.lang.annotation.Annotation
+import java.lang.reflect.Modifier
 
 private[havarunner] object Validations {
 
   def reportInvalidations(implicit testAndParameters: TestAndParameters): Option[Exception] =
     suiteConfigError orElse
       reportUnsupportedClassAnnotations.find(_.isDefined).flatMap(identity) orElse
-      reportUnsupportedMethodAnnotations.find(_.isDefined).flatMap(identity)
+      reportUnsupportedMethodAnnotations.find(_.isDefined).flatMap(identity) orElse
+      reportNonStaticInnerClass
+
+  private def reportNonStaticInnerClass(implicit testAndParameters: TestAndParameters): Option[ContainsNonStaticInnerClassException] =
+    if (testAndParameters.testClass.getDeclaringClass != null && !Modifier.isStatic(testAndParameters.testClass.getModifiers))
+      Some(new ContainsNonStaticInnerClassException(testAndParameters.testClass))
+    else
+      None
 
   private def suiteConfigError(implicit testAndParameters: TestAndParameters): Option[SuiteMemberDoesNotBelongToSuitePackage] =
     findAnnotationRecursively(testAndParameters.testClass, classOf[PartOf]) flatMap { (partOfAnnotation: Annotation) =>
