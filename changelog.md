@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.10.5
+
+* Fix bug where HavaRunner ran the same test multiple times
+
 ## 0.10.4
 
 * Rename ContainsNonStaticInnerClassException -> NonStaticInnerClassException

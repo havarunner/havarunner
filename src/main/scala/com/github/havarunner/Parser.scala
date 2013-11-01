@@ -49,7 +49,7 @@ private[havarunner] object Parser {
       findSuiteMembers(classToTest).map(suiteMember => TestClassAndSource(suiteMember, SuiteContext(classToTest)))
     )
     (nonSuiteTests ++ suiteTests).filterNot(testClassAndSource => Modifier.isAbstract(testClassAndSource.testClass.getModifiers))
-  }
+  }.distinct
 
   private def expectedException(method: Method): Option[Class[_ <: Throwable]] = {
     val expected = method.getAnnotation(classOf[Test]).expected()
