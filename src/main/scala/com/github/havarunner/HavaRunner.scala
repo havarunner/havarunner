@@ -62,10 +62,10 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
     val allTests = Future.sequence(afterAllFutures)
     var failure: Option[Throwable] = None
     allTests onFailure {
-      case t: Throwable => failure = Some(t)
+      case t: Throwable => failure = Some(t) // Unlift the exception from the Future container, so that we can handle it in the main thread
     }
     Await.ready(allTests, 2 hours)
-    failure.foreach(throw _) // If @AfterAll methods throw exceptions, rethrow them here
+    failure.foreach(throw _) // If @AfterAll methods throw exceptions, re-throw them here
   }
 
   def filter(filter: Filter) {
