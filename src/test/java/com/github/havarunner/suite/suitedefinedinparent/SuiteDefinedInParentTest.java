@@ -1,10 +1,12 @@
 package com.github.havarunner.suite.suitedefinedinparent;
 
 import com.github.havarunner.HavaRunner;
+import com.google.common.collect.Lists;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.notification.Failure;
 
+import static com.github.havarunner.TestHelper.assertTestClasses;
 import static com.github.havarunner.TestHelper.run;
 import static com.github.havarunner.TestHelper.runAndRecordFailure;
 import static org.junit.Assert.assertTrue;
@@ -42,5 +44,10 @@ public class SuiteDefinedInParentTest {
     public void the_suite_should_find_its_members_even_though_the_membership_is_declared_in_an_abstract_class() {
         run(new HavaRunner(Suite.class));
         assertTrue(suiteMethodCalled);
+    }
+
+    @Test
+    public void HavaRunner_includes_suite_members_exactly_once() {
+        assertTestClasses(Lists.<Class>newArrayList(SuiteMember.class, SuiteMember.InnerSuiteMember.class), Suite.class);
     }
 }

@@ -1,11 +1,14 @@
 package com.github.havarunner;
 
 import com.github.havarunner.HavaRunner;
-import org.junit.runner.Description;
+import com.google.common.collect.Sets;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
+import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.junit.Assert.assertEquals;
 
 public class TestHelper {
     public static Failure runAndRecordFailedAssumption(HavaRunner havaRunner) {
@@ -48,4 +51,26 @@ public class TestHelper {
             }
         });
     }
+
+    public static void assertTestClasses(List<Class> expected, Class testClass) {
+        Set<String> parsedClassNames = parsedTestClassNames(testClass);
+        assertEquals(toName(expected), parsedClassNames);
+    }
+
+    private static Set<String> toName(List<Class> expected) {
+        Set<String> classes = Sets.newTreeSet();
+        for (Class aClass : expected) {
+            classes.add(aClass.getName());
+        }
+        return classes;
+    }
+
+    private static Set<String> parsedTestClassNames(Class testClas) {
+        Set<String> classes = Sets.newTreeSet();
+        for (TestAndParameters testAndParameters : new HavaRunner(testClas).children()) {
+            classes.add(testAndParameters.testClass().getName());
+        }
+        return classes;
+    }
+
 }
