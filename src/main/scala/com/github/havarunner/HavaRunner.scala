@@ -40,17 +40,22 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
     val afterAllFutures = children
       .groupBy(_.scenarioAndClass)
       .map {
-        case (scenarioAndClass, testsAndParameters) =>
-          val testResults: Iterable[Future[Option[TestInstance]]] = testsAndParameters.flatMap(runChild(_, notifier))
-          Future.sequence(testResults).map { (testInstanceOptions: Iterable[Option[TestInstance]]) =>
-            val testInstances = testInstanceOptions.flatMap(instance => instance)
-            testInstances.headOption map { testInstance =>
-              testsAndParameters.head.afterAll.foreach(invoke(_)(testInstance))
-            }
-          }
+        case (_, testsAndParameters) => runTestsOfSameScenario(testsAndParameters, notifier)
       }
 
     waitAndHandleRestOfErrors(afterAllFutures)
+  }
+
+  private def runTestsOfSameScenario(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier) = {
+    val testResults: Iterable[Future[Option[TestInstance]]] = testsAndParameters.flatMap(runChild(_, notifier))
+    Future.sequence(testResults).map {
+      (testInstanceOptions: Iterable[Option[TestInstance]]) =>
+        val testInstances = testInstanceOptions.flatMap(instance => instance)
+        testInstances.headOption map {
+          testInstance =>
+            testsAndParameters.head.afterAll.foreach(invoke(_)(testInstance))
+        }
+    }
   }
 
   private def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Option[_]]]) {
