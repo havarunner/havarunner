@@ -138,24 +138,25 @@ private object HavaRunner {
         f
       }
     }
-    val withRulesApplied = testAndParameters
+    def applyRuleAndHandleException(rule: Field, accumulator: Statement) =
+      try {
+        val testRule: TestRule = rule.get(testInstance.instance).asInstanceOf[TestRule]
+        testRule.apply(accumulator, describeChild)
+      } catch {
+        case e: InvocationTargetException =>
+          if (e.getCause.getClass == classOf[AssumptionViolatedException]) inner
+          else {
+            println(e.getMessage)
+            throw e
+          }
+      }
+    val foldedRules = testAndParameters
       .rules
       .foldLeft(inner) {
-      (accumulator: Statement, rule: Field) => {
-        try {
-            val testRule: TestRule = rule.get(testInstance.instance).asInstanceOf[TestRule]
-            testRule.apply(accumulator, describeChild)
-        } catch {
-          case e: InvocationTargetException =>
-            if (e.getCause.getClass == classOf[AssumptionViolatedException]) inner
-            else {
-              println(e.getMessage)
-              throw e
-            }
-        }
+        (accumulator: Statement, rule: Field) => 
+          applyRuleAndHandleException(rule, accumulator)
       }
-    }
-    withRulesApplied.evaluate()
+    foldedRules.evaluate()
   }
 
   private def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, testInstance: TestInstance) {
