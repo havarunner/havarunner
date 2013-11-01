@@ -2,7 +2,7 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## 0.10.7
+## HEAD
 
 * Improve suite reporting
 
