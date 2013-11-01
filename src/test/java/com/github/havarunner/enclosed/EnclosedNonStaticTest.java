@@ -3,7 +3,7 @@ package com.github.havarunner.enclosed;
 import com.github.havarunner.HavaRunner;
 import com.github.havarunner.HavaRunnerSuite;
 import com.github.havarunner.annotation.PartOf;
-import com.github.havarunner.exception.ContainsNonStaticInnerClassException;
+import com.github.havarunner.exception.NonStaticInnerClassException;
 import org.junit.Test;
 import org.junit.runner.notification.Failure;
 
@@ -15,7 +15,7 @@ public class EnclosedNonStaticTest {
     @Test
     public void HavaRunner_gives_a_helpful_error_if_the_class_contains_nonstatic_inner_classes() {
         Failure failure = runAndRecordFailure(new HavaRunner(TestClass.class));
-        assertEquals(ContainsNonStaticInnerClassException.class, failure.getException().getClass());
+        assertEquals(NonStaticInnerClassException.class, failure.getException().getClass());
         assertEquals(
             "The class com.github.havarunner.enclosed.EnclosedNonStaticTest$TestClass$InnerClass must be static (HavaRunner does not support non-static inner classes)",
             failure.getMessage()
@@ -25,7 +25,7 @@ public class EnclosedNonStaticTest {
     @Test
     public void HavaRunner_gives_a_helpful_error_if_a_suite_member_contains_nonstatic_inner_classes() {
         Failure failure = runAndRecordFailure(new HavaRunner(Suite.class));
-        assertEquals(ContainsNonStaticInnerClassException.class, failure.getException().getClass());
+        assertEquals(NonStaticInnerClassException.class, failure.getException().getClass());
         assertEquals(
             "The class com.github.havarunner.enclosed.EnclosedNonStaticTest$SuiteMember$InnerSuiteClass must be static (HavaRunner does not support non-static inner classes)",
             failure.getMessage()

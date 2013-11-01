@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.10.4
+
+* Rename ContainsNonStaticInnerClassException -> NonStaticInnerClassException
+
 ## 0.10.3
 
 * Include inner classes of suite members in the suite
