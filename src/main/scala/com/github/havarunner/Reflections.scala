@@ -23,11 +23,11 @@ private[havarunner] object Reflections {
     }
   }
 
-  def withSubclasses(clazz: Class[_], accumulator: Seq[Class[_]] = Seq()): Seq[Class[_]] =
+  def findDeclaredClasses(clazz: Class[_], accumulator: Seq[Class[_]] = Seq()): Seq[Class[_]] =
     if (clazz.getDeclaredClasses.isEmpty) {
       clazz +: accumulator
     } else {
-      clazz +: clazz.getDeclaredClasses.flatMap(withSubclasses(_, accumulator))
+      clazz +: clazz.getDeclaredClasses.flatMap(findDeclaredClasses(_, accumulator))
     }
 
   private def resolveConstructorAndArgs(

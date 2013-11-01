@@ -85,10 +85,11 @@ private[havarunner] object Parser {
   }
 
   private def findSuiteMembers(testClass: Class[_]): Seq[Class[_]] =
-    if (classOf[HavaRunnerSuite[_]].isAssignableFrom(testClass))
-      allSuiteMembers(testClass) filter
+    if (classOf[HavaRunnerSuite[_]].isAssignableFrom(testClass)) {
+      val explicitSuiteMembers = allSuiteMembers(testClass) filter
         (findAnnotationRecursively(_, classOf[PartOf]).exists(_.asInstanceOf[PartOf].value() == testClass))
-    else
+      explicitSuiteMembers ++ explicitSuiteMembers.flatMap(clazz => findDeclaredClasses(clazz)) // Include nested classes of suite members
+    } else
       Nil
 
   private def allSuiteMembers(testClass: Class[_]): Seq[Class[_]] = {
