@@ -45,7 +45,7 @@ private[havarunner] object Parser {
   private def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[TestClassAndSource] = {
     val nonSuiteTests = classesToTest.map(TestClassAndSource(_))
     val suiteTests = classesToTest.flatMap(classToTest =>
-      findSuiteMembers(classToTest).map(suiteMember => TestClassAndSource(suiteMember, SuiteContext(classToTest)))
+      findSuiteMembers(classToTest).map(TestClassAndSource(_, SuiteContext(classToTest)))
     )
     (nonSuiteTests ++ suiteTests).filterNot(testClassAndSource => Modifier.isAbstract(testClassAndSource.testClass.getModifiers))
   }.distinct
