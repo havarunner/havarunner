@@ -8,10 +8,10 @@ private[havarunner] object ConcurrencyControl {
   val forParallelTests = new Semaphore(concurrencyLevel - concurrentSequentialTests, true)
   val forSequentialTests = new Semaphore(concurrentSequentialTests)
 
-  def withThrottle[T](operation: Operation[T])(implicit maybeSequential: MaybeSequential) = {
+  def withThrottle[T](body: => T)(implicit maybeSequential: MaybeSequential) = {
     semaphore.acquire()
     try {
-      operation.run
+      body
     } finally {
       semaphore.release()
     }

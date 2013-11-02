@@ -18,6 +18,7 @@ import static com.github.havarunner.TestHelper.run;
 import static com.github.havarunner.TestHelper.runAndRecordFailure;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(Enclosed.class)
 public class RunningSuiteMembersIndividuallyTest {

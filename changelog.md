@@ -4,6 +4,7 @@ This project uses [Semantic Versioning](http://semver.org)
 
 ## HEAD
 
+* Improve speed by rewriting the scheduler as non-blocking
 * Improve suite reporting
 
 ## 0.10.5

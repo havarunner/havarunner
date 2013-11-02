@@ -52,12 +52,12 @@ public class AfterAllTest {
         }
     }
 
-    public static class when_test__fails {
+    public static class when_test_fails {
         static boolean worldIsBuilt = false;
         static boolean worldIsDestroyed = false;
 
         @Test
-        public void HavaRunner_calls_the_After_method_even_if_the_test_throws_an_exception() {
+        public void HavaRunner_calls_the_AfterAll_method_even_if_the_test_throws_an_exception() {
             runAndIgnoreErrors(new HavaRunner(AfterFailingTest.class));
             assertTrue(worldIsBuilt);
             assertTrue(worldIsDestroyed);
