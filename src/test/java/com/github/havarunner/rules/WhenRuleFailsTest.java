@@ -21,16 +21,16 @@ public class WhenRuleFailsTest {
     }
 
     static class TestWithRule {
-            @Rule
-            TestRule rule = new TestRule() {
-                @Override
-                public Statement apply(Statement base, Description description) {
-                    throw new IllegalStateException("Fail!");
-                }
-            };
-
-            @Test
-            void hello() {
+        @Rule
+        TestRule rule = new TestRule() {
+            @Override
+            public Statement apply(Statement base, Description description) {
+                throw new IllegalStateException("Fail!");
             }
+        };
+
+        @Test
+        void hello() {
         }
+    }
 }
