@@ -2,7 +2,7 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## HEAD
+## 0.10.6
 
 * Improve speed by rewriting the scheduler as non-blocking
 * Improve suite reporting
