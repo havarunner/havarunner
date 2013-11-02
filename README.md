@@ -18,7 +18,7 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
  * Write easy-to-reason-about test classes that rely on `final` instance fields
 * **Reduce syntactic noise**
  * HavaRunner lets you omit the `public` access modifier from the methods
-* Non-blocking
+* **Non-blocking**
  * HavaRunner is built on Scala 2.10 futures, and it's run model is completely
    asynchronous
 
