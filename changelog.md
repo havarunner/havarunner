@@ -2,7 +2,7 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## HEAD
+## 0.10.7
 
 * Report multiple invalidations at once
 * Reduce noise in suite reports
