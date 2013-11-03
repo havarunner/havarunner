@@ -10,13 +10,16 @@ import java.lang.reflect.Modifier
 
 private[havarunner] object Validations {
 
-  def reportInvalidations(implicit testAndParameters: TestAndParameters): Option[Exception] =
-    suiteConfigError orElse
-      reportUnsupportedClassAnnotations.find(_.isDefined).flatMap(identity) orElse
-      reportUnsupportedMethodAnnotations.find(_.isDefined).flatMap(identity) orElse
-      reportNonStaticInnerClass
+  def reportInvalidations(implicit testAndParameters: TestAndParameters): Seq[_<:Exception] =
+    suiteConfigError ++
+    nonStaticInnerClass ++
+    unsupportedMethodAnnotations ++
+    unsupportedClassAnnotations
 
-  private def reportNonStaticInnerClass(implicit testAndParameters: TestAndParameters): Option[NonStaticInnerClassException] =
+  private implicit def optionSeq2seq[T](optionSeq: Seq[Option[T]]): Seq[T] = optionSeq.flatMap(identity(_))
+  private implicit def optionException2Seq(optionException: Option[Exception]): Seq[Option[Exception]] = optionException :: Nil
+
+  private def nonStaticInnerClass(implicit testAndParameters: TestAndParameters): Option[NonStaticInnerClassException] =
     if (testAndParameters.testClass.getDeclaringClass != null && !Modifier.isStatic(testAndParameters.testClass.getModifiers))
       Some(new NonStaticInnerClassException(testAndParameters.testClass))
     else
@@ -31,7 +34,7 @@ private[havarunner] object Validations {
         None
     }
 
-  private def reportUnsupportedMethodAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
+  private def unsupportedMethodAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
     unsupportedJUnitAnnotations.map(annotationAndReason => {
       if (hasMethodAnnotatedWith(testAndParameters.testClass, annotationAndReason.annotationClass))
         Some(new UnsupportedAnnotationException(annotationAndReason.annotationClass, testAndParameters.testClass, annotationAndReason.customReason))
@@ -39,7 +42,7 @@ private[havarunner] object Validations {
         None
     })
 
-  private def reportUnsupportedClassAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
+  private def unsupportedClassAnnotations(implicit testAndParameters: TestAndParameters): Seq[Option[UnsupportedAnnotationException]] =
     unsupportedJUnitAnnotations.flatMap(annotationAndReason => {
       testAndParameters.testClass.getAnnotations.filter(_.getClass == annotationAndReason.annotationClass).map(usedAnnotation =>
         Some(new UnsupportedAnnotationException(usedAnnotation.getClass, testAndParameters.testClass, annotationAndReason.customReason))

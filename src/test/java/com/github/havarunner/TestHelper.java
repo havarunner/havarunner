@@ -1,6 +1,7 @@
 package com.github.havarunner;
 
 import com.github.havarunner.HavaRunner;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -33,6 +34,18 @@ public class TestHelper {
         };
         run(havaRunner, runNotifier);
         return expectedFailure.get();
+    }
+
+    public static List<Failure> runAndRecordFailures(HavaRunner havaRunner) {
+        final List<Failure> failures = Collections.synchronizedList(Lists.<Failure>newArrayList());
+        RunNotifier runNotifier = new RunNotifier() {
+            @Override
+            public void fireTestFailure(Failure failure) {
+                failures.add(failure);
+            }
+        };
+        run(havaRunner, runNotifier);
+        return failures;
     }
 
     public static void run(HavaRunner havaRunner, RunNotifier runNotifier) {

@@ -1,5 +1,6 @@
-package com.github.havarunner;
+package com.github.havarunner.validations;
 
+import com.github.havarunner.HavaRunner;
 import com.github.havarunner.annotation.RunSequentially;
 import com.github.havarunner.exception.UnsupportedAnnotationException;
 import org.junit.After;
@@ -19,7 +20,7 @@ public class UnsupportedJUnitAnnotationsTest {
         UnsupportedAnnotationException report = (UnsupportedAnnotationException) runAndRecordFailure(havaRunner).getException();
         assertEquals(report.annotationClass(), Before.class);
         assertEquals(
-            "Only tests that are @RunSequentially may use @Before (class com.github.havarunner.UnsupportedJUnitAnnotationsTest$ParallelTestWithBefore uses the unsupported annotation org.junit.Before)",
+            "Only tests that are @RunSequentially may use @Before (class com.github.havarunner.validations.UnsupportedJUnitAnnotationsTest$ParallelTestWithBefore uses the unsupported annotation org.junit.Before)",
             report.getMessage()
         );
     }
@@ -30,7 +31,7 @@ public class UnsupportedJUnitAnnotationsTest {
         UnsupportedAnnotationException report = (UnsupportedAnnotationException) runAndRecordFailure(havaRunner).getException();
         assertEquals(report.annotationClass(), AfterClass.class);
         assertEquals(
-            "class com.github.havarunner.UnsupportedJUnitAnnotationsTest$ParallelTestWithAfterClass uses the unsupported annotation org.junit.AfterClass",
+            "class com.github.havarunner.validations.UnsupportedJUnitAnnotationsTest$ParallelTestWithAfterClass uses the unsupported annotation org.junit.AfterClass",
             report.getMessage()
         );
     }

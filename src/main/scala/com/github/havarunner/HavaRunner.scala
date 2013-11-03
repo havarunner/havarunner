@@ -13,6 +13,7 @@ import com.github.havarunner.Reflections._
 import org.junit.internal.AssumptionViolatedException
 import com.github.havarunner.TestInstanceCache._
 import com.github.havarunner.ConcurrencyControl._
+import com.github.havarunner.ExceptionHelper._
 import org.junit.runners.model.Statement
 import org.junit.rules.TestRule
 import org.junit.runner.notification.Failure
@@ -81,11 +82,11 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[Future[TestLifecycle]] = {
     implicit val description = describeChild
     val testIsInvalidReport = reportInvalidations
-    if (testIsInvalidReport.isDefined) {
-      notifier fireTestFailure  new Failure(description, testIsInvalidReport.get)
-      None
-    } else {
+    if (testIsInvalidReport.isEmpty) {
       scheduleOrIgnore
+    } else {
+      reportFailure(testIsInvalidReport)
+      None
     }
   }
 
