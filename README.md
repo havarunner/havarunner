@@ -270,7 +270,7 @@ HavaRunner tests in the codebase, try to understand why they cannot be run
 concurrently. From this understanding you might gain valuable insights into the
 architectural problems of the system.
 
-As a corollary of the above arguments, the `because` attribute of the
+As a corollary of the above argument, the `because` attribute of the
 `@RunSequentially` annotation is mandatory. The attribute asks you to leave a
 helpful hint to the programmers who will be working with the test in the future.
 If a system does not support concurrency, it is often difficult to find out the
