@@ -1,4 +1,4 @@
-# HavaRunner – a non-blocking JUnit runner
+# HavaRunner
 
 [![Build
 Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://travis-ci.org/havarunner/havarunner)
@@ -128,7 +128,7 @@ public class LoginPageTest {
 
 ### Suites
 
-Suites are global instances that can hold state.
+Suites are a way to group tests and pass them shared data.
 
 Suites are comprised of *suite members*, and HavaRunner instantiates
 each member by passing it the `suiteObject`.
@@ -147,7 +147,7 @@ public class WebApplicationSuiteTest implements HavaRunnerSuite<WebServer> {
     final WebServer webServer;
 
     public WebApplicationSuiteTest() {
-        this.webServer = new WebServer();
+        this.webServer = new WebServer(); // Instantiate a heavy object
     }
 
     @Override
