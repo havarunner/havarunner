@@ -4,7 +4,7 @@ import com.github.havarunner.annotation.PartOf;
 import com.github.havarunner.annotation.RunSequentially;
 import org.junit.Test;
 
-@RunSequentially
+@RunSequentially(because = "this test does not thrive in the concurrent world")
 @PartOf(Suite.class)
 class SequentialSuiteMember {
 

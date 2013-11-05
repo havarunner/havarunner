@@ -6,11 +6,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Forces the test to be run in the main thread.
+ * Forces the test to be run in sequence with other tests that are marked with this annotation.
  *
  * @author Lauri Lehmijoki
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 public @interface RunSequentially {
+
+    /**
+     * @return the reason why this test is run sequentially (for documentation purposes)
+     */
+    String because();
 }

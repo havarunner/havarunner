@@ -45,7 +45,7 @@ public class RunSequentiallyTest {
             }
         }
 
-        @RunSequentially
+        @RunSequentially(because = "this test does not thrive in the concurrent world")
         static class SequentialTest {
 
             @Test
@@ -60,7 +60,7 @@ public class RunSequentiallyTest {
             }
         }
 
-        @RunSequentially
+        @RunSequentially(because = "this test does not thrive in the concurrent world")
         static class SequentialEnclosingTest {
 
             static class EnclosedTest {
@@ -94,7 +94,7 @@ public class RunSequentiallyTest {
             });
         }
 
-        @RunSequentially
+        @RunSequentially(because = "this test does not thrive in the concurrent world")
         static class SequentialTest {
 
             @Test

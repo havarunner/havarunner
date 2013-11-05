@@ -258,7 +258,7 @@ to run them sequentially:
 
 ````java
 @RunWith(HavaRunner.class)
-@RunSequentially
+@RunSequentially(because = "this test uses a backend that does not support parallel usage")
 public class HelloWorldTest {
   // here be test code
 }

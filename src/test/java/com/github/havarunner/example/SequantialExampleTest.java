@@ -6,7 +6,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(HavaRunner.class)
-@RunSequentially
+@RunSequentially(because = "this test does not thrive in the concurrent world")
 public class SequantialExampleTest {
 
     @Test

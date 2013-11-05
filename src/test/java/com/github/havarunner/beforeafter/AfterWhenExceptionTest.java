@@ -20,7 +20,7 @@ public class AfterWhenExceptionTest {
         assertTrue(afterCalled);
     }
 
-    @RunSequentially
+    @RunSequentially(because = "this test does not thrive in the concurrent world")
     static class SequentialTest {
 
         @Test

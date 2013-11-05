@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.10.8
+
+* Require reason when @RunSequentially
+
 ## 0.10.7
 
 * Report multiple invalidations at once

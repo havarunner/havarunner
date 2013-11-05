@@ -69,7 +69,7 @@ public class UnsupportedJUnitAnnotationsTest {
     }
 
 
-    @RunSequentially
+    @RunSequentially(because = "this test does not thrive in the concurrent world")
     static class SequentialTest {
         @Before
         void before() {
