@@ -72,7 +72,7 @@ public class HelloWorldTest {
     @AfterAll
     void destroy() {
         // This method will be invoked after all the tests in the class
-        world = null;
+        System.out.println("Done");
     }
 }
 ````
