@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.10.9
+
+* Re-build 0.10.8 with JDK 7, not JDK 8
+
 ## 0.10.8
 
 * Require reason when @RunSequentially
