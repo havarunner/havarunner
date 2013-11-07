@@ -1,5 +1,7 @@
-package com.github.havarunner;
+package com.github.havarunner.sequentiality;
 
+import com.github.havarunner.HavaRunner;
+import com.github.havarunner.TestAndParameters;
 import com.github.havarunner.annotation.RunSequentially;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
@@ -41,7 +43,7 @@ public class RunSequentiallyTest {
 
         private void assertTestsAreSequential(Class testClass) {
             for (TestAndParameters testAndParameters : new HavaRunner(testClass).children()) {
-                assertTrue(testAndParameters.runSequentially());
+                assertTrue(testAndParameters.runSequentially().isDefined());
             }
         }
 
@@ -100,7 +102,7 @@ public class RunSequentiallyTest {
             @Test
             void first() throws InterruptedException {
                 for (int i = 0; i < 100; i++) {
-                    Thread.sleep(1);
+                    Thread.sleep(0, 50);
                     ints.add("from first");
                 }
             }
@@ -108,7 +110,7 @@ public class RunSequentiallyTest {
             @Test
             void second() throws InterruptedException {
                 for (int i = 0; i < 100; i++) {
-                    Thread.sleep(1);
+                    Thread.sleep(0, 50);
                     ints.add("from second");
                 }
             }

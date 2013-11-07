@@ -27,15 +27,18 @@ private[havarunner] object Parser {
           afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           after = findMethods(testClassAndSource.testClass, classOf[After]),
           before = findMethods(testClassAndSource.testClass, classOf[Before]),
-          runSequentially = runSequentially(testClassAndSource.testClass)
+          runSequentially = runSequentially(Some(testClassAndSource.testClass))
         )
       )
     )
 
-  private def runSequentially(clazz: Class[_]): Boolean =
-    clazz.getAnnotation(classOf[RunSequentially]) != null ||
-      (clazz.getSuperclass != null && runSequentially(clazz.getSuperclass)) ||
-      (clazz.getDeclaringClass != null && runSequentially(clazz.getDeclaringClass))
+  private def runSequentially(maybeClass: Option[Class[_]]): Option[RunSequentially] =
+    maybeClass flatMap { clazz =>
+      Option(clazz.getAnnotation(classOf[RunSequentially])) orElse
+        runSequentially(Option(clazz.getSuperclass)) orElse
+        runSequentially(Option(clazz.getDeclaringClass))
+    }
+
 
   private def suiteOption(implicit clazz: Class[_]): Option[Class[_ <:HavaRunnerSuite[_]]] =
     findAnnotationRecursively(clazz, classOf[PartOf]).

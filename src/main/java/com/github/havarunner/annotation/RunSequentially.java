@@ -18,4 +18,14 @@ public @interface RunSequentially {
      * @return the reason why this test is run sequentially (for documentation purposes)
      */
     String because();
+
+    /**
+     * @return the type of test with witch to synchronise
+     */
+    SequentialityContext with() default SequentialityContext.TESTS_OF_SAME_INSTANCE;
+
+    public static enum SequentialityContext {
+        JEAN_LUC_PICARD,
+        TESTS_OF_SAME_INSTANCE
+    }
 }

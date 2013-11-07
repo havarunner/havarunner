@@ -1,14 +1,16 @@
 package com.github.havarunner
 
 import java.util.concurrent.Semaphore
+import com.github.havarunner.annotation.RunSequentially
+import RunSequentially.SequentialityContext._
+import scala.collection.mutable
 
 private[havarunner] object ConcurrencyControl {
-  val concurrentSequentialTests = 1
-  val concurrencyLevel = Runtime.getRuntime.availableProcessors() + concurrentSequentialTests
-  val forParallelTests = new Semaphore(concurrencyLevel - concurrentSequentialTests, true)
-  val forSequentialTests = new Semaphore(concurrentSequentialTests)
+  val forParallelTests = new Semaphore(Runtime.getRuntime.availableProcessors(), true)
+  val forPicard = new Semaphore(1)
+  val forTestsOfSameInstance = new mutable.HashMap[Any, Semaphore] with mutable.SynchronizedMap[Any, Semaphore]
 
-  def withThrottle[T](body: => T)(implicit maybeSequential: MaybeSequential) = {
+  def withThrottle[T](body: => T)(implicit maybeSequential: MaybeSequential with InstanceGroup[_]) = {
     semaphore.acquire()
     try {
       body
@@ -17,9 +19,12 @@ private[havarunner] object ConcurrencyControl {
     }
   }
 
-  private def semaphore(implicit maybeSequential: MaybeSequential) =
-    if (maybeSequential.runSequentially)
-      forSequentialTests
-    else
-      forParallelTests
+  def semaphore(implicit maybeSequential: MaybeSequential with InstanceGroup[_]) =
+    maybeSequential.runSequentially map sequentialSemaphore getOrElse forParallelTests
+
+  private def sequentialSemaphore(runSequentially: RunSequentially)(implicit instanceGroup: InstanceGroup[_]): Semaphore =
+    runSequentially.`with`() match {
+      case TESTS_OF_SAME_INSTANCE => forTestsOfSameInstance.getOrElseUpdate(instanceGroup.criterion, new Semaphore(1))
+      case JEAN_LUC_PICARD        => forPicard
+    }
 }

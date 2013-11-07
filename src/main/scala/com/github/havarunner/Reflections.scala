@@ -33,7 +33,7 @@ private[havarunner] object Reflections {
   private def resolveConstructorAndArgs(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters) =
     withHelpfulConstructorMissingReport {
       val clazz = testAndParameters.testClass
-      (suiteInstanceOption, testAndParameters.scenarioAndClass.scenarioOption) match {
+      (suiteInstanceOption, testAndParameters.scenario) match {
         case (Some(suite), Some(scenario)) =>
           (
             clazz.getDeclaredConstructor(suite.suiteObject.getClass, scenario.getClass),

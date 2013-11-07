@@ -39,22 +39,22 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   def run(notifier: RunNotifier) {
     reportIfSuite()
     val afterAllFutures = children
-      .groupBy(_.scenarioAndClass)
+      .groupBy(_.criterion)
       .map {
-        case (_, testsAndParameters) => runTestsOfSameScenario(testsAndParameters, notifier)
+        case (_, testsAndParameters) => runTestsOfSameGroup(testsAndParameters, notifier)
       }
 
     waitAndHandleRestOfErrors(afterAllFutures)
   }
 
-  private def runTestsOfSameScenario(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
-    val resultsOfSameScenario: Iterable[Future[TestLifecycle]] = testsAndParameters.flatMap(runChild(_, notifier))
-    Future.sequence(resultsOfSameScenario).map {
+  private def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
+    val resultsOfSameGroup: Iterable[Future[TestLifecycle]] = testsAndParameters.flatMap(runChild(_, notifier))
+    Future.sequence(resultsOfSameGroup).map {
       (result: Iterable[TestLifecycle]) =>
         result.headOption map {
           case FailedInstantiation => // Instantiating the test object failed - there's nothing we can do anymore
           case CompletedCycle(testInstance, testMethodResult) => // Instantiating the object succeeded – run the @AfterAll methods
-            testsAndParameters.head.afterAll.foreach(invoke(_)(testInstance))
+            testsAndParameters.head.afterAll.foreach(invoke(_)(testInstance)) // It suffices to run the @AfterAlls against any instance of the group
         }
     }
   }

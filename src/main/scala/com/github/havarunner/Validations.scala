@@ -50,9 +50,9 @@ private[havarunner] object Validations {
     })
 
   private def unsupportedJUnitAnnotations(implicit maybeSequential: MaybeSequential) =
-    if (maybeSequential.runSequentially)
+    maybeSequential.runSequentially map { _ =>
       unsupportedAnnotationsWhenSequential
-    else
+    } getOrElse
       allUnsupportedAnnotations
 
   private val allUnsupportedAnnotations =

@@ -1,6 +1,7 @@
 package com.github.havarunner
 
 import java.lang.reflect.{Field, Method}
+import com.github.havarunner.annotation.RunSequentially
 
 private[havarunner] case class TestAndParameters(
   testMethod: Method,
@@ -15,10 +16,10 @@ private[havarunner] case class TestAndParameters(
   afterAll: Seq[Method],
   after: Seq[Method],
   before: Seq[Method],
-  runSequentially: Boolean
-) extends MaybeSequential {
+  runSequentially: Option[RunSequentially]
+) extends MaybeSequential with InstanceGroup[ScenarioAndClass] {
 
-  val scenarioAndClass = ScenarioAndClass(testClass, scenario)
+  val criterion = ScenarioAndClass(testClass, scenario)
 
   def scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 
@@ -37,5 +38,12 @@ private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption:
 private[havarunner] case class TestInstance(instance: Any)
 
 private[havarunner] trait MaybeSequential {
-  def runSequentially: Boolean
+  def runSequentially: Option[RunSequentially]
+}
+
+private[havarunner] trait InstanceGroup[T] {
+  /**
+   * The object by which the test instances should be grouped
+   */
+  def criterion: T
 }

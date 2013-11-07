@@ -276,6 +276,25 @@ helpful hint to the programmers who will be working with the test in the future.
 If a system does not support concurrency, it is often difficult to find out the
 reason. Let the `because` attribute help you in documenting these causes.
 
+#### Fine-tuning sequentiality
+
+You can improve the speed of your test suite by running some of the tests
+sequentially only with the tests of the same instance:
+
+````java
+@RunWith(HavaRunner.class)
+@RunSequentially(
+    because = "this test uses a backend that does not support parallel usage",
+    with = TESTS_OF_SAME_INSTANCE
+)
+public class HelloWorldTest {
+  // here be test code
+}
+````
+
+The above config will instruct HavaRunner to synchronise only the tests that
+share the same Java instance.
+
 ### Using the JUnit assumption API
 
 ````java

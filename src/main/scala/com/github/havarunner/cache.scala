@@ -48,7 +48,7 @@ private[havarunner] object TestInstanceCache {
     }
 
   private def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
-    testAndParameters.scenarioAndClass.synchronized { // Synchronise when same scenario. Different scenario -> different test class instance.
-      cache.getOrElseUpdate(testAndParameters.scenarioAndClass, TestInstance(instantiate))
+    testAndParameters.criterion.synchronized { // Sync with instance group. Different groups may run parallel.
+      cache.getOrElseUpdate(testAndParameters.criterion, TestInstance(instantiate))
     }
 }
