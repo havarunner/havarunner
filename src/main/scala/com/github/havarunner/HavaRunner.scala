@@ -76,7 +76,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   private[havarunner] def reportIfSuite() =
     children.filter(_.testContext.isInstanceOf[SuiteContext]).foreach(testAndParameters => {
       val suiteContext: SuiteContext = testAndParameters.testContext.asInstanceOf[SuiteContext]
-      println(s"[HavaRunner] Running ${testAndParameters.testMethod.getName} as a part of ${suiteContext.suiteClass.getName}")
+      println(s"[HavaRunner] Running ${testAndParameters.minimalToString} as a part of ${suiteContext.suiteClass.getSimpleName}")
     })
 
   private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[Future[TestLifecycle]] = {

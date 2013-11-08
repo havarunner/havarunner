@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.11.2
+
+* Reduce noise when reporting suite
+
 ## 0.11.1
 
 ## 0.11.0

@@ -21,7 +21,7 @@ private[havarunner] case class TestAndParameters(
 
   val criterion = ScenarioAndClass(testClass, scenario)
 
-  def scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
+  lazy val scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 
   override def toString =
     String.format(
@@ -31,6 +31,8 @@ private[havarunner] case class TestAndParameters(
       scenario.map(scen => s" (scenario $scen)").getOrElse(""),
       partOf.map(suite => s" (suite $suite)").getOrElse("")
     )
+
+  lazy val minimalToString = testClass.getSimpleName + "#" + testMethod.getName
 }
 
 private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])
