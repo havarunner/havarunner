@@ -1,6 +1,8 @@
 package com.github.havarunner;
 
 import com.github.havarunner.annotation.AfterAll;
+import com.github.havarunner.annotation.RunSequentially;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -31,6 +33,25 @@ public class AssumeThatTest {
         Failure failure = runAndRecordFailedAssumption(new HavaRunner(AssumptionAndRule.class));
         assertEquals("skipMe", failure.getDescription().getMethodName());
     }
+
+    @Test
+    public void assume_call_may_be_in_a_before_method() {
+        Failure failure = runAndRecordFailedAssumption(new HavaRunner(AssumptionFailsInBefore.class));
+        assertEquals("skippedTest", failure.getDescription().getMethodName());
+    }
+
+    @RunSequentially(because = "we want to test a failing assumption that is in a @Before method")
+    static class AssumptionFailsInBefore {
+        @Before
+        public void before() {
+            assumeTrue(false);
+        }
+
+        @Test
+        public void skippedTest() {
+        }
+    }
+
 
     static class AssumptionDoesNotHold {
 

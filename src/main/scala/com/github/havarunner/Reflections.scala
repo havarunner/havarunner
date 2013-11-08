@@ -72,18 +72,9 @@ private[havarunner] object Reflections {
       clazz.getDeclaredFields.filter(_.getAnnotation(annotation) != null)
     )
 
-  def invoke(method: Method)(implicit testInstance: TestInstance) {
+  def invoke(method: Method)(implicit testInstance: TestInstance) = {
     method.setAccessible(true)
-    try {
-      method.invoke(testInstance.instance)
-    } catch {
-      case e: InvocationTargetException =>
-        if (e.getTargetException.getClass == classOf[AssumptionViolatedException]) {
-          // Tolerate AssumptionViolatedException
-        } else {
-          throw e
-        }
-    }
+    method.invoke(testInstance.instance)
   }
 
   def invokeEach(methods: Seq[Method])(implicit testInstance: TestInstance) {
