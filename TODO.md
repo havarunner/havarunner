@@ -1,6 +1,6 @@
-* Fix filter for scenario tests
+* Fix filter for scenario tests (not a problem?)
 * Recursive suites
 * Support non-static inner classes recursively
-* Drop the Guava dependency (inline ClassPath.java)
+* Drop the Guava dependency (inline ClassPath.java) (not practical?)
 * Warn on non-final fields
-* Less nasty stdout message when assumption fails
+* Less nasty stdout message when assumption fails (how to fix this?)
