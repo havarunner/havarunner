@@ -135,7 +135,10 @@ private object HavaRunner {
       withThrottle {
         implicit val instance = testInstance
         try {
-          scheduleTest
+          runWithRules {
+            runTest
+          }
+          PassedTestMethod(testInstance)
         } catch {
           case error: Throwable =>
             handleException(error)
@@ -147,14 +150,6 @@ private object HavaRunner {
         handleException(errorFromConstructor) // We come here when instantiating the test object failed
         FailedConstructor
     }
-
-  private def scheduleTest(implicit testInstance: TestInstance, testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
-  TestResult = {
-    runWithRules {
-      runTest
-    }
-    PassedTestMethod(testInstance)
-  }
 
   private def runWithRules(f: => Any)(implicit testAndParameters: TestAndParameters, testInstance: TestInstance) {
     val inner = new Statement {
