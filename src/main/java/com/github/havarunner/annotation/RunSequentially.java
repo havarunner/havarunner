@@ -22,7 +22,7 @@ public @interface RunSequentially {
     /**
      * @return the type of test with witch to synchronise
      */
-    SequentialityContext with() default SequentialityContext.TESTS_OF_SAME_INSTANCE;
+    SequentialityContext with() default SequentialityContext.JEAN_LUC_PICARD;
 
     public static enum SequentialityContext {
         JEAN_LUC_PICARD,
