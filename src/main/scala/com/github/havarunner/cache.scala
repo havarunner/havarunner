@@ -38,14 +38,11 @@ private[havarunner] object SuiteCache {
 private[havarunner] object TestInstanceCache {
   private val cache = new mutable.HashMap[ScenarioAndClass, TestInstance] with mutable.SynchronizedMap[ScenarioAndClass, TestInstance]
 
-  def testInstance(implicit testAndParameters: TestAndParameters): Future[TestInstance] =
-    future {
+  def testInstance(implicit testAndParameters: TestAndParameters): TestInstance =
+    cachedTestInstance(
+      testAndParameters,
       testAndParameters.partOf map suiteInstance
-    } map { implicit suiteOption =>
-      withThrottle {
-        cachedTestInstance
-      }
-    }
+    )
 
   private def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
     testAndParameters.criterion.synchronized { // Sync with instance group. Different groups may run parallel.

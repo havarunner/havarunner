@@ -48,15 +48,20 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   }
 
   private def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
-    val resultsOfSameGroup: Iterable[Future[TestLifecycle]] = testsAndParameters.flatMap(runChild(_, notifier))
+    val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.flatMap(runChild(_, notifier))
     Future.sequence(resultsOfSameGroup).map {
-      (result: Iterable[TestLifecycle]) =>
-        result.headOption map {
-          case FailedInstantiation => // Instantiating the test object failed - there's nothing we can do anymore
-          case CompletedCycle(testInstance, testMethodResult) => // Instantiating the object succeeded – run the @AfterAll methods
-            testsAndParameters.head.afterAll.foreach(invoke(_)(testInstance)) // It suffices to run the @AfterAlls against any instance of the group
-        }
+      (result: Iterable[TestResult]) => runAfterAlls(result, testsAndParameters)
     }
+  }
+
+  private def runAfterAlls(result: Iterable[HavaRunner.TestResult], testsAndParameters: Iterable[TestAndParameters]) {
+    result.headOption
+      .filter(_.isInstanceOf[InstantiatedTest])
+      .map(_.asInstanceOf[InstantiatedTest])
+      .foreach(instantiatedTest =>
+        // It suffices to run the @AfterAlls against any instance of the group
+        testsAndParameters.head.afterAll.foreach(invoke(_)(instantiatedTest.testInstance))
+      )
   }
 
   private def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Any]]) {
@@ -79,7 +84,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
       println(s"[HavaRunner] Running ${testAndParameters.minimalToString} as a part of ${suiteContext.suiteClass.getSimpleName}")
     })
 
-  private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[Future[TestLifecycle]] = {
+  private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier) = {
     implicit val description = describeChild
     val testIsInvalidReport = reportInvalidations
     if (testIsInvalidReport.isEmpty) {
@@ -115,7 +120,8 @@ private object HavaRunner {
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
 
-  private def scheduleOrIgnore(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description): Option[Future[TestLifecycle]] =
+  private def scheduleOrIgnore(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
+  Option[Future[TestResult]] =
     if (testAndParameters.ignored) {
       notifier fireTestIgnored description
       None
@@ -123,29 +129,32 @@ private object HavaRunner {
       Some(schedule)
     }
 
-  private def schedule(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description): Future[TestLifecycle] =
-    testInstance flatMap {
-      implicit testInstance => scheduleTest map { testMethodResult => CompletedCycle(testInstance, testMethodResult) }
+  private def schedule(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
+  Future[TestResult] =
+    future {
+      withThrottle {
+        implicit val instance = testInstance
+        try {
+          scheduleTest
+        } catch {
+          case error: Throwable =>
+            handleException(error)
+            FailedTestMethod(instance)
+        }
+      }
     } recover {
       case errorFromConstructor: Throwable =>
-        handleException(errorFromConstructor) // We come here when the test instance constructor throws an exception
-        FailedInstantiation
+        handleException(errorFromConstructor) // We come here when instantiating the test object failed
+        FailedConstructor
     }
 
-  def scheduleTest(implicit testInstance: TestInstance, testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description): 
-    Future[TestMethodResult] =
-      future {
-        withThrottle {
-          runWithRules {
-            runTest
-          }
-          PassedTestMethod
-        }
-      } recover {
-        case errorFromMethod: Throwable =>
-          handleException(errorFromMethod) // We come here if any of the test, the @Before or the @After methods throw an exception
-          FailedTestMethod
-      }
+  private def scheduleTest(implicit testInstance: TestInstance, testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
+  TestResult = {
+    runWithRules {
+      runTest
+    }
+    PassedTestMethod(testInstance)
+  }
 
   private def runWithRules(f: => Any)(implicit testAndParameters: TestAndParameters, testInstance: TestInstance) {
     val inner = new Statement {
@@ -222,11 +231,11 @@ private object HavaRunner {
     )
   }
   
-  private[havarunner] trait TestMethodResult
-  private[havarunner] object FailedTestMethod extends TestMethodResult
-  private[havarunner] object PassedTestMethod extends TestMethodResult
-
-  private[havarunner] trait TestLifecycle
-  private[havarunner] object FailedInstantiation extends TestLifecycle
-  private[havarunner] case class CompletedCycle(testInstance: TestInstance, testMethodResult: TestMethodResult) extends TestLifecycle
+  private[havarunner] trait TestResult
+  private[havarunner] object FailedConstructor extends TestResult
+  private[havarunner] trait InstantiatedTest {
+    val testInstance: TestInstance
+  }
+  private[havarunner] case class PassedTestMethod(testInstance: TestInstance) extends TestResult with InstantiatedTest
+  private[havarunner] case class FailedTestMethod(testInstance: TestInstance) extends TestResult with InstantiatedTest
 }
