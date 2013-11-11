@@ -8,6 +8,8 @@ This project uses [Semantic Versioning](http://semver.org)
 
 ## 0.11.1
 
+* Support failed assumptions in @Before methods
+
 ## 0.11.0
 
 * Add `@RunSequentially(with = TESTS_OF_SAME_INSTANCE)`
