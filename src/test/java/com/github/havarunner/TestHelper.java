@@ -100,4 +100,11 @@ public class TestHelper {
             }
         });
     }
+
+    public static <T> void addHundredTimes(T item, List<T> items) throws InterruptedException {
+        for (int i = 0; i < 100; i++) {
+            Thread.sleep(1); // Sleep to increase chances of context switching
+            items.add(item);
+        }
+    }
 }

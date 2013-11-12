@@ -3,7 +3,7 @@ package com.github.havarunner.sequentiality;
 import com.github.havarunner.ConcurrencyControl;
 import com.github.havarunner.HavaRunner;
 import com.github.havarunner.TestAndParameters;
-import com.github.havarunner.annotation.PartOf;
+import com.github.havarunner.TestHelper;
 import com.github.havarunner.annotation.RunSequentially;
 import com.github.havarunner.annotation.Scenarios;
 import com.google.common.base.Predicate;
@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.github.havarunner.ConcurrencyControl.semaphore;
+import static com.github.havarunner.TestHelper.addHundredTimes;
 import static com.github.havarunner.TestHelper.assertAllEqual;
 import static com.github.havarunner.TestHelper.run;
 import static com.google.common.collect.Collections2.filter;
@@ -194,10 +195,4 @@ public class RunSequentiallyTestsOfSameInstance {
         }
     }
 
-    private static <T> void addHundredTimes(T item, List<T> items) throws InterruptedException {
-        for (int i = 0; i < 100; i++) {
-            Thread.sleep(1); // Sleep to increase chances of context switching
-            items.add(item);
-        }
-    }
 }
