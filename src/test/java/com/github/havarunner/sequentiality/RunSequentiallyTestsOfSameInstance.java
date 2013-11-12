@@ -3,10 +3,12 @@ package com.github.havarunner.sequentiality;
 import com.github.havarunner.ConcurrencyControl;
 import com.github.havarunner.HavaRunner;
 import com.github.havarunner.TestAndParameters;
+import com.github.havarunner.annotation.PartOf;
 import com.github.havarunner.annotation.RunSequentially;
 import com.github.havarunner.annotation.Scenarios;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -126,6 +128,33 @@ public class RunSequentiallyTestsOfSameInstance {
                 void test() {
                 }
             }
+        }
+    }
+
+    public static class when_suite_is_marked_as_RunSequentially {
+        @Test
+        public void HavaRunner_marks_the_test_to_be_RunSequentially() {
+            TestAndParameters test = findByClass(new HavaRunner(SequentialSuite.class).children(), SuiteMember.class);
+            assertTrue(test.runSequentially().isDefined());
+            assertEquals("tests in this suite do not thrive in the concurrent world", test.runSequentially().get().because());
+        }
+
+        @Test
+        public void HavaRunner_lets_the_test_override_the_RunSequentially_spec_of_the_suite() {
+            TestAndParameters test = findByClass(
+                new HavaRunner(SequentialSuite.class).children(),
+                SuiteMemberOverridingRunSequentially.class
+            );
+            assertTrue(test.runSequentially().isDefined());
+            assertEquals("this suite member has its own reason for sequentiality", test.runSequentially().get().because());
+        }
+
+        private TestAndParameters findByClass(Iterable<TestAndParameters> children, final Class clazz) {
+            return Iterables.find(children, new Predicate<TestAndParameters>() {
+                public boolean apply(TestAndParameters input) {
+                    return input.testClass().equals(clazz);
+                }
+            });
         }
     }
 

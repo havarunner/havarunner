@@ -6,7 +6,14 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Forces the test to be run in sequence with other tests that are marked with this annotation.
+ * With this annotation, you can instruct HavaRunner to run tests of a class sequentially.
+ *
+ * If you mark a {@link com.github.havarunner.HavaRunnerSuite} with this annotation, HavaRunner will
+ * run sequentially all the tests of the suite. If a member of a sequentially-run suite contains this annotation, it
+ * will override the sequentiality specification of the suite.
+ *
+ * To speed up sequential tests, you can specify a sequentiality context with
+ * {@link com.github.havarunner.annotation.RunSequentially#with()}.
  *
  * @author Lauri Lehmijoki
  */

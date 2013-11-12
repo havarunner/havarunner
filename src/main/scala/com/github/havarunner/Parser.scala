@@ -12,7 +12,7 @@ import scala.Some
 private[havarunner] object Parser {
 
   def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] =
-    localAndSuiteTests(classesToTest).flatMap((testClassAndSource: TestClassAndSource) =>
+    localAndSuiteTests(classesToTest).flatMap(implicit testClassAndSource =>
       findTestMethods(testClassAndSource.testClass).map(methodAndScenario =>
         TestAndParameters(
           testMethod = methodAndScenario.method,
@@ -22,12 +22,12 @@ private[havarunner] object Parser {
           expectedException = expectedException(methodAndScenario.method),
           timeout = timeout(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
-          partOf = suiteOption(testClassAndSource.testClass),
+          partOf = suiteOption,
           testContext = testClassAndSource.testContext,
           afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           after = findMethods(testClassAndSource.testClass, classOf[After]),
           before = findMethods(testClassAndSource.testClass, classOf[Before]),
-          runSequentially = runSequentially(Some(testClassAndSource.testClass))
+          runSequentially = runSequentially(Some(testClassAndSource.testClass)) orElse runSequentially(suiteOption)
         )
       )
     )
@@ -40,8 +40,8 @@ private[havarunner] object Parser {
     }
 
 
-  private def suiteOption(implicit clazz: Class[_]): Option[Class[_ <:HavaRunnerSuite[_]]] =
-    findAnnotationRecursively(clazz, classOf[PartOf]).
+  private def suiteOption(implicit testClassAndSource: TestClassAndSource): Option[Class[_ <:HavaRunnerSuite[_]]] =
+    findAnnotationRecursively(testClassAndSource.testClass, classOf[PartOf]).
       map(_.asInstanceOf[PartOf]).
       map(_.value())
 

@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## HEAD
+
+* Support @RunSequentially in HavaRunnerSuite
+
 ## 0.11.4
 
 * Fix synchronisation
