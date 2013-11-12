@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## HEAD
+
+* Make @RunSequentially(because) optional
+
 ## 0.12.0
 
 * Rename JEAN_LUC_PICARD -> TESTS_MARKED_BY_THIS_CONTEXT

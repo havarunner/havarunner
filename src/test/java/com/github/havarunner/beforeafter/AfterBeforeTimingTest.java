@@ -22,7 +22,7 @@ public class AfterBeforeTimingTest {
         assertTrue(afterCalled > testCalled);
     }
 
-    @RunSequentially(because = "this test does not thrive in the concurrent world")
+    @RunSequentially
     static class SequentialTest {
 
         @Before

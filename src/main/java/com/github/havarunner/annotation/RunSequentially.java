@@ -24,7 +24,7 @@ public @interface RunSequentially {
     /**
      * @return the reason why this test is run sequentially (for documentation purposes)
      */
-    String because();
+    String because() default "";
 
     /**
      * @return the type of test with witch to synchronise
