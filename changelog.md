@@ -2,9 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## HEAD
+## 0.12.1
 
 * Make @RunSequentially(because) optional
+* Run @AfterAlls within the throttle
 
 ## 0.12.0
 

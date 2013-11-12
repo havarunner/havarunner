@@ -58,10 +58,13 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
     result.headOption
       .filter(_.isInstanceOf[InstantiatedTest])
       .map(_.asInstanceOf[InstantiatedTest])
-      .foreach(instantiatedTest =>
-        // It suffices to run the @AfterAlls against any instance of the group
-        testsAndParameters.head.afterAll.foreach(invoke(_)(instantiatedTest.testInstance))
-      )
+      .foreach(instantiatedTest => {
+        implicit val testAndParams: TestAndParameters = testsAndParameters.head
+        withThrottle {
+          // It suffices to run the @AfterAlls against any instance of the group
+          testAndParams.afterAll.foreach(invoke(_)(instantiatedTest.testInstance))
+        }
+      })
   }
 
   private def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Any]]) {
