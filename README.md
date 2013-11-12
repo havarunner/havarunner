@@ -314,6 +314,18 @@ public class AssumeThatExample {
 [Here](https://github.com/havarunner/havarunner/tree/master/src/test/java/com/github/havarunner/example)
 you can find complete code examples.
 
+## Principles of parsing
+
+HavaRunner uses the term parsing to describe the process of discovering tests.
+
+The principles of parsing are:
+
+* Be eager: find the largest sensible set of tests
+ * E.g., parse the declaring class, all the declared and super classes
+* Let the more specific override the more abstract
+ * E.g., if both the suite and a member contain the `@RunSequentially`
+   annotation, honor the annotation of the member
+
 ## Project goals
 
 * Minimise or eliminate the need to describe test configurations in Maven
