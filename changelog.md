@@ -2,8 +2,11 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## HEAD
+## 0.12.0
 
+* Rename JEAN_LUC_PICARD -> TESTS_MARKED_BY_THIS_CONTEXT
+ * This is a **backward incompatible change**. Migrate by renaming
+   `JEAN_LUC_PICARD` –> `TESTS_MARKED_BY_THIS_CONTEXT`
 * Support @RunSequentially in HavaRunnerSuite
 
 ## 0.11.4

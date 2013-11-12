@@ -29,10 +29,17 @@ public @interface RunSequentially {
     /**
      * @return the type of test with witch to synchronise
      */
-    SequentialityContext with() default SequentialityContext.JEAN_LUC_PICARD;
+    SequentialityContext with() default SequentialityContext.TESTS_MARKED_BY_THIS_CONTEXT;
 
     public static enum SequentialityContext {
-        JEAN_LUC_PICARD,
+        /**
+         * HavaRunner runs sequentially all the tests that are marked by this context.
+         */
+        TESTS_MARKED_BY_THIS_CONTEXT,
+
+        /**
+         * HavaRunner runs sequentially all the tests that share the same Java object.
+         */
         TESTS_OF_SAME_INSTANCE
     }
 }

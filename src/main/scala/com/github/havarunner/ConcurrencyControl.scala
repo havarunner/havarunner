@@ -7,7 +7,7 @@ import scala.collection.mutable
 
 private[havarunner] object ConcurrencyControl {
   val forParallelTests = new Semaphore(Runtime.getRuntime.availableProcessors(), true)
-  val forPicard = new Semaphore(1)
+  val forTestsMarkedByTheDefaultContext = new Semaphore(1)
   val forTestsOfSameInstance = new mutable.HashMap[Any, Semaphore] with mutable.SynchronizedMap[Any, Semaphore]
 
   def withThrottle[T](body: => T)(implicit maybeSequential: MaybeSequential with InstanceGroup[_]) = {
@@ -24,7 +24,7 @@ private[havarunner] object ConcurrencyControl {
 
   private def sequentialSemaphore(runSequentially: RunSequentially)(implicit instanceGroup: InstanceGroup[_]): Semaphore =
     runSequentially.`with`() match {
-      case TESTS_OF_SAME_INSTANCE => forTestsOfSameInstance.getOrElseUpdate(instanceGroup.criterion, new Semaphore(1))
-      case JEAN_LUC_PICARD        => forPicard
+      case TESTS_OF_SAME_INSTANCE       => forTestsOfSameInstance.getOrElseUpdate(instanceGroup.criterion, new Semaphore(1))
+      case TESTS_MARKED_BY_THIS_CONTEXT => forTestsMarkedByTheDefaultContext
     }
 }
