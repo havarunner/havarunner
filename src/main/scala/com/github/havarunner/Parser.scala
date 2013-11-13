@@ -25,7 +25,7 @@ private[havarunner] object Parser {
           partOf = suiteOption,
           testContext = testClassAndSource.testContext,
           afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          after = findMethods(testClassAndSource.testClass, classOf[After]),
+          after = findMethods(testClassAndSource.testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           before = findMethods(testClassAndSource.testClass, classOf[Before]),
           runSequentially = runSequentially(Some(testClassAndSource.testClass)) orElse runSequentially(suiteOption)
         )

@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.12.2
+
+* Run child @Afters before parent @Afters
+
 ## 0.12.1
 
 * Make @RunSequentially(because) optional
