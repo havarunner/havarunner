@@ -20,6 +20,8 @@ private[havarunner] case class TestAndParameters(
 ) extends MaybeSequential with InstanceGroup[ScenarioAndClass] {
 
   val criterion = ScenarioAndClass(testClass, scenario)
+  
+  val instanceGroupLock = testClass
 
   lazy val scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 
@@ -48,4 +50,6 @@ private[havarunner] trait InstanceGroup[T] {
    * The object by which the test instances should be grouped
    */
   def criterion: T
+
+  val instanceGroupLock: Class[_]
 }

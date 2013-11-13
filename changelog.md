@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.12.3
+
+* Synchronise instantiation against the test class
+
 ## 0.12.2
 
 * Run child @Afters before parent @Afters

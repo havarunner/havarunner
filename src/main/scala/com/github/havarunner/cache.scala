@@ -45,7 +45,7 @@ private[havarunner] object TestInstanceCache {
     )
 
   private def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
-    testAndParameters.criterion.synchronized { // Sync with instance group. Different groups may run parallel.
+    testAndParameters.instanceGroupLock.synchronized { // Sync with instance group. Different groups may run parallel.
       cache.getOrElseUpdate(testAndParameters.criterion, TestInstance(instantiate))
     }
 }
