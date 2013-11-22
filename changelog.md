@@ -2,7 +2,7 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## HEAD
+## 0.12.4
 
 * Speed up multiscenario tests
 
