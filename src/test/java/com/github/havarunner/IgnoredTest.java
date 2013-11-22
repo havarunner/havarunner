@@ -10,6 +10,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class IgnoredTest {
     static boolean ignoredTestIsRun;
@@ -29,6 +30,12 @@ public class IgnoredTest {
         final AtomicReference<Description> expectedIgnoration = runAndCollectIgnored(havaRunner);
         assertEquals("the_class_of_this_test_is_ignored", expectedIgnoration.get().getMethodName());
         assertFalse(testInIgnoredCLassIsRun);
+    }
+
+    @Test
+    public void it_supports_Ignore_in_enclosing_class() {
+        HavaRunner havaRunner = new HavaRunner(IgnoredEnclosing.class);
+        assertTrue(havaRunner.children().iterator().next().ignored());
     }
 
     private AtomicReference<Description> runAndCollectIgnored(HavaRunner havaRunner) {
@@ -59,5 +66,14 @@ public class IgnoredTest {
         void the_class_of_this_test_is_ignored() {
             testInIgnoredCLassIsRun = true;
         }
+    }
+
+    @Ignore
+    static class IgnoredEnclosing {
+       static class InnerClass {
+           @Test
+           void the_class_of_this_test_is_ignored() {
+           }
+       }
     }
 }

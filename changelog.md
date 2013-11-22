@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.12.5
+
+* Support @Ignore in the enclosing class
+
 ## 0.12.4
 
 * Speed up multiscenario tests

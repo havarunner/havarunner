@@ -1,4 +1,3 @@
-* Support @Ignore in enclosing class
 * Recursive suites
 * Support non-static inner classes recursively
 * Drop the Guava dependency (inline ClassPath.java) (not practical?)

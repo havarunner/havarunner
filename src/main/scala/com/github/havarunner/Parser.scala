@@ -13,12 +13,12 @@ private[havarunner] object Parser {
 
   def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] =
     localAndSuiteTests(classesToTest).flatMap(implicit testClassAndSource =>
-      findTestMethods(testClassAndSource.testClass).map(methodAndScenario =>
+      findTestMethods(testClassAndSource.testClass).map(implicit methodAndScenario =>
         TestAndParameters(
           testMethod = methodAndScenario.method,
           testClass = testClassAndSource.testClass,
           rules = findFields(testClassAndSource.testClass, classOf[Rule]).map(f => { f.setAccessible(true); f }),
-          ignored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null || findAnnotationRecursively(testClassAndSource.testClass, classOf[Ignore]).isDefined,
+          ignored = isIgnored,
           expectedException = expectedException(methodAndScenario.method),
           timeout = timeout(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
@@ -31,6 +31,17 @@ private[havarunner] object Parser {
         )
       )
     )
+
+  private def isIgnored(implicit methodAndScenario: MethodAndScenario, testClassAndSource: TestClassAndSource) = {
+    val methodIgnored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null
+    val classIgnored = findAnnotationRecursively(testClassAndSource.testClass, classOf[Ignore]).isDefined
+    val enclosingClassIgnored =
+      if (testClassAndSource.testClass.getEnclosingClass != null)
+        findAnnotationRecursively(testClassAndSource.testClass.getEnclosingClass, classOf[Ignore]).isDefined
+      else
+        false
+    methodIgnored || classIgnored || enclosingClassIgnored
+  }
 
   private def runSequentially(maybeClass: Option[Class[_]]): Option[RunSequentially] =
     maybeClass flatMap { clazz =>
