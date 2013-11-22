@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## HEAD
+
+* Speed up multiscenario tests
+
 ## 0.12.3
 
 * Synchronise instantiation against the test class
