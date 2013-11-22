@@ -1,4 +1,4 @@
-* Fix filter for scenario tests (not a problem?)
+* Support @Ignore in enclosing class
 * Recursive suites
 * Support non-static inner classes recursively
 * Drop the Guava dependency (inline ClassPath.java) (not practical?)
