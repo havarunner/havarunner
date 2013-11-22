@@ -36,7 +36,8 @@ private[havarunner] object SuiteCache {
 }
 
 private[havarunner] object TestInstanceCache {
-  private val cache = new mutable.HashMap[ScenarioAndClass, TestInstance] with mutable.SynchronizedMap[ScenarioAndClass, TestInstance]
+  val cache = new mutable.HashMap[ScenarioAndClass, TestInstance] with mutable.SynchronizedMap[ScenarioAndClass, TestInstance]
+  val instanceGroupLocks = new mutable.HashMap[ScenarioAndClass, AnyRef] with mutable.SynchronizedMap[ScenarioAndClass, AnyRef]
 
   def testInstance(implicit testAndParameters: TestAndParameters): TestInstance =
     cachedTestInstance(
@@ -45,7 +46,7 @@ private[havarunner] object TestInstanceCache {
     )
 
   private def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
-    testAndParameters.instanceGroupLock.synchronized { // Sync with instance group. Different groups may run parallel.
-      cache.getOrElseUpdate(testAndParameters.criterion, TestInstance(instantiate))
+    instanceGroupLocks.getOrElseUpdate(testAndParameters.groupCriterion, new Object).synchronized { // Sync with instance group. Different groups may run parallel.
+      cache.getOrElseUpdate(testAndParameters.groupCriterion, TestInstance(instantiate))
     }
 }

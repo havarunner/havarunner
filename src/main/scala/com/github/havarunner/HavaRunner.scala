@@ -39,7 +39,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   def run(notifier: RunNotifier) {
     reportIfSuite()
     val afterAllFutures = children
-      .groupBy(_.criterion)
+      .groupBy(_.groupCriterion)
       .map {
         case (_, testsAndParameters) => runTestsOfSameGroup(testsAndParameters, notifier)
       }
