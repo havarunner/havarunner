@@ -5,6 +5,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 
@@ -49,6 +50,18 @@ public class TestHelper {
         };
         run(havaRunner, runNotifier);
         return failures;
+    }
+
+    public static List<Description> runAndRecordIgnores(HavaRunner havaRunner) {
+        final List<Description> ignores = Collections.synchronizedList(Lists.<Description>newArrayList());
+        RunNotifier runNotifier = new RunNotifier() {
+            @Override
+            public void fireTestIgnored(Description description) {
+                ignores.add(description);
+            }
+        };
+        run(havaRunner, runNotifier);
+        return ignores;
     }
 
     public static void run(HavaRunner havaRunner, RunNotifier runNotifier) {

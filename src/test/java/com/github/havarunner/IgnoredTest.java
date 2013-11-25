@@ -6,8 +6,10 @@ import org.junit.runner.Description;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.github.havarunner.TestHelper.runAndRecordIgnores;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -19,16 +21,16 @@ public class IgnoredTest {
     @Test
     public void it_records_ignored_tests_properly() throws InitializationError {
         HavaRunner havaRunner = new HavaRunner(ContainingIgnoredTest.class);
-        final AtomicReference<Description> expectedIgnoration = runAndCollectIgnored(havaRunner);
-        assertEquals("this_test_is_ignored", expectedIgnoration.get().getMethodName());
+        final List<Description> expectedIgnoration = runAndRecordIgnores(havaRunner);
+        assertEquals("this_test_is_ignored", expectedIgnoration.get(0).getMethodName());
         assertFalse(ignoredTestIsRun);
     }
 
     @Test
     public void it_records_ignored_classes_properly() throws InitializationError {
         HavaRunner havaRunner = new HavaRunner(IgnoredClass.class);
-        final AtomicReference<Description> expectedIgnoration = runAndCollectIgnored(havaRunner);
-        assertEquals("the_class_of_this_test_is_ignored", expectedIgnoration.get().getMethodName());
+        final List<Description> expectedIgnoration = runAndRecordIgnores(havaRunner);
+        assertEquals("the_class_of_this_test_is_ignored", expectedIgnoration.get(0).getMethodName());
         assertFalse(testInIgnoredCLassIsRun);
     }
 
@@ -36,19 +38,6 @@ public class IgnoredTest {
     public void it_supports_Ignore_in_enclosing_class() {
         HavaRunner havaRunner = new HavaRunner(IgnoredEnclosing.class);
         assertTrue(havaRunner.tests().iterator().next().ignored());
-    }
-
-    private AtomicReference<Description> runAndCollectIgnored(HavaRunner havaRunner) {
-        final AtomicReference<Description> expectedIgnoration = new AtomicReference<>();
-        for (TestAndParameters f : havaRunner.tests()) {
-            HavaRunner.validateAndRun(f, new RunNotifier() {
-                @Override
-                public void fireTestIgnored(Description description) {
-                    expectedIgnoration.set(description);
-                }
-            });
-        }
-        return expectedIgnoration;
     }
 
     static class ContainingIgnoredTest {

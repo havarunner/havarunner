@@ -65,41 +65,30 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
 
 private object HavaRunner {
 
-  private def runTestsOfSameGroup(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
+  private def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
+    val runnableTests = handleIgnoredAndInvalid(testsAndParameters, notifier)
     val futureTestResults: Future[Iterable[TestResult]] =
-      if (testsAndParameters.forall(_.runSequentially.isDefined))
-        runInParseOrder
+      if (runnableTests.forall(_.runSequentially.isDefined))
+        runInParseOrder(runnableTests, notifier)
       else
-        runInParallel
+        runInParallel(runnableTests, notifier)
     futureTestResults map {
-      testResults => runAfterAlls(testResults)
+      testResults => runAfterAlls(testResults)(runnableTests)
     }
   }
 
   private def runInParallel(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Iterable[TestResult]] = {
-    val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.flatMap(validateAndRun(_, notifier))
+    val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.map(implicit tp => schedule(tp, notifier, describeTest))
     Future.sequence(resultsOfSameGroup)
   }
 
   private def runInParseOrder(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Iterable[TestResult]] =
     future {
-      testsAndParameters.flatMap(tp => {
-        validateAndRun(tp, notifier) map { f =>
-          Await.result(f, 2 hours) // Run sequential tests in the order they were parsed
-        }
+      testsAndParameters.map(implicit tp => {
+        val res = schedule(tp, notifier, describeTest)
+        Await.result(res, 2 hours) // Run sequential tests in the order they were parsed
       })
     }
-
-  def validateAndRun(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[Future[TestResult]] = {
-    implicit val description = describeTest
-    val testIsInvalidReport = reportInvalidations
-    if (testIsInvalidReport.isEmpty) {
-      scheduleOrIgnore
-    } else {
-      reportFailure(testIsInvalidReport)
-      None
-    }
-  }
 
   private def runAfterAlls(result: Iterable[HavaRunner.TestResult])(implicit testsAndParameters: Iterable[TestAndParameters]) {
     result.headOption
@@ -123,6 +112,19 @@ private object HavaRunner {
     Await.ready(allTests, 2 hours)
     failure.foreach(throw _) // If @AfterAll methods throw exceptions, re-throw them here
   }
+  
+  private def handleIgnoredAndInvalid(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier) = {
+    val ignoredTests = testsAndParameters.filter(_.ignored)
+    ignoredTests.foreach(ignoredTest =>
+      notifier fireTestIgnored describeTest(ignoredTest)
+    )
+    val invalidTests = testsAndParameters.filterNot(reportInvalidations(_).isEmpty)
+    invalidTests.foreach(invalidTest => reportFailure(reportInvalidations(invalidTest))(describeTest(invalidTest), notifier))
+
+    testsAndParameters
+      .filterNot(ignoredTests.contains(_))
+      .filterNot(invalidTests.contains(_))
+  }
 
   private def acceptTest(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =
     filterOption.map(filter => {
@@ -141,15 +143,6 @@ private object HavaRunner {
       testAndParameters.testClass,
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
-
-  private def scheduleOrIgnore(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
-  Option[Future[TestResult]] =
-    if (testAndParameters.ignored) {
-      notifier fireTestIgnored description
-      None
-    } else {
-      Some(schedule)
-    }
 
   private def schedule(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
   Future[TestResult] =
@@ -247,7 +240,7 @@ private object HavaRunner {
       notifier fireTestFailure new Failure(description, new TestDidNotRiseExpectedException(testAndParameters.expectedException.get, testAndParameters))
     )
   }
-  
+
   private[havarunner] trait TestResult
   private[havarunner] object FailedConstructor extends TestResult
   private[havarunner] trait InstantiatedTest {
