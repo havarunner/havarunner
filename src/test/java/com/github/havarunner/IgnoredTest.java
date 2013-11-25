@@ -41,7 +41,7 @@ public class IgnoredTest {
     private AtomicReference<Description> runAndCollectIgnored(HavaRunner havaRunner) {
         final AtomicReference<Description> expectedIgnoration = new AtomicReference<>();
         for (TestAndParameters f : havaRunner.children()) {
-            havaRunner.runChild(f, new RunNotifier() {
+            HavaRunner.runChild(f, new RunNotifier() {
                 @Override
                 public void fireTestIgnored(Description description) {
                     expectedIgnoration.set(description);

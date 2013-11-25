@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.12.6
+
+* Run tests of same group in the parsed order
+
 ## 0.12.5
 
 * Support @Ignore in the enclosing class

@@ -47,10 +47,55 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
     waitAndHandleRestOfErrors(afterAllFutures)
   }
 
-  private def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
+  def filter(filter: Filter) {
+    this.filterOption = Some(filter)
+  }
+
+  private[havarunner] def reportIfSuite() =
+    children.filter(_.testContext.isInstanceOf[SuiteContext]).foreach(testAndParameters => {
+      val suiteContext: SuiteContext = testAndParameters.testContext.asInstanceOf[SuiteContext]
+      println(s"[HavaRunner] Running ${testAndParameters.minimalToString} as a part of ${suiteContext.suiteClass.getSimpleName}")
+    })
+
+  private[havarunner] val classesToTest = findDeclaredClasses(parentClass)
+
+  private[havarunner] lazy val children: java.lang.Iterable[TestAndParameters] =
+    parseTestsAndParameters(classesToTest).filter(acceptChild(_, filterOption))
+}
+
+private object HavaRunner {
+
+  private def runTestsOfSameGroup(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] =
+    if (testsAndParameters.forall(_.runSequentially.isDefined))
+      runInSequence
+    else
+      runInParallel
+
+  private def runInParallel(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
     val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.flatMap(runChild(_, notifier))
     Future.sequence(resultsOfSameGroup).map {
       (result: Iterable[TestResult]) => runAfterAlls(result, testsAndParameters)
+    }
+  }
+
+  private def runInSequence(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] =
+    future {
+      val results: Iterable[TestResult] = testsAndParameters.flatMap(tp => {
+        runChild(tp, notifier) map { f =>
+          Await.result(f, 2 hours) // Run sequential tests in the order they were parsed
+        }
+      })
+      runAfterAlls(results, testsAndParameters)
+    }
+
+  def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[Future[TestResult]] = {
+    implicit val description = describeChild
+    val testIsInvalidReport = reportInvalidations
+    if (testIsInvalidReport.isEmpty) {
+      scheduleOrIgnore
+    } else {
+      reportFailure(testIsInvalidReport)
+      None
     }
   }
 
@@ -59,12 +104,12 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
       .filter(_.isInstanceOf[InstantiatedTest])
       .map(_.asInstanceOf[InstantiatedTest])
       .foreach(instantiatedTest => {
-        implicit val testAndParams: TestAndParameters = testsAndParameters.head
-        withThrottle {
-          // It suffices to run the @AfterAlls against any instance of the group
-          testAndParams.afterAll.foreach(invoke(_)(instantiatedTest.testInstance))
-        }
-      })
+      implicit val testAndParams: TestAndParameters = testsAndParameters.head
+      withThrottle {
+        // It suffices to run the @AfterAlls against any instance of the group
+        testAndParams.afterAll.foreach(invoke(_)(instantiatedTest.testInstance))
+      }
+    })
   }
 
   private def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Any]]) {
@@ -77,34 +122,6 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
     failure.foreach(throw _) // If @AfterAll methods throw exceptions, re-throw them here
   }
 
-  def filter(filter: Filter) {
-    this.filterOption = Some(filter)
-  }
-
-  private[havarunner] def reportIfSuite() =
-    children.filter(_.testContext.isInstanceOf[SuiteContext]).foreach(testAndParameters => {
-      val suiteContext: SuiteContext = testAndParameters.testContext.asInstanceOf[SuiteContext]
-      println(s"[HavaRunner] Running ${testAndParameters.minimalToString} as a part of ${suiteContext.suiteClass.getSimpleName}")
-    })
-
-  private[havarunner] def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier) = {
-    implicit val description = describeChild
-    val testIsInvalidReport = reportInvalidations
-    if (testIsInvalidReport.isEmpty) {
-      scheduleOrIgnore
-    } else {
-      reportFailure(testIsInvalidReport)
-      None
-    }
-  }
-
-  private[havarunner] val classesToTest = findDeclaredClasses(parentClass)
-
-  private[havarunner] lazy val children: java.lang.Iterable[TestAndParameters] =
-    parseTestsAndParameters(classesToTest).filter(acceptChild(_, filterOption))
-}
-
-private object HavaRunner {
   private def acceptChild(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =
     filterOption.map(filter => {
       val FilterDescribePattern = "Method (.*)\\((.*)\\)".r
