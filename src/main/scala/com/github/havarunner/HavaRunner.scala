@@ -65,27 +65,29 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
 
 private object HavaRunner {
 
-  private def runTestsOfSameGroup(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] =
-    if (testsAndParameters.forall(_.runSequentially.isDefined))
-      runInParseOrder
-    else
-      runInParallel
-
-  private def runInParallel(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
-    val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.flatMap(validateAndRun(_, notifier))
-    Future.sequence(resultsOfSameGroup).map {
-      (result: Iterable[TestResult]) => runAfterAlls(result, testsAndParameters)
+  private def runTestsOfSameGroup(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
+    val futureTestResults: Future[Iterable[TestResult]] =
+      if (testsAndParameters.forall(_.runSequentially.isDefined))
+        runInParseOrder
+      else
+        runInParallel
+    futureTestResults map {
+      testResults => runAfterAlls(testResults)
     }
   }
 
-  private def runInParseOrder(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] =
+  private def runInParallel(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Iterable[TestResult]] = {
+    val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.flatMap(validateAndRun(_, notifier))
+    Future.sequence(resultsOfSameGroup)
+  }
+
+  private def runInParseOrder(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Iterable[TestResult]] =
     future {
-      val results: Iterable[TestResult] = testsAndParameters.flatMap(tp => {
+      testsAndParameters.flatMap(tp => {
         validateAndRun(tp, notifier) map { f =>
           Await.result(f, 2 hours) // Run sequential tests in the order they were parsed
         }
       })
-      runAfterAlls(results, testsAndParameters)
     }
 
   def validateAndRun(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[Future[TestResult]] = {
@@ -99,7 +101,7 @@ private object HavaRunner {
     }
   }
 
-  private def runAfterAlls(result: Iterable[HavaRunner.TestResult], testsAndParameters: Iterable[TestAndParameters]) {
+  private def runAfterAlls(result: Iterable[HavaRunner.TestResult])(implicit testsAndParameters: Iterable[TestAndParameters]) {
     result.headOption
       .filter(_.isInstanceOf[InstantiatedTest])
       .map(_.asInstanceOf[InstantiatedTest])
