@@ -32,13 +32,13 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
 
   def getDescription = {
     val description = Description.createSuiteDescription(parentClass)
-    children.iterator() foreach (child => description.addChild(describeChild(child)))
+    tests.iterator() foreach (test => description.addChild(describeTest(test)))
     description
   }
 
   def run(notifier: RunNotifier) {
     reportIfSuite()
-    val afterAllFutures = children
+    val afterAllFutures = tests
       .groupBy(_.groupCriterion)
       .map {
         case (_, testsAndParameters) => runTestsOfSameGroup(testsAndParameters, notifier)
@@ -52,15 +52,15 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   }
 
   private[havarunner] def reportIfSuite() =
-    children.filter(_.testContext.isInstanceOf[SuiteContext]).foreach(testAndParameters => {
+    tests.filter(_.testContext.isInstanceOf[SuiteContext]).foreach(testAndParameters => {
       val suiteContext: SuiteContext = testAndParameters.testContext.asInstanceOf[SuiteContext]
       println(s"[HavaRunner] Running ${testAndParameters.minimalToString} as a part of ${suiteContext.suiteClass.getSimpleName}")
     })
 
   private[havarunner] val classesToTest = findDeclaredClasses(parentClass)
 
-  private[havarunner] lazy val children: java.lang.Iterable[TestAndParameters] =
-    parseTestsAndParameters(classesToTest).filter(acceptChild(_, filterOption))
+  private[havarunner] lazy val tests: java.lang.Iterable[TestAndParameters] =
+    parseTestsAndParameters(classesToTest).filter(acceptTest(_, filterOption))
 }
 
 private object HavaRunner {
@@ -72,7 +72,7 @@ private object HavaRunner {
       runInParallel
 
   private def runInParallel(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
-    val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.flatMap(runChild(_, notifier))
+    val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.flatMap(validateAndRun(_, notifier))
     Future.sequence(resultsOfSameGroup).map {
       (result: Iterable[TestResult]) => runAfterAlls(result, testsAndParameters)
     }
@@ -81,15 +81,15 @@ private object HavaRunner {
   private def runInSequence(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] =
     future {
       val results: Iterable[TestResult] = testsAndParameters.flatMap(tp => {
-        runChild(tp, notifier) map { f =>
+        validateAndRun(tp, notifier) map { f =>
           Await.result(f, 2 hours) // Run sequential tests in the order they were parsed
         }
       })
       runAfterAlls(results, testsAndParameters)
     }
 
-  def runChild(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[Future[TestResult]] = {
-    implicit val description = describeChild
+  def validateAndRun(implicit testAndParameters: TestAndParameters, notifier: RunNotifier): Option[Future[TestResult]] = {
+    implicit val description = describeTest
     val testIsInvalidReport = reportInvalidations
     if (testIsInvalidReport.isEmpty) {
       scheduleOrIgnore
@@ -122,7 +122,7 @@ private object HavaRunner {
     failure.foreach(throw _) // If @AfterAll methods throw exceptions, re-throw them here
   }
 
-  private def acceptChild(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =
+  private def acceptTest(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =
     filterOption.map(filter => {
       val FilterDescribePattern = "Method (.*)\\((.*)\\)".r
       filter.describe() match {
@@ -134,7 +134,7 @@ private object HavaRunner {
       }
     }).getOrElse(true)
 
-  private def describeChild(implicit testAndParameters: TestAndParameters) =
+  private def describeTest(implicit testAndParameters: TestAndParameters) =
     Description createTestDescription(
       testAndParameters.testClass,
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
@@ -180,7 +180,7 @@ private object HavaRunner {
     def applyRuleAndHandleException(rule: Field, accumulator: Statement) =
       try {
         val testRule: TestRule = rule.get(testInstance.instance).asInstanceOf[TestRule]
-        testRule.apply(accumulator, describeChild)
+        testRule.apply(accumulator, describeTest)
       } catch {
         case e: InvocationTargetException =>
           if (e.getCause.getClass == classOf[AssumptionViolatedException]) inner

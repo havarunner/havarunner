@@ -42,7 +42,7 @@ public class RunSequentiallyTest {
         }
 
         private void assertTestsAreSequential(Class testClass) {
-            for (TestAndParameters testAndParameters : new HavaRunner(testClass).children()) {
+            for (TestAndParameters testAndParameters : new HavaRunner(testClass).tests()) {
                 assertTrue(testAndParameters.runSequentially().isDefined());
             }
         }

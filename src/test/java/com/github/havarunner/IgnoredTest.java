@@ -35,13 +35,13 @@ public class IgnoredTest {
     @Test
     public void it_supports_Ignore_in_enclosing_class() {
         HavaRunner havaRunner = new HavaRunner(IgnoredEnclosing.class);
-        assertTrue(havaRunner.children().iterator().next().ignored());
+        assertTrue(havaRunner.tests().iterator().next().ignored());
     }
 
     private AtomicReference<Description> runAndCollectIgnored(HavaRunner havaRunner) {
         final AtomicReference<Description> expectedIgnoration = new AtomicReference<>();
-        for (TestAndParameters f : havaRunner.children()) {
-            HavaRunner.runChild(f, new RunNotifier() {
+        for (TestAndParameters f : havaRunner.tests()) {
+            HavaRunner.validateAndRun(f, new RunNotifier() {
                 @Override
                 public void fireTestIgnored(Description description) {
                     expectedIgnoration.set(description);

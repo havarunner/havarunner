@@ -3,7 +3,6 @@ package com.github.havarunner.sequentiality;
 import com.github.havarunner.ConcurrencyControl;
 import com.github.havarunner.HavaRunner;
 import com.github.havarunner.TestAndParameters;
-import com.github.havarunner.TestHelper;
 import com.github.havarunner.annotation.RunSequentially;
 import com.github.havarunner.annotation.Scenarios;
 import com.google.common.base.Predicate;
@@ -30,7 +29,7 @@ import static org.junit.Assert.*;
 public class RunSequentiallyTestsOfSameInstance {
 
     public static class when_same_class_but_different_scenario {
-        private final List<TestAndParameters> children = Lists.newArrayList(new HavaRunner(Test1.class).children());
+        private final List<TestAndParameters> children = Lists.newArrayList(new HavaRunner(Test1.class).tests());
 
         @Test
         public void HavaRunner_will_run_them_in_parallel() {
@@ -74,7 +73,7 @@ public class RunSequentiallyTestsOfSameInstance {
 
     public static class when_there_are_two_tests {
 
-        private final List<TestAndParameters> children = Lists.newArrayList(new HavaRunner(Enclosing.class).children());
+        private final List<TestAndParameters> children = Lists.newArrayList(new HavaRunner(Enclosing.class).tests());
 
         @Test
         public void HavaRunner_assigns_each_test_a_semaphore_of_size_1() {
@@ -135,7 +134,7 @@ public class RunSequentiallyTestsOfSameInstance {
     public static class when_suite_is_marked_as_RunSequentially {
         @Test
         public void HavaRunner_marks_the_test_to_be_RunSequentially() {
-            TestAndParameters test = findByClass(new HavaRunner(SequentialSuite.class).children(), SuiteMember.class);
+            TestAndParameters test = findByClass(new HavaRunner(SequentialSuite.class).tests(), SuiteMember.class);
             assertTrue(test.runSequentially().isDefined());
             assertEquals("tests in this suite do not thrive in the concurrent world", test.runSequentially().get().because());
         }
@@ -143,7 +142,7 @@ public class RunSequentiallyTestsOfSameInstance {
         @Test
         public void HavaRunner_lets_the_test_override_the_RunSequentially_spec_of_the_suite() {
             TestAndParameters test = findByClass(
-                new HavaRunner(SequentialSuite.class).children(),
+                new HavaRunner(SequentialSuite.class).tests(),
                 SuiteMemberOverridingRunSequentially.class
             );
             assertTrue(test.runSequentially().isDefined());

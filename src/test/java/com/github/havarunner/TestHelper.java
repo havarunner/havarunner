@@ -83,7 +83,7 @@ public class TestHelper {
 
     private static Set<String> parsedTestClassNames(Class testClas) {
         Set<String> classes = Sets.newTreeSet();
-        for (TestAndParameters testAndParameters : new HavaRunner(testClas).children()) {
+        for (TestAndParameters testAndParameters : new HavaRunner(testClas).tests()) {
             classes.add(testAndParameters.testClass().getName());
         }
         return classes;
