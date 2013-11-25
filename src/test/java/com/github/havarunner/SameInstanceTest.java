@@ -19,8 +19,8 @@ public class SameInstanceTest {
 
     public static class when_the_test_has_multiple_scenarios {
 
-        static List<Object> instanceWhenMars = Lists.newArrayList();
-        static List<Object> instanceWhenVenus = Lists.newArrayList();
+        static List<Object> instanceWhenMars = Collections.synchronizedList(Lists.newArrayList());
+        static List<Object> instanceWhenVenus = Collections.synchronizedList(Lists.newArrayList());
 
         @Test
         public void HavaRunner_calls_each_test_method_on_the_same_instance() {
