@@ -67,7 +67,7 @@ private object HavaRunner {
 
   private def runTestsOfSameGroup(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] =
     if (testsAndParameters.forall(_.runSequentially.isDefined))
-      runInSequence
+      runInParseOrder
     else
       runInParallel
 
@@ -78,7 +78,7 @@ private object HavaRunner {
     }
   }
 
-  private def runInSequence(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] =
+  private def runInParseOrder(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] =
     future {
       val results: Iterable[TestResult] = testsAndParameters.flatMap(tp => {
         validateAndRun(tp, notifier) map { f =>
