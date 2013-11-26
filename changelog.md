@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 0.12.7
+
+* Run tests of same group in undeterministic order (revert 0.12.6)
+
 ## 0.12.6
 
 * Run tests of same group in the parsed order

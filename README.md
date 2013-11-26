@@ -270,6 +270,10 @@ HavaRunner tests in the codebase, try to understand why they cannot be run
 concurrently. From this understanding you might gain valuable insights into the
 architectural problems of the system.
 
+Note that HavaRunner does not guarantee that the sequential tests are run in the order
+they are defined in the class. This will become a problem to you, if your tests do
+depend on each other. It is a good practice to write independent test cases.
+
 #### Fine-tuning sequentiality
 
 You can improve the speed of your test suite by running some of the tests

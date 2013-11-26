@@ -67,28 +67,11 @@ private object HavaRunner {
 
   private def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
     val runnableTests = handleIgnoredAndInvalid(testsAndParameters, notifier)
-    val futureTestResults: Future[Iterable[TestResult]] =
-      if (runnableTests.forall(_.runSequentially.isDefined))
-        runInParseOrder(runnableTests, notifier)
-      else
-        runInParallel(runnableTests, notifier)
-    futureTestResults map {
+    val resultsOfSameGroup: Iterable[Future[TestResult]] = runnableTests.map(implicit tp => schedule(tp, notifier, describeTest))
+    Future.sequence(resultsOfSameGroup) map {
       testResults => runAfterAlls(testResults)(runnableTests)
     }
   }
-
-  private def runInParallel(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Iterable[TestResult]] = {
-    val resultsOfSameGroup: Iterable[Future[TestResult]] = testsAndParameters.map(implicit tp => schedule(tp, notifier, describeTest))
-    Future.sequence(resultsOfSameGroup)
-  }
-
-  private def runInParseOrder(implicit testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Iterable[TestResult]] =
-    future {
-      testsAndParameters.map(implicit tp => {
-        val res = schedule(tp, notifier, describeTest)
-        Await.result(res, 2 hours) // Run sequential tests in the order they were parsed
-      })
-    }
 
   private def runAfterAlls(result: Iterable[HavaRunner.TestResult])(implicit testsAndParameters: Iterable[TestAndParameters]) {
     result.headOption
