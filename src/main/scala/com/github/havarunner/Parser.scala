@@ -129,9 +129,5 @@ private[havarunner] object Parser {
     }
 
   private class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
+  private[havarunner] case class TestClassAndSource(testClass: Class[_], testContext: TestContext = DefaultContext)
 }
-
-private[havarunner] case class TestClassAndSource(testClass: Class[_], testContext: TestContext = DefaultContext)
-private[havarunner] trait TestContext
-private[havarunner] case class SuiteContext(suiteClass: Class[_]) extends TestContext
-private[havarunner] case object DefaultContext extends TestContext

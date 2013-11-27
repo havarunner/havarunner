@@ -43,6 +43,10 @@ private[havarunner] trait MaybeSequential {
   def runSequentially: Option[RunSequentially]
 }
 
+private[havarunner] trait TestContext
+private[havarunner] case class SuiteContext(suiteClass: Class[_]) extends TestContext
+private[havarunner] case object DefaultContext extends TestContext
+
 private[havarunner] trait InstanceGroup[T] {
   /**
    * The object by which the test instances should be grouped
