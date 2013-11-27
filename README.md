@@ -169,7 +169,7 @@ public class WebApplicationSuiteTest implements HavaRunnerSuite<WebServer> {
 ````
 
 ````java
-// The suite member must be in the same package or a subpackage of the suite.
+// A suite member must be within the same package as the suite.
 package your.app;
 
 @RunWith(HavaRunner.class)
