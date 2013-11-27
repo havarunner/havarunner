@@ -94,9 +94,7 @@ a way to run the same test against each element of data in a set.
 
 You can use scenarios by adding a static `@Scenarios` method and a constructor
 that takes in one argument. HavaRunner will then call your test methods once
-for each scenario.
-
-Havarunner will multiscenario tests in parallel.
+for each scenario – in parallel, of course.
 
 ````java
 @RunWith(HavaRunner.class)
