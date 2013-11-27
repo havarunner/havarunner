@@ -28,11 +28,12 @@ private[havarunner] case class TestAndParameters(
       "%s#%s%s%s",
       testClass.getName,
       testMethod.getName,
-      scenario.map(scen => s" (scenario $scen)").getOrElse(""),
+      scenarioToString,
       partOf.map(suite => s" (suite $suite)").getOrElse("")
     )
 
-  lazy val minimalToString = testClass.getSimpleName + "#" + testMethod.getName
+  lazy val toStringWithoutSuite =
+    testClass.getSimpleName + "#" + testMethod.getName + scenarioToString
 }
 
 private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])
