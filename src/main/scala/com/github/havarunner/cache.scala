@@ -2,10 +2,7 @@ package com.github.havarunner
 
 import scala.collection.mutable
 import com.github.havarunner.Reflections._
-import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.SuiteCache._
-import scala.concurrent._
-import scala.concurrent.ExecutionContext.Implicits.global
 
 private[havarunner] object SuiteCache {
   private val cache = new mutable.HashMap[Class[_ <: HavaRunnerSuite[_]], HavaRunnerSuite[_]] with mutable.SynchronizedMap[Class[_ <: HavaRunnerSuite[_]], HavaRunnerSuite[_]]
@@ -19,14 +16,14 @@ private[havarunner] object SuiteCache {
       })
     }
 
-  private def instantiateSuite(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] = {
+  def instantiateSuite(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] = {
     val noArgConstructor = suiteClass.getDeclaredConstructor()
     noArgConstructor.setAccessible(true)
     val havaRunnerSuiteInstance: HavaRunnerSuite[_] = noArgConstructor.newInstance()
     havaRunnerSuiteInstance
   }
 
-  private def registerShutdownHook(havaRunnerSuiteInstance: HavaRunnerSuite[_]) {
+  def registerShutdownHook(havaRunnerSuiteInstance: HavaRunnerSuite[_]) {
     Runtime.getRuntime.addShutdownHook(new Thread(new Runnable() {
       def run() {
         havaRunnerSuiteInstance.afterSuite()
@@ -45,7 +42,7 @@ private[havarunner] object TestInstanceCache {
       testAndParameters.partOf map suiteInstance
     )
 
-  private def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
+  def cachedTestInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]]): TestInstance =
     instanceGroupLocks.getOrElseUpdate(testAndParameters.groupCriterion, new Object).synchronized { // Sync with instance group. Different groups may run parallel.
       cache.
         get(testAndParameters.groupCriterion).

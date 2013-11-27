@@ -22,7 +22,7 @@ private[havarunner] object ConcurrencyControl {
   def semaphore(implicit maybeSequential: MaybeSequential with InstanceGroup[_]) =
     maybeSequential.runSequentially map sequentialSemaphore getOrElse forParallelTests
 
-  private def sequentialSemaphore(runSequentially: RunSequentially)(implicit instanceGroup: InstanceGroup[_]): Semaphore =
+  def sequentialSemaphore(runSequentially: RunSequentially)(implicit instanceGroup: InstanceGroup[_]): Semaphore =
     runSequentially.`with`() match {
       case TESTS_OF_SAME_INSTANCE       => forTestsOfSameInstance.getOrElseUpdate(instanceGroup.groupCriterion, new Semaphore(1))
       case TESTS_MARKED_BY_THIS_CONTEXT => forTestsMarkedByTheDefaultContext

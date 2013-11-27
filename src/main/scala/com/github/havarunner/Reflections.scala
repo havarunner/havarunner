@@ -1,10 +1,8 @@
 package com.github.havarunner
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.{Field, InvocationTargetException, Method}
+import java.lang.reflect.{Field, Method}
 import com.github.havarunner.exception.ConstructorNotFound
-import org.junit.internal.AssumptionViolatedException
-import com.github.havarunner.TestInstanceCache._
 
 private[havarunner] object Reflections {
   def findAnnotationRecursively(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Option[Annotation] =
@@ -30,7 +28,7 @@ private[havarunner] object Reflections {
       clazz +: clazz.getDeclaredClasses.flatMap(findDeclaredClasses(_, accumulator))
     }
 
-  private def resolveConstructorAndArgs(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters) =
+   def resolveConstructorAndArgs(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters) =
     withHelpfulConstructorMissingReport {
       val clazz = testAndParameters.testClass
       (suiteInstanceOption, testAndParameters.scenario) match {
@@ -54,7 +52,7 @@ private[havarunner] object Reflections {
       }
     }
 
-  private def withHelpfulConstructorMissingReport[T](op: => T)(implicit testAndParameters: TestAndParameters) =
+   def withHelpfulConstructorMissingReport[T](op: => T)(implicit testAndParameters: TestAndParameters) =
     try {
       op
     } catch {

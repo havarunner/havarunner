@@ -65,7 +65,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
 
 private object HavaRunner {
 
-  private def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
+  def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
     val runnableTests = handleIgnoredAndInvalid(testsAndParameters, notifier)
     val resultsOfSameGroup: Iterable[Future[TestResult]] = runnableTests.map(implicit tp => schedule(tp, notifier, describeTest))
     Future.sequence(resultsOfSameGroup) map {
@@ -73,7 +73,7 @@ private object HavaRunner {
     }
   }
 
-  private def runAfterAlls(result: Iterable[HavaRunner.TestResult])(implicit testsAndParameters: Iterable[TestAndParameters]) {
+  def runAfterAlls(result: Iterable[HavaRunner.TestResult])(implicit testsAndParameters: Iterable[TestAndParameters]) {
     result.headOption
       .filter(_.isInstanceOf[InstantiatedTest])
       .map(_.asInstanceOf[InstantiatedTest])
@@ -86,7 +86,7 @@ private object HavaRunner {
     })
   }
 
-  private def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Any]]) {
+  def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Any]]) {
     val allTests = Future.sequence(afterAllFutures)
     var failure: Option[Throwable] = None
     allTests onFailure {
@@ -96,7 +96,7 @@ private object HavaRunner {
     failure.foreach(throw _) // If @AfterAll methods throw exceptions, re-throw them here
   }
   
-  private def handleIgnoredAndInvalid(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier) = {
+  def handleIgnoredAndInvalid(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier) = {
     val ignoredTests = testsAndParameters.filter(_.ignored)
     ignoredTests.foreach(ignoredTest =>
       notifier fireTestIgnored describeTest(ignoredTest)
@@ -109,7 +109,7 @@ private object HavaRunner {
       .filterNot(invalidTests.contains(_))
   }
 
-  private def acceptTest(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =
+  def acceptTest(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =
     filterOption.map(filter => {
       val FilterDescribePattern = "Method (.*)\\((.*)\\)".r
       filter.describe() match {
@@ -121,13 +121,13 @@ private object HavaRunner {
       }
     }).getOrElse(true)
 
-  private def describeTest(implicit testAndParameters: TestAndParameters) =
+  def describeTest(implicit testAndParameters: TestAndParameters) =
     Description createTestDescription(
       testAndParameters.testClass,
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
       )
 
-  private def schedule(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
+  def schedule(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
   Future[TestResult] =
     future {
       withThrottle {
@@ -149,7 +149,7 @@ private object HavaRunner {
         FailedConstructor
     }
 
-  private def runWithRules(f: => Any)(implicit testAndParameters: TestAndParameters, testInstance: TestInstance) {
+  def runWithRules(f: => Any)(implicit testAndParameters: TestAndParameters, testInstance: TestInstance) {
     val inner = new Statement {
       def evaluate() {
         f
@@ -176,7 +176,7 @@ private object HavaRunner {
     foldedRules.evaluate()
   }
 
-  private def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, testInstance: TestInstance) {
+  def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, testInstance: TestInstance) {
     notifier fireTestStarted description
     try {
       invokeEach(testAndParameters.before)
@@ -191,7 +191,7 @@ private object HavaRunner {
     }
   }
 
-  private def handleException(e: Throwable)(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
+  def handleException(e: Throwable)(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
     Option(e) match {
       case Some(exception) if exception.isInstanceOf[AssumptionViolatedException] =>
         val msg = s"[HavaRunner] Ignored $testAndParameters, because it did not meet an assumption"
@@ -207,7 +207,7 @@ private object HavaRunner {
     }
   }
 
-  private def maybeTimeouting(op: => Any)(implicit testAndParameters: TestAndParameters) {
+  def maybeTimeouting(op: => Any)(implicit testAndParameters: TestAndParameters) {
     testAndParameters.timeout.map(timeout => {
       val start = System.currentTimeMillis()
       op
@@ -218,17 +218,17 @@ private object HavaRunner {
     }).getOrElse(op)
   }
 
-  private def failIfExpectedExceptionNotThrown(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
+  def failIfExpectedExceptionNotThrown(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description) {
     testAndParameters.expectedException.foreach(expected =>
       notifier fireTestFailure new Failure(description, new TestDidNotRiseExpectedException(testAndParameters.expectedException.get, testAndParameters))
     )
   }
 
-  private[havarunner] trait TestResult
-  private[havarunner] object FailedConstructor extends TestResult
-  private[havarunner] trait InstantiatedTest {
+  trait TestResult
+  object FailedConstructor extends TestResult
+  trait InstantiatedTest {
     val testInstance: TestInstance
   }
-  private[havarunner] case class PassedTestMethod(testInstance: TestInstance) extends TestResult with InstantiatedTest
-  private[havarunner] case class FailedTestMethod(testInstance: TestInstance) extends TestResult with InstantiatedTest
+  case class PassedTestMethod(testInstance: TestInstance) extends TestResult with InstantiatedTest
+  case class FailedTestMethod(testInstance: TestInstance) extends TestResult with InstantiatedTest
 }
