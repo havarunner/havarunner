@@ -11,37 +11,31 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
  * Group your tests by annotating them as `@PartOf` a suite
 * **Scenarios**
  * Run the same test against multiple scenarios
-* **Enclosed tests**
- * Group tests with static inner classes (like with `org.junit.experimental.runners.Enclosed`)
 * **Once instance per test**
  * Do your computation-intensive setup in the constructor of the test class
  * Write easy-to-reason-about test classes that rely on `final` instance fields
-* **Reduce syntactic noise**
- * HavaRunner lets you omit the `public` access modifier from the methods
 * **Non-blocking**
  * HavaRunner is built on Scala 2.10 futures, and it's run model is completely
    asynchronous
 
 ## Install
 
+Add the following fragment into the `<dependencies>` element of *pom.xml*:
+
 ````xml
 <dependency>
   <groupId>com.github.havarunner</groupId>
   <artifactId>havarunner</artifactId>
-  <!-- Here you can find the latest version number: -->
-  <!-- http://search.maven.org/#search%7Cgav%7C1%7Cg%3A%22com.github.havarunner%22%20AND%20a%3A%22havarunner%22 -->
-  <version>x.y.z</version>
+  <version>1.0.0-RC1</version>
   <scope>test</scope>
 </dependency>
 <dependency>
-  <!-- HavaRunner lets you manage the JUnit dependency. -->
   <groupId>junit</groupId>
   <artifactId>junit</artifactId>
   <version>4.11</version> <!-- Any JUnit above 4.10 should do. -->
   <scope>test</scope>
 </dependency>
 <dependency>
-  <!-- HavaRunner lets you manage the Guava dependency. -->
   <groupId>com.google.guava</groupId>
   <artifactId>guava</artifactId>
   <version>14.0.1</version> <!-- HavaRunner needs the v.14 or higher. -->
@@ -49,11 +43,22 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 </dependency>
 ````
 
+HavaRunner lets you manage the JUnit and Guava dependencies. In addition
+to these two libraries, HavaRunner depends *org.scala-lang:scala-library*.
+Maven will automatically add that library into your classpath.
+
 ## Usage
 
 ### Hello world
 
+Below, HavaRunner will run the two test cases in parallel.
+
 ````java
+import org.junit.runner.RunWith;
+import org.junit.Test;
+import com.github.havarunner.HavaRunner;
+import com.github.havarunner.annotation.AfterAll;
+
 @RunWith(HavaRunner.class)
 public class HelloWorldTest {
 
@@ -69,6 +74,11 @@ public class HelloWorldTest {
         System.out.println("hello "+world);
     }
 
+    @Test
+    void HavaRunner_greets_the_galary() {
+        System.out.println("hello galary");
+    }
+
     @AfterAll
     void destroy() {
         // This method will be invoked after all the tests in the class
@@ -79,15 +89,14 @@ public class HelloWorldTest {
 
 ### Run the same test against multiple scenarios
 
-HavaRunner lets you model your use cases with scenarios.
-
-From Merriam-Webster:
-
-<blockquote>Scenario – a description of what could possibly happen</blockquote>
+HavaRunner lets you model your use cases with scenarios. Scenarios provide
+a way to run the same test against each element of data in a set.
 
 You can use scenarios by adding a static `@Scenarios` method and a constructor
 that takes in one argument. HavaRunner will then call your test methods once
 for each scenario.
+
+Havarunner will multiscenario tests in parallel.
 
 ````java
 @RunWith(HavaRunner.class)
@@ -130,13 +139,12 @@ public class LoginPageTest {
 
 Suites are a way to group tests and pass them shared data.
 
-Suites are comprised of *suite members*, and HavaRunner instantiates
-each member by passing it the `suiteObject`.
+Suites are comprised of *suite members*. Tests declare their suite membership with
+the `@PartOf` annotation. When instantiating the test class, HavaRunner will pass
+the `suiteObject` to the test instance.
 
 Because suites are instantiated only once, their constructors are an ideal place
 to perform heavy setup logic, such as launching a web server.
-
-JVM will call the `afterSuite` method of the suite in the shutdown hook.
 
 ````java
 package your.app;
@@ -220,6 +228,8 @@ public class RestForDifferentUsersTest {
 
 ### Enclosed tests
 
+You can group tests by declaring them as static inner classes.
+
 ````java
 @RunWith(HavaRunner.class)
 public class EnclosedExampleTest {
@@ -240,18 +250,12 @@ public class EnclosedExampleTest {
             void you_can_use_inner_classes_recursively() {
                 System.out.println("hello recursive example @ " + getClass().getSimpleName());
             }
-            static class grandchild {
-                @Test
-                void you_can_use_inner_classes_recursively() {
-                    System.out.println("hello recursive example @ " + getClass().getSimpleName());
-                }
-            }
         }
     }
 }
 ````
 
-### Run sequentially
+### Running tests sequentially
 
 If your tests do not thrive in the concurrent world, you can instruct HavaRunner
 to run them sequentially:
@@ -272,7 +276,7 @@ architectural problems of the system.
 
 Note that HavaRunner does not guarantee that the sequential tests are run in the order
 they are defined in the class. This will become a problem to you, if your tests do
-depend on each other. It is a good practice to write independent test cases.
+depend on each other. All in all, it is a good practice to write independent test cases.
 
 #### Fine-tuning sequentiality
 
@@ -321,8 +325,8 @@ The principles of parsing are:
 * Be eager: find the largest sensible set of tests
  * E.g., parse the declaring class, all the declared and super classes
 * Let the more specific override the more abstract
- * E.g., if both the suite and a member contain the `@RunSequentially`
-   annotation, honor the annotation of the member
+ * E.g., if both the suite and the suite member contain the `@RunSequentially`
+   annotation, honor the annotation of the suite member
 
 ## Project goals
 

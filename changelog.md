@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.0.0-RC1
+
+* No functional changes since the previous release. (Prepare for the 1.0.0 release.)
+
 ## 0.12.7
 
 * Run tests of same group in undeterministic order (revert 0.12.6)
