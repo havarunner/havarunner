@@ -1,7 +1,6 @@
 package com.github.havarunner
 
 import org.junit._
-import scala.Some
 import com.github.havarunner.exception.{NonStaticInnerClassException, SuiteMemberDoesNotBelongToSuitePackage, UnsupportedAnnotationException}
 import com.github.havarunner.Reflections._
 import com.github.havarunner.annotation.{RunSequentially, PartOf}

@@ -6,7 +6,6 @@ import java.lang.reflect.{Modifier, Method}
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
 import com.google.common.reflect.ClassPath
-import scala.Some
 
 private[havarunner] object Parser {
 
