@@ -21,7 +21,6 @@ private[havarunner] object Parser {
           timeout = timeout(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
           partOf = suiteOption,
-          testContext = testClassAndSource.testContext,
           afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           after = findMethods(testClassAndSource.testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
           before = findMethods(testClassAndSource.testClass, classOf[Before]),
@@ -55,9 +54,9 @@ private[havarunner] object Parser {
       map(_.value())
 
   def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[TestClassAndSource] = {
-    val nonSuiteTests = classesToTest.map(TestClassAndSource(_))
+    val nonSuiteTests = classesToTest.map(TestClassAndSource)
     val suiteTests = classesToTest.flatMap(classToTest =>
-      findSuiteMembers(classToTest).map(TestClassAndSource(_, SuiteContext(classToTest)))
+      findSuiteMembers(classToTest).map(TestClassAndSource)
     )
     (nonSuiteTests ++ suiteTests).filterNot(testClassAndSource => Modifier.isAbstract(testClassAndSource.testClass.getModifiers))
   }.distinct
@@ -127,5 +126,5 @@ private[havarunner] object Parser {
     }
 
   class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
-  case class TestClassAndSource(testClass: Class[_], testContext: TestContext = DefaultContext)
+  case class TestClassAndSource(testClass: Class[_])
 }

@@ -52,10 +52,13 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
   }
 
   private[havarunner] def reportIfSuite() =
-    tests.filter(_.testContext.isInstanceOf[SuiteContext]).foreach(testAndParameters => {
-      val suiteContext: SuiteContext = testAndParameters.testContext.asInstanceOf[SuiteContext]
-      println(s"[HavaRunner] Running ${testAndParameters.toStringWithoutSuite} as a part of ${suiteContext.suiteClass.getSimpleName}")
-    })
+    tests
+      .flatMap(testAndParams =>
+        testAndParams.partOf.map(suiteClass =>
+          s"[HavaRunner] Running ${testAndParams.toStringWithoutSuite} as a part of ${suiteClass.getSimpleName}"
+        )
+      )
+      .foreach(println)
 
   private[havarunner] val classesToTest = findDeclaredClasses(parentClass)
 

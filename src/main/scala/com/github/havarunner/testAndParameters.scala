@@ -12,7 +12,6 @@ private[havarunner] case class TestAndParameters(
   scenario: Option[AnyRef],
   partOf: Option[Class[_ <:HavaRunnerSuite[_]]],
   ignored: Boolean,
-  testContext: TestContext,
   afterAll: Seq[Method],
   after: Seq[Method],
   before: Seq[Method],
@@ -43,10 +42,6 @@ private[havarunner] case class TestInstance(instance: Any)
 private[havarunner] trait MaybeSequential {
   def runSequentially: Option[RunSequentially]
 }
-
-private[havarunner] trait TestContext
-private[havarunner] case class SuiteContext(suiteClass: Class[_]) extends TestContext
-private[havarunner] case object DefaultContext extends TestContext
 
 private[havarunner] trait InstanceGroup[T] {
   /**
