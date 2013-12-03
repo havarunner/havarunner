@@ -67,23 +67,24 @@ private object HavaRunner {
 
   def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
     val runnableTests = handleIgnoredAndInvalid(testsAndParameters, notifier)
-    val resultsOfSameGroup: Iterable[Future[TestResult]] = runnableTests.map(implicit tp => schedule(tp, notifier, describeTest))
+    val resultsOfSameGroup: Iterable[Future[Either[FailedConstructor, InstantiatedTest]]] = runnableTests.map(implicit tp => schedule(tp, notifier, describeTest))
     Future.sequence(resultsOfSameGroup) map {
       testResults => runAfterAlls(testResults)(runnableTests)
     }
   }
 
-  def runAfterAlls(result: Iterable[HavaRunner.TestResult])(implicit testsAndParameters: Iterable[TestAndParameters]) {
-    result.headOption
-      .filter(_.isInstanceOf[InstantiatedTest])
-      .map(_.asInstanceOf[InstantiatedTest])
+  def runAfterAlls(result: Iterable[Either[FailedConstructor, InstantiatedTest]])(implicit testsAndParameters: Iterable[TestAndParameters]) {
+    result
+      .headOption
+      .map(_.right)
+      .flatMap(_.toOption)
       .foreach(instantiatedTest => {
-      implicit val testAndParams: TestAndParameters = testsAndParameters.head
-      withThrottle {
-        // It suffices to run the @AfterAlls against any instance of the group
-        testAndParams.afterAll.foreach(invoke(_)(instantiatedTest.testInstance))
-      }
-    })
+        implicit val testAndParams: TestAndParameters = testsAndParameters.head
+        withThrottle {
+          // It suffices to run the @AfterAlls against any instance of the group
+          testAndParams.afterAll.foreach(invoke(_)(instantiatedTest.testInstance))
+        }
+      })
   }
 
   def waitAndHandleRestOfErrors(afterAllFutures: Iterable[Future[Any]]) {
@@ -128,7 +129,7 @@ private object HavaRunner {
       )
 
   def schedule(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description):
-  Future[TestResult] =
+  Future[Either[FailedConstructor, InstantiatedTest]] =
     future {
       withThrottle {
         implicit val instance = testInstance
@@ -137,11 +138,11 @@ private object HavaRunner {
           runWithRules {
             runTest
           }
-          PassedTestMethod(testInstance)
+          Right(InstantiatedTest(testInstance))
         } catch {
           case error: Throwable =>
             handleException(error)
-            FailedTestMethod(instance)
+            Right(InstantiatedTest(testInstance))
         } finally {
           notifier fireTestFinished description
         }
@@ -149,7 +150,7 @@ private object HavaRunner {
     } recover {
       case errorFromConstructor: Throwable =>
         handleException(errorFromConstructor) // We come here when instantiating the test object failed
-        FailedConstructor
+        Left(FailedConstructor())
     }
 
   def runWithRules(f: => Any)(implicit testAndParameters: TestAndParameters, testInstance: TestInstance) {
@@ -222,11 +223,6 @@ private object HavaRunner {
     )
   }
 
-  trait TestResult
-  object FailedConstructor extends TestResult
-  trait InstantiatedTest {
-    val testInstance: TestInstance
-  }
-  case class PassedTestMethod(testInstance: TestInstance) extends TestResult with InstantiatedTest
-  case class FailedTestMethod(testInstance: TestInstance) extends TestResult with InstantiatedTest
+  case class FailedConstructor()
+  case class InstantiatedTest(testInstance: TestInstance)
 }
