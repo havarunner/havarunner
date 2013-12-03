@@ -164,11 +164,10 @@ private object HavaRunner {
         testRule.apply(accumulator, describeTest)
       } catch {
         case e: InvocationTargetException =>
-          if (e.getCause.getClass == classOf[AssumptionViolatedException]) inner
-          else {
-            println(e.getMessage)
+          if (e.getCause.getClass == classOf[AssumptionViolatedException])
+            inner
+          else
             throw e
-          }
       }
     val foldedRules = testAndParameters
       .rules
