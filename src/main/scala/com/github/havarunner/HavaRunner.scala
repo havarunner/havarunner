@@ -152,24 +152,18 @@ private object HavaRunner {
         Left(FailedConstructor())
     }
 
-  def runWithRules(f: => Any)(implicit testAndParameters: TestAndParameters, testInstance: TestInstance) {
+  def runWithRules(test: => Any)(implicit testAndParameters: TestAndParameters, testInstance: TestInstance) {
     val inner = new Statement {
       def evaluate() {
-        f
+        test
       }
     }
-    def applyRuleAndHandleException(rule: Field, accumulator: Statement) =
-      try {
-        val testRule: TestRule = rule.get(testInstance.instance).asInstanceOf[TestRule]
-        testRule.apply(accumulator, describeTest)
-      } catch {
-        case e: InvocationTargetException =>
-          if (e.getCause.getClass == classOf[AssumptionViolatedException])
-            inner
-          else
-            throw e
-      }
-    val foldedRules = testAndParameters
+    def applyRuleAndHandleException(rule: Field, accumulator: Statement) = {
+      val testRule: TestRule = rule.get(testInstance.instance).asInstanceOf[TestRule]
+      testRule.apply(accumulator, describeTest)
+    }
+    val foldedRules =
+      testAndParameters
       .rules
       .foldLeft(inner) {
         (accumulator: Statement, rule: Field) =>
