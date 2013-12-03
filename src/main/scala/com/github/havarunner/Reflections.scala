@@ -4,6 +4,9 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.{Field, Method}
 import com.github.havarunner.exception.ConstructorNotFound
 
+/**
+ * Place here code that is related to Java reflections but not to parsing tests.
+ */
 private[havarunner] object Reflections {
   def findAnnotationRecursively(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Option[Annotation] =
     Option(clazz.getAnnotation(annotationClass)) orElse {

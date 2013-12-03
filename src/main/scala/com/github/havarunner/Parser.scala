@@ -7,6 +7,9 @@ import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
 import com.google.common.reflect.ClassPath
 
+/**
+ * Place here code that is related to discovering tests and their parameters from the source classes.
+ */
 private[havarunner] object Parser {
 
   def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] =

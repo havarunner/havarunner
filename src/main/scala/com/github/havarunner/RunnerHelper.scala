@@ -3,6 +3,9 @@ package com.github.havarunner
 import org.junit.runner.manipulation.Filter
 import org.junit.runner.Description
 
+/**
+ * Place here code that is indirectly related to running tests.
+ */
 private[havarunner] object RunnerHelper {
 
   def acceptTest(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =

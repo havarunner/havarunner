@@ -58,6 +58,9 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
     parseTestsAndParameters(classesToTest).filter(acceptTest(_, filterOption))
 }
 
+/**
+ * Place here code that is directly related to running the tests.
+ */
 private object HavaRunner {
 
   def runTestsOfSameGroup(testsAndParameters: Iterable[TestAndParameters], notifier: RunNotifier): Future[Any] = {
