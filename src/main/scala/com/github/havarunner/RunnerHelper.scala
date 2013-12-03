@@ -2,6 +2,8 @@ package com.github.havarunner
 
 import org.junit.runner.manipulation.Filter
 import org.junit.runner.Description
+import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 /**
  * Place here code that is indirectly related to running tests.
@@ -26,11 +28,11 @@ private[havarunner] object RunnerHelper {
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString
     )
 
-  def reportIfSuite(tests: Iterable[TestAndParameters]) =
+  def reportIfSuite(tests: java.lang.Iterable[TestAndParameters]): java.lang.Iterable[String] =
     tests
       .flatMap(testAndParams =>
         testAndParams.partOf.map(suiteClass =>
           s"[HavaRunner] Running ${testAndParams.toStringWithoutSuite} as a part of ${suiteClass.getSimpleName}"
         )
-      )
+      ).asJava // To ease testing on the Java side
 }
