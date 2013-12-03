@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.0.0-RC2
+
+* Fix bug where a failure in @Before broke the order of test events
+
 ## 1.0.0-RC1
 
 * No functional changes since the previous release. (Prepare for the 1.0.0 release.)

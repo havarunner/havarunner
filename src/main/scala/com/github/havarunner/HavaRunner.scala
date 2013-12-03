@@ -132,6 +132,7 @@ private object HavaRunner {
     future {
       withThrottle {
         implicit val instance = testInstance
+        notifier fireTestStarted description
         try {
           runWithRules {
             runTest
@@ -141,6 +142,8 @@ private object HavaRunner {
           case error: Throwable =>
             handleException(error)
             FailedTestMethod(instance)
+        } finally {
+          notifier fireTestFinished description
         }
       }
     } recover {
@@ -170,24 +173,19 @@ private object HavaRunner {
     val foldedRules = testAndParameters
       .rules
       .foldLeft(inner) {
-        (accumulator: Statement, rule: Field) => 
+        (accumulator: Statement, rule: Field) =>
           applyRuleAndHandleException(rule, accumulator)
       }
     foldedRules.evaluate()
   }
 
   def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, testInstance: TestInstance) {
-    notifier fireTestStarted description
     try {
       invokeEach(testAndParameters.before)
       maybeTimeouting { testAndParameters.testMethod.invoke(testInstance.instance)}
       failIfExpectedExceptionNotThrown
     } finally {
-      try {
-        invokeEach(testAndParameters.after)
-      } finally {
-        notifier fireTestFinished description
-      }
+      invokeEach(testAndParameters.after)
     }
   }
 

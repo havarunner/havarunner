@@ -26,7 +26,7 @@ Add the following fragment into the `<dependencies>` element of *pom.xml*:
 <dependency>
   <groupId>com.github.havarunner</groupId>
   <artifactId>havarunner</artifactId>
-  <version>1.0.0-RC1</version>
+  <version>1.0.0-RC2</version>
   <scope>test</scope>
 </dependency>
 <dependency>
