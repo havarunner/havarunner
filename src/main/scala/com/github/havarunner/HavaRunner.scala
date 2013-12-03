@@ -101,7 +101,9 @@ private object HavaRunner {
       notifier fireTestIgnored describeTest(ignoredTest)
     )
     val invalidTests = testsAndParameters.filterNot(reportInvalidations(_).isEmpty)
-    invalidTests.foreach(invalidTest => reportFailure(reportInvalidations(invalidTest))(describeTest(invalidTest), notifier))
+    invalidTests.foreach(implicit invalidTest =>
+      reportFailure(reportInvalidations)(describeTest, notifier)
+    )
 
     testsAndParameters
       .filterNot(ignoredTests.contains(_))
