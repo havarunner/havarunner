@@ -10,31 +10,31 @@ import com.google.common.reflect.ClassPath
 private[havarunner] object Parser {
 
   def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] =
-    localAndSuiteTests(classesToTest).flatMap(implicit testClassAndSource =>
-      findTestMethods(testClassAndSource.testClass).map(implicit methodAndScenario =>
+    localAndSuiteTests(classesToTest).flatMap(implicit testClass =>
+      findTestMethods(testClass).map(implicit methodAndScenario =>
         TestAndParameters(
           testMethod = methodAndScenario.method,
-          testClass = testClassAndSource.testClass,
-          rules = findFields(testClassAndSource.testClass, classOf[Rule]).map(f => { f.setAccessible(true); f }),
+          testClass = testClass,
+          rules = findFields(testClass, classOf[Rule]).map(f => { f.setAccessible(true); f }),
           ignored = isIgnored,
           expectedException = expectedException(methodAndScenario.method),
           timeout = timeout(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
           partOf = suiteOption,
-          afterAll = findMethods(testClassAndSource.testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          after = findMethods(testClassAndSource.testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          before = findMethods(testClassAndSource.testClass, classOf[Before]),
-          runSequentially = runSequentially(Some(testClassAndSource.testClass)) orElse runSequentially(suiteOption)
+          afterAll = findMethods(testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
+          after = findMethods(testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
+          before = findMethods(testClass, classOf[Before]),
+          runSequentially = runSequentially(Some(testClass)) orElse runSequentially(suiteOption)
         )
       )
     )
 
-  def isIgnored(implicit methodAndScenario: MethodAndScenario, testClassAndSource: TestClassAndSource) = {
+  def isIgnored(implicit methodAndScenario: MethodAndScenario, testClass: Class[_]) = {
     val methodIgnored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null
-    val classIgnored = findAnnotationRecursively(testClassAndSource.testClass, classOf[Ignore]).isDefined
+    val classIgnored = findAnnotationRecursively(testClass, classOf[Ignore]).isDefined
     val enclosingClassIgnored =
-      if (testClassAndSource.testClass.getEnclosingClass != null)
-        findAnnotationRecursively(testClassAndSource.testClass.getEnclosingClass, classOf[Ignore]).isDefined
+      if (testClass.getEnclosingClass != null)
+        findAnnotationRecursively(testClass.getEnclosingClass, classOf[Ignore]).isDefined
       else
         false
     methodIgnored || classIgnored || enclosingClassIgnored
@@ -48,17 +48,17 @@ private[havarunner] object Parser {
     }
 
 
-  def suiteOption(implicit testClassAndSource: TestClassAndSource): Option[Class[_ <:HavaRunnerSuite[_]]] =
-    findAnnotationRecursively(testClassAndSource.testClass, classOf[PartOf]).
+  def suiteOption(implicit testClass: Class[_]): Option[Class[_ <:HavaRunnerSuite[_]]] =
+    findAnnotationRecursively(testClass, classOf[PartOf]).
       map(_.asInstanceOf[PartOf]).
       map(_.value())
 
-  def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[TestClassAndSource] = {
-    val nonSuiteTests = classesToTest.map(TestClassAndSource)
+  def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[Class[_]] = {
+    val nonSuiteTests = classesToTest
     val suiteTests = classesToTest.flatMap(classToTest =>
-      findSuiteMembers(classToTest).map(TestClassAndSource)
+      findSuiteMembers(classToTest)
     )
-    (nonSuiteTests ++ suiteTests).filterNot(testClassAndSource => Modifier.isAbstract(testClassAndSource.testClass.getModifiers))
+    (nonSuiteTests ++ suiteTests).filterNot(testClass => Modifier.isAbstract(testClass.getModifiers))
   }.distinct
 
   def expectedException(method: Method): Option[Class[_ <: Throwable]] = {
@@ -126,5 +126,4 @@ private[havarunner] object Parser {
     }
 
   class MethodAndScenario(val scenario: Option[AnyRef], val method: Method)
-  case class TestClassAndSource(testClass: Class[_])
 }
