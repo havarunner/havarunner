@@ -138,14 +138,13 @@ private object HavaRunner {
           runWithRules {
             runTest
           }
-          Right(InstantiatedTest(testInstance))
         } catch {
           case error: Throwable =>
             handleException(error)
-            Right(InstantiatedTest(testInstance))
         } finally {
           notifier fireTestFinished description
         }
+        Right(InstantiatedTest(testInstance))
       }
     } recover {
       case errorFromConstructor: Throwable =>
