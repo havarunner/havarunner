@@ -17,6 +17,9 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
 * **Non-blocking**
  * HavaRunner is built on Scala 2.10 futures, and it's run model is completely
    asynchronous
+* **JUnit support**
+ * HavaRunner is a JUnit runner, which means that it's fairly straightforward to
+   adopt it in a codebase that already has JUnit tests
 
 ## Install
 
