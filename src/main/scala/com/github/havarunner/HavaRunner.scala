@@ -73,9 +73,9 @@ private object HavaRunner {
 
   def runAfterAlls(result: Iterable[Either[FailedConstructor, InstantiatedTest]])(implicit testsAndParameters: Iterable[TestAndParameters]) {
     result
-      .headOption
       .map(_.right)
       .flatMap(_.toOption)
+      .headOption
       .foreach(instantiatedTest => {
         implicit val testAndParams: TestAndParameters = testsAndParameters.head
         withThrottle {
