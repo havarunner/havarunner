@@ -91,7 +91,7 @@ private object HavaRunner {
     allTests onFailure {
       case t: Throwable => failure = Some(t) // Unlift the exception from the Future container, so that we can handle it in the main thread
     }
-    Await.ready(allTests, 2 hours)
+    Await.result(allTests, 2 hours)
     failure.foreach(throw _) // If @AfterAll methods throw exceptions, re-throw them here
   }
   
