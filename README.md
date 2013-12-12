@@ -329,15 +329,6 @@ The principles of parsing are:
  * E.g., if both the suite and the suite member contain the `@RunSequentially`
    annotation, honor the annotation of the suite member
 
-## Project goals
-
-* Minimise or eliminate the need to describe test configurations in Maven
-  pom.xml
-* Create a tool for fast tests – run everything in parallel by default
-* Encourage users to write easy-to-understand tests that build on immutable data
-  and intuitive abstractions such as suite and scenario
-* Provide a model for ensuring that all the tests in the codebase are run in CI
-
 ## Supported JUnit annotations
 
 HavaRunner supports only a limited set of JUnit annotations. Here they are:
