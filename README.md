@@ -317,6 +317,45 @@ public class AssumeThatExample {
 [Here](https://github.com/havarunner/havarunner/tree/master/src/test/java/com/github/havarunner/example)
 you can find complete code examples.
 
+## Running with Maven
+
+It is a good idea to mention only the HavaRunner suites in Maven `pom.xml`. 
+This approach has two remarkable benefits:
+
+* HavaRunner will take care of running the tests in parallel. Consequently, 
+  your tests will run faster on the Continuous Integration server such as Jenkins.
+* Your `pom.xml` stays simpler. The `<include>` and `<exclude>` rules can quickly 
+  become obscure. It's best to use them as little as possible.
+
+Here is an example suite configuration for the Maven Failsafe plugin:
+
+```xml
+<plugin>
+   <groupId>org.apache.maven.plugins</groupId>
+   <artifactId>maven-failsafe-plugin</artifactId>
+   <configuration>
+       <includes>
+           <include>**/WebDriverSuite.java</include>
+       </includes>
+       <skip>false</skip>
+   </configuration>
+   <executions>
+       <execution>
+           <id>integration-test</id>
+           <goals>
+               <goal>integration-test</goal>
+           </goals>
+       </execution>
+       <execution>
+           <id>verify</id>
+           <goals>
+               <goal>verify</goal>
+           </goals>
+       </execution>
+   </executions>
+</plugin>
+```
+
 ## Principles of parsing
 
 HavaRunner uses the term parsing to describe the process of discovering tests.
