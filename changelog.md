@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.0.0
+
+* This is the same release as 1.0.0-RC3
+
 ## 1.0.0-RC3
 
 * Minor internal refactorings
