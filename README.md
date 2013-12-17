@@ -21,6 +21,8 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
  * HavaRunner is a JUnit runner, which means that it's fairly straightforward to
    adopt it in a codebase that already has JUnit tests
 
+For an introduction, see the article [Write concurrent Java tests with HavaRunner](http://lauri.lehmijoki.net/en/nerd/write-concurrent-java-tests-with-havarunner.html).
+
 ## Install
 
 Add the following fragment into the `<dependencies>` element of *pom.xml*:
