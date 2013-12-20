@@ -392,4 +392,7 @@ HavaRunner supports none of the other JUnit annotations.
 
 See the LICENSE file. It's MIT.
 
-Author Lauri Lehmijoki.
+Author Lauri Lehmijoki. 
+
+Lots of kudos to Juha Paananen and Tomi Takussaari for 
+giving hugely valuable ideas!
