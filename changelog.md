@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.0.1
+
+* Fail the test if its class has more than one @Scenario methods
+
 ## 1.0.0
 
 * This is the same release as 1.0.0-RC3
