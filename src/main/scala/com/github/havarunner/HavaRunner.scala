@@ -27,12 +27,12 @@ import scala.concurrent.duration._
  *
  * @author Lauri Lehmijoki
  */
-class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
+class HavaRunner(startingPoint: Class[_ <: Any]) extends Runner with Filterable {
 
   private var filterOption: Option[Filter] = None // The Filterable API requires us to use a var
 
   def getDescription = {
-    val description = Description.createSuiteDescription(parentClass)
+    val description = Description.createSuiteDescription(startingPoint)
     tests.iterator() foreach (test => description.addChild(describeTest(test)))
     description
   }
@@ -52,7 +52,7 @@ class HavaRunner(parentClass: Class[_ <: Any]) extends Runner with Filterable {
     this.filterOption = Some(filter)
   }
 
-  private[havarunner] val classesToTest = findDeclaredClasses(parentClass)
+  private[havarunner] val classesToTest = findDeclaredClasses(startingPoint)
 
   private[havarunner] lazy val tests: java.lang.Iterable[TestAndParameters] =
     parseTestsAndParameters(classesToTest).filter(acceptTest(_, filterOption))
