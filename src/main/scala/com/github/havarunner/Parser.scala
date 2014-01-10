@@ -2,7 +2,8 @@ package com.github.havarunner
 
 import org.junit._
 import com.github.havarunner.annotation.{PartOf, AfterAll, Scenarios, RunSequentially}
-import java.lang.reflect.{Modifier, Method}
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier._
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
 import com.google.common.reflect.ClassPath
@@ -61,7 +62,7 @@ private[havarunner] object Parser {
     val suiteTests = classesToTest.flatMap(classToTest =>
       findSuiteMembers(classToTest)
     )
-    (nonSuiteTests ++ suiteTests).filterNot(testClass => Modifier.isAbstract(testClass.getModifiers))
+    (nonSuiteTests ++ suiteTests).filterNot(testClass => isAbstract(testClass.getModifiers))
   }.distinct
 
   def expectedException(method: Method): Option[Class[_ <: Throwable]] = {
