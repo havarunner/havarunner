@@ -18,7 +18,7 @@ private[havarunner] object Parser {
         TestAndParameters(
           testMethod = methodAndScenario.method,
           testClass = testClass,
-          rules = findFields(testClass, classOf[Rule]).map(f => { f.setAccessible(true); f }),
+          rules = findFields(testClass, classOf[Rule]),
           ignored = isIgnored,
           expectedException = expectedException(methodAndScenario.method),
           timeout = timeout(methodAndScenario.method),
@@ -82,11 +82,10 @@ private[havarunner] object Parser {
 
   def scenarioMethodOpt(clazz: Class[_]): Option[Method] =
     findMethods(clazz, classOf[Scenarios]).
-      headOption.
-      map(method => { method.setAccessible(true); method })
+      headOption
 
   def findTestMethods(testClass: Class[_]): Seq[MethodAndScenario] = {
-    val testMethods = findMethods(testClass, classOf[Test]).map(method => { method.setAccessible(true); method })
+    val testMethods = findMethods(testClass, classOf[Test])
     scenarios(testClass) match {
       case Some(scenarios) =>
         scenarios.flatMap(scenario =>
@@ -124,7 +123,7 @@ private[havarunner] object Parser {
 
   def scenarios(testClass: Class[_]): Option[Seq[AnyRef]] =
     scenarioMethodOpt(testClass) map { scenarioMethod =>
-      val scenarios = scenarioMethod.invoke(null).asInstanceOf[java.lang.Iterable[AnyRef]]
+      val scenarios = ensureAccessible(scenarioMethod).invoke(null).asInstanceOf[java.lang.Iterable[AnyRef]]
       scenarios.iterator().toSeq
     }
 
