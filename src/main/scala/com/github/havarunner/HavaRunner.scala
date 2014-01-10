@@ -27,7 +27,7 @@ import scala.concurrent.duration._
  *
  * @author Lauri Lehmijoki
  */
-class HavaRunner(startingPoint: Class[_ <: Any]) extends Runner with Filterable {
+class HavaRunner(startingPoint: Class[_]) extends Runner with Filterable {
 
   private var filterOption: Option[Filter] = None // The Filterable API requires us to use a var
 

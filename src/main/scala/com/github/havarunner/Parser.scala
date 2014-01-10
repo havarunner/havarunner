@@ -13,7 +13,7 @@ import com.google.common.reflect.ClassPath
  */
 private[havarunner] object Parser {
 
-  def parseTestsAndParameters(classesToTest: Seq[Class[_ <: Any]]): Seq[TestAndParameters] =
+  def parseTestsAndParameters(classesToTest: Seq[Class[_]]): Seq[TestAndParameters] =
     localAndSuiteTests(classesToTest).flatMap(implicit testClass =>
       findTestMethods(testClass).map(implicit methodAndScenario =>
         TestAndParameters(
@@ -57,7 +57,7 @@ private[havarunner] object Parser {
       map(_.asInstanceOf[PartOf]).
       map(_.value())
 
-  def localAndSuiteTests(classesToTest: Seq[Class[_ <: Any]]): Seq[Class[_]] = {
+  def localAndSuiteTests(classesToTest: Seq[Class[_]]): Seq[Class[_]] = {
     val nonSuiteTests = classesToTest
     val suiteTests = classesToTest.flatMap(classToTest =>
       findSuiteMembers(classToTest)

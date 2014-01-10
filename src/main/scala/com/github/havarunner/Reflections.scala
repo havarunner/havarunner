@@ -8,7 +8,7 @@ import com.github.havarunner.exception.ConstructorNotFound
  * Place here code that is related to Java reflections but not to parsing tests.
  */
 private[havarunner] object Reflections {
-  def findAnnotationRecursively(clazz: Class[_ <: Any], annotationClass: Class[_ <: Annotation]): Option[Annotation] =
+  def findAnnotationRecursively(clazz: Class[_], annotationClass: Class[_ <: Annotation]): Option[Annotation] =
     Option(clazz.getAnnotation(annotationClass)) orElse {
       Option(clazz.getSuperclass) flatMap {
         superclass => findAnnotationRecursively(superclass, annotationClass)
@@ -80,7 +80,7 @@ private[havarunner] object Reflections {
     methods.foreach(invoke)
   }
 
-  def classWithSuperclasses(clazz: Class[_ <: Any], superclasses: Seq[Class[_ <: Any]] = Nil): Seq[Class[_ <: Any]] =
+  def classWithSuperclasses(clazz: Class[_], superclasses: Seq[Class[_]] = Nil): Seq[Class[_]] =
     if (clazz.getSuperclass != null)
       classWithSuperclasses(clazz.getSuperclass, clazz +: superclasses)
     else
