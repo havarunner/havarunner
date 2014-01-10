@@ -141,7 +141,7 @@ private object HavaRunner {
       }
     }
     def applyRuleAndHandleException(rule: Field, accumulator: Statement) = {
-      val testRule: TestRule = rule.get(testInstance.instance).asInstanceOf[TestRule]
+      val testRule: TestRule = ensureAccessible(rule).get(testInstance.instance).asInstanceOf[TestRule]
       testRule.apply(accumulator, describeTest)
     }
     val foldedRules =
@@ -157,7 +157,7 @@ private object HavaRunner {
   def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, testInstance: TestInstance) {
     try {
       invokeEach(testAndParameters.before)
-      maybeTimeouting { testAndParameters.testMethod.invoke(testInstance.instance)}
+      maybeTimeouting { ensureAccessible(testAndParameters.testMethod).invoke(testInstance.instance)}
       failIfExpectedExceptionNotThrown
     } finally {
       invokeEach(testAndParameters.after)

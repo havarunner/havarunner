@@ -1,7 +1,7 @@
 package com.github.havarunner
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.{Field, Method}
+import java.lang.reflect.{AccessibleObject, Field, Method}
 import com.github.havarunner.exception.ConstructorNotFound
 
 /**
@@ -17,10 +17,10 @@ private[havarunner] object Reflections {
 
   def instantiate(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters) = {
     val (constructor, argsOption) = resolveConstructorAndArgs
-    constructor.setAccessible(true)
+    val accessibleConstructor = ensureAccessible(constructor)
     argsOption match {
-      case Some(args) => constructor.newInstance(args.toSeq.asInstanceOf[Seq[AnyRef]]:_*)
-      case None       => constructor.newInstance()
+      case Some(args) => accessibleConstructor.newInstance(args.toSeq.asInstanceOf[Seq[AnyRef]]:_*)
+      case None       => accessibleConstructor.newInstance()
     }
   }
 
@@ -73,10 +73,8 @@ private[havarunner] object Reflections {
       clazz.getDeclaredFields.filter(_.getAnnotation(annotation) != null)
     )
 
-  def invoke(method: Method)(implicit testInstance: TestInstance) = {
-    method.setAccessible(true)
-    method.invoke(testInstance.instance)
-  }
+  def invoke(method: Method)(implicit testInstance: TestInstance) =
+    ensureAccessible(method).invoke(testInstance.instance)
 
   def invokeEach(methods: Seq[Method])(implicit testInstance: TestInstance) {
     methods.foreach(invoke)
@@ -92,4 +90,9 @@ private[havarunner] object Reflections {
     classWithSuperclasses(clazz).
       flatMap(_.getDeclaredMethods).
       exists(_.getAnnotation(annotationClass) != null)
+
+  def ensureAccessible[T <: AccessibleObject](accessibleObject: T) = {
+    accessibleObject.setAccessible(true)
+    accessibleObject
+  }
 }
