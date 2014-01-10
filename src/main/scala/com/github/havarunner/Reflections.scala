@@ -76,10 +76,6 @@ private[havarunner] object Reflections {
   def invoke(method: Method)(implicit testInstance: TestInstance) =
     ensureAccessible(method).invoke(testInstance.instance)
 
-  def invokeEach(methods: Seq[Method])(implicit testInstance: TestInstance) {
-    methods.foreach(invoke)
-  }
-
   def classWithSuperclasses(clazz: Class[_], superclasses: Seq[Class[_]] = Nil): Seq[Class[_]] =
     if (clazz.getSuperclass != null)
       classWithSuperclasses(clazz.getSuperclass, clazz +: superclasses)

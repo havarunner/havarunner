@@ -156,11 +156,11 @@ private object HavaRunner {
 
   def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, testInstance: TestInstance) {
     try {
-      invokeEach(testAndParameters.before)
+      testAndParameters.before.foreach(invoke)
       maybeTimeouting { ensureAccessible(testAndParameters.testMethod).invoke(testInstance.instance)}
       failIfExpectedExceptionNotThrown
     } finally {
-      invokeEach(testAndParameters.after)
+      testAndParameters.after.foreach(invoke)
     }
   }
 
