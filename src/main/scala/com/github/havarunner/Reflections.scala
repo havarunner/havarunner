@@ -31,7 +31,7 @@ private[havarunner] object Reflections {
       clazz +: clazz.getDeclaredClasses.flatMap(findDeclaredClasses(_, accumulator))
     }
 
-   def resolveConstructorAndArgs(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters) =
+  def resolveConstructorAndArgs(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters) =
     withHelpfulConstructorMissingReport {
       val clazz = testAndParameters.testClass
       (suiteInstanceOption, testAndParameters.scenario) match {
@@ -55,7 +55,7 @@ private[havarunner] object Reflections {
       }
     }
 
-   def withHelpfulConstructorMissingReport[T](op: => T)(implicit testAndParameters: TestAndParameters) =
+  def withHelpfulConstructorMissingReport[T](op: => T)(implicit testAndParameters: TestAndParameters) =
     try {
       op
     } catch {
