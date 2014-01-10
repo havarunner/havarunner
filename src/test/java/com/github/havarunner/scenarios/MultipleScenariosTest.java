@@ -15,10 +15,12 @@ import org.junit.runners.model.InitializationError;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.havarunner.TestHelper.run;
+import static com.github.havarunner.TestHelper.runAndRecordFailures;
 import static org.junit.Assert.assertEquals;
 
 public class MultipleScenariosTest {
@@ -59,6 +61,22 @@ public class MultipleScenariosTest {
         );
     }
 
+    @Test
+    public void HavaRunner_will_give_a_helpful_error_message_if_the_test_has_multiple_Scenario_annotations() {
+        List<Failure> failures = runAndRecordFailures(new HavaRunner(TwoScenarioMethodsTest.class));
+        assertEquals(
+            "The class has two tests (one for each scenario). Both should fail because of the two @Scenario methods.",
+            2,
+            failures.size()
+        );
+        for (Failure failure : failures) {
+            assertEquals(
+                "Test com.github.havarunner.scenarios.MultipleScenariosTest$TwoScenarioMethodsTest has more than one @Scenario methods. Remove all but one of them.",
+                failure.getMessage()
+            );
+        }
+    }
+
     private AtomicReference<Failure> runInvalidScenarioTestMethod() throws InitializationError {
         final AtomicReference<Failure> expectedFailure = new AtomicReference<>();
         new HavaRunner(InvalidScenarioTest.class).run(new RunNotifier() {
@@ -89,6 +107,29 @@ public class MultipleScenariosTest {
 
         @Test
         void this_test_is_missing_the_scenario_constructor() {
+
+        }
+    }
+
+    static class TwoScenarioMethodsTest {
+        final String scenario;
+
+        TwoScenarioMethodsTest(String scenario) {
+            this.scenario = scenario;
+        }
+
+        @Scenarios
+        static Set<String> scenarios() {
+            return Sets.newHashSet("foo", "bar");
+        }
+
+        @Scenarios
+        static Set<String> scenarios2() {
+            return Sets.newHashSet("foo", "bar");
+        }
+
+        @Test
+        void test() {
 
         }
     }
