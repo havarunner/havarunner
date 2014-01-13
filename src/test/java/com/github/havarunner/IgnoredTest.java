@@ -3,11 +3,9 @@ package com.github.havarunner;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.Description;
-import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
 import java.util.List;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static com.github.havarunner.TestHelper.runAndRecordIgnores;
 import static org.junit.Assert.assertEquals;

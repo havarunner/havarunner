@@ -2,7 +2,6 @@ package com.github.havarunner.validations;
 
 import com.github.havarunner.HavaRunner;
 import com.github.havarunner.exception.MultipleInvalidations;
-import com.github.havarunner.exception.NonStaticInnerClassException;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import org.junit.After;
@@ -22,7 +21,6 @@ public class MultipleInvalidationsTest {
     @Test
     public void HavaRunner_will_report_multiple_invalidations_at_once() {
         List<Failure> failures = runAndRecordFailures(new HavaRunner(TestWithMultipleInvalidations.class));
-        expectNonStaticFailure(failures);
         expectMultipleInvalidations(failures);
     }
 
@@ -32,14 +30,6 @@ public class MultipleInvalidationsTest {
             "com.github.havarunner.exception.UnsupportedAnnotationException: Only tests that are @RunSequentially may use @After (class com.github.havarunner.validations.MultipleInvalidationsTest$TestWithMultipleInvalidations uses the unsupported annotation org.junit.After)\n" +
             "com.github.havarunner.exception.UnsupportedAnnotationException: Only tests that are @RunSequentially may use @Before (class com.github.havarunner.validations.MultipleInvalidationsTest$TestWithMultipleInvalidations uses the unsupported annotation org.junit.Before)\n" +
             "com.github.havarunner.exception.UnsupportedAnnotationException: class com.github.havarunner.validations.MultipleInvalidationsTest$TestWithMultipleInvalidations uses the unsupported annotation org.junit.BeforeClass",
-            failure.getMessage()
-        );
-    }
-
-    private void expectNonStaticFailure(List<Failure> failures) {
-        Failure failure = findFailure(failures, NonStaticInnerClassException.class);
-        assertEquals(
-            "The class com.github.havarunner.validations.MultipleInvalidationsTest$TestWithMultipleInvalidations$InnerNonStatic must be static (HavaRunner does not support non-static inner classes)",
             failure.getMessage()
         );
     }
@@ -60,13 +50,6 @@ public class MultipleInvalidationsTest {
 
         @Test
         void test() {}
-
-        class InnerNonStatic {
-
-            @Test
-            public void test() {}
-
-        }
     }
 
     private Failure findFailure(List<Failure> failures, final Class type) {

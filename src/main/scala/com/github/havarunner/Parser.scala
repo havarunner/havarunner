@@ -2,7 +2,7 @@ package com.github.havarunner
 
 import org.junit._
 import com.github.havarunner.annotation.{PartOf, AfterAll, Scenarios, RunSequentially}
-import java.lang.reflect.Method
+import java.lang.reflect.{Modifier, Method}
 import java.lang.reflect.Modifier._
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
@@ -13,8 +13,10 @@ import com.google.common.reflect.ClassPath
  */
 private[havarunner] object Parser {
 
-  def parseTestsAndParameters(classesToTest: Seq[Class[_]]): Seq[TestAndParameters] =
-    localAndSuiteTests(classesToTest).flatMap(implicit testClass =>
+  type ParseResult = Seq[TestAndParameters]
+
+  def parseTestsAndParameters(classesToTest: Seq[Class[_]]): ParseResult = {
+    val parseResult = localAndSuiteTests(classesToTest).flatMap(implicit testClass =>
       findTestMethods(testClass).map(implicit methodAndScenario =>
         TestAndParameters(
           testMethod = methodAndScenario.method,
@@ -32,6 +34,47 @@ private[havarunner] object Parser {
         )
       )
     )
+    
+    parseResult flatMap desugarNonStaticInnerClasses(parseResult)
+  }
+
+  def desugarNonStaticInnerClasses(parseResult: ParseResult)(testAndParameters: TestAndParameters): ParseResult =
+    enclosingClassForNonStaticTestClass(testAndParameters)
+      .map(generateTestsFromNonStaticInnerClasses(parseResult, testAndParameters))
+      .getOrElse(testAndParameters :: Nil)
+
+  def generateTestsFromNonStaticInnerClasses(parseResults: ParseResult, testAndParameters: TestAndParameters)(enclosingClass: Class[_]): Seq[TestAndParameters] = {
+    require(Option(testAndParameters.testClass.getEnclosingClass).exists(_ == enclosingClass), "This function is defined only for nested tests")
+    def topmostEncloser(nestedClass: Class[_])(enclosingCandidate: TestAndParameters) = {
+      val enclosesOurNestedClass = nestedClass.getEnclosingClass == enclosingCandidate.testClass
+      val isStaticOrTopLevel = enclosingCandidate.testClass.getEnclosingClass == null || isStatic(enclosingCandidate.testClass.getModifiers)
+      enclosesOurNestedClass && isStaticOrTopLevel
+    }
+    def closestWithoutEnclosingClass(maybeClass: Option[Class[_]]): Option[TestAndParameters] =
+      maybeClass.flatMap(clazz =>
+        parseResults
+          .find(topmostEncloser(clazz))
+          .orElse(closestWithoutEnclosingClass(Option(clazz.getEnclosingClass)))
+      )
+
+    val rootEncloser = closestWithoutEnclosingClass(Option(testAndParameters.testClass))
+      .get // The option should always be defined, because we are dealing with non-static inner classes in this function
+
+    val scenarios: Seq[AnyRef] = parseResults
+      .filter(_.testClass == rootEncloser.testClass)
+      .flatMap(_.scenario)
+      .distinct // Here we count on proper Object#equals implementation of the scenario class
+    
+    def applyCommonNonStaticInnerClassProperties(testAndParams: TestAndParameters) =
+      testAndParameters.copy(encloser = Some(enclosingClass), partOf = rootEncloser.partOf)
+
+    if (scenarios.isEmpty)
+      applyCommonNonStaticInnerClassProperties(testAndParameters) :: Nil
+    else
+      scenarios.map(scenarioObject =>
+        applyCommonNonStaticInnerClassProperties(testAndParameters).copy(scenario = Some(scenarioObject))
+      )
+  }
 
   def isIgnored(implicit methodAndScenario: MethodAndScenario, testClass: Class[_]) = {
     val methodIgnored = methodAndScenario.method.getAnnotation(classOf[Ignore]) != null

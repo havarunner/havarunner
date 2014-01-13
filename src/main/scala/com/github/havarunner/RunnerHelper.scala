@@ -4,6 +4,7 @@ import org.junit.runner.manipulation.Filter
 import org.junit.runner.Description
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
+import java.lang.reflect.Modifier
 
 /**
  * Place here code that is indirectly related to running tests.
@@ -22,7 +23,7 @@ private[havarunner] object RunnerHelper {
       }
     }).getOrElse(true)
 
-  def describeTest(implicit testAndParameters: TestAndParameters) =
+  def describeTest(implicit testAndParameters: TestAndParameters): Description =
     Description createTestDescription(
       testAndParameters.testClass,
       testAndParameters.testMethod.getName + testAndParameters.scenarioToString

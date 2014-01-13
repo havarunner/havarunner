@@ -1,29 +1,21 @@
 package com.github.havarunner
 
 import org.junit._
-import com.github.havarunner.exception.{ClassHasMultipleScenarioAnnotations, NonStaticInnerClassException, SuiteMemberDoesNotBelongToSuitePackage, UnsupportedAnnotationException}
+import com.github.havarunner.exception.{ClassHasMultipleScenarioAnnotations, SuiteMemberDoesNotBelongToSuitePackage, UnsupportedAnnotationException}
 import com.github.havarunner.Reflections._
 import com.github.havarunner.annotation.{Scenarios, RunSequentially, PartOf}
 import java.lang.annotation.Annotation
-import java.lang.reflect.Modifier
 
 private[havarunner] object Validations {
 
   def reportInvalidations(implicit testAndParameters: TestAndParameters): Seq[_<:Exception] =
     suiteConfigError ++
     multipleScenariosError ++
-    nonStaticInnerClass ++
     unsupportedMethodAnnotations ++
     unsupportedClassAnnotations
 
   implicit def optionSeq2seq[T](optionSeq: Seq[Option[T]]): Seq[T] = optionSeq.flatMap(identity(_))
   implicit def optionException2Seq(optionException: Option[Exception]): Seq[Option[Exception]] = optionException :: Nil
-
-  def nonStaticInnerClass(implicit testAndParameters: TestAndParameters): Option[NonStaticInnerClassException] =
-    if (testAndParameters.testClass.getDeclaringClass != null && !Modifier.isStatic(testAndParameters.testClass.getModifiers))
-      Some(new NonStaticInnerClassException(testAndParameters.testClass))
-    else
-      None
 
   def multipleScenariosError(implicit testAndParameters: TestAndParameters): Option[ClassHasMultipleScenarioAnnotations] =
     if (findMethods(testAndParameters.testClass, classOf[Scenarios]).length > 1)

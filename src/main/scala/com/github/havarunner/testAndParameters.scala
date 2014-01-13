@@ -15,11 +15,12 @@ private[havarunner] case class TestAndParameters(
   afterAll: Seq[Method],
   after: Seq[Method],
   before: Seq[Method],
-  runSequentially: Option[RunSequentially]
+  runSequentially: Option[RunSequentially],
+  encloser: Option[Class[_]] = None
 ) extends MaybeSequential with InstanceGroup[ScenarioAndClass] {
 
   val groupCriterion = ScenarioAndClass(testClass, scenario)
-  
+
   lazy val scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 
   override def toString =
