@@ -33,24 +33,24 @@ private[havarunner] object SuiteCache {
 }
 
 private[havarunner] object TestInstanceCache {
-  val cache = new mutable.HashMap[ScenarioAndClass, TestInstance] with mutable.SynchronizedMap[ScenarioAndClass, TestInstance]
+  val cache = new mutable.HashMap[ScenarioAndClass, Either[Exception, TestInstance]] with mutable.SynchronizedMap[ScenarioAndClass, Either[Exception, TestInstance]]
   val instanceGroupLocks = new mutable.HashMap[ScenarioAndClass, AnyRef] with mutable.SynchronizedMap[ScenarioAndClass, AnyRef]
 
-  def instantiateTestClass(implicit testAndParameters: TestAndParameters, parseResult: ParseResult): TestInstance =
+  def instantiateTestClass(implicit testAndParameters: TestAndParameters, parseResult: ParseResult): Either[Exception, TestInstance] =
     newOrCachedInstance(
       testAndParameters,
       testAndParameters.partOf map suiteInstance,
       parseResult
     )
 
-  def newOrCachedInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]], parseResult: ParseResult): TestInstance =
+  def newOrCachedInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]], parseResult: ParseResult): Either[Exception, TestInstance] =
     instanceGroupLocks.getOrElseUpdate(testAndParameters.groupCriterion, new Object).synchronized { // Sync with instance group. Different groups may run parallel.
       cache.
         get(testAndParameters.groupCriterion).
         getOrElse({
-          val instance = TestInstance(instantiate) // Do not use Map#getOrElseUpdate, because it would block unnecessarily
-          cache.update(testAndParameters.groupCriterion, instance)
-          instance
+          val cachedValue = instantiate
+          cache.update(testAndParameters.groupCriterion, cachedValue) // Do not use Map#getOrElseUpdate, because it would block unnecessarily
+          cachedValue
         })
     }
 }

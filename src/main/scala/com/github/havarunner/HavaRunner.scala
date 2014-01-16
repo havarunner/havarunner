@@ -118,19 +118,25 @@ private object HavaRunner {
   Future[Either[FailedConstructor, InstantiatedTest]] =
     future {
       withThrottle {
-        implicit val instance = instantiateTestClass
-        notifier fireTestStarted describeTest
-        try {
-          runWithRules {
-            runTest
-          }
-        } catch {
-          case error: Throwable =>
+        instantiateTestClass match {
+          case Right(testInstance) =>
+            implicit val instance = testInstance
+            notifier fireTestStarted describeTest
+            try {
+              runWithRules {
+                runTest
+              }
+            } catch {
+              case error: Throwable =>
+                handleException(error)
+            } finally {
+              notifier fireTestFinished describeTest
+            }
+            Right(InstantiatedTest(instance))
+          case Left(error) =>
             handleException(error)
-        } finally {
-          notifier fireTestFinished describeTest
+            Left(FailedConstructor())
         }
-        Right(InstantiatedTest(instance))
       }
     } recover {
       case errorFromConstructor: Throwable =>

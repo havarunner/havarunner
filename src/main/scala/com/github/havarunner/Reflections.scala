@@ -1,7 +1,7 @@
 package com.github.havarunner
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.{Modifier, AccessibleObject, Field, Method}
+import java.lang.reflect._
 import com.github.havarunner.exception.ConstructorNotFound
 import com.github.havarunner.TestInstanceCache._
 import com.github.havarunner.Parser.ParseResult
@@ -17,14 +17,17 @@ private[havarunner] object Reflections {
       }
     }
 
-  def instantiate(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters, parseResult: ParseResult): Any = {
-    val (constructor, argsOption) = resolveConstructorAndArgs
-    val accessibleConstructor = ensureAccessible(constructor)
-    argsOption match {
-      case Nil  => accessibleConstructor.newInstance()
-      case args => accessibleConstructor.newInstance(args.asInstanceOf[Seq[AnyRef]]:_*)
-    }
-  }
+  def instantiate(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters, parseResult: ParseResult): 
+  Either[Exception, TestInstance] =
+    resolveConstructorAndArgs.right.flatMap(constructorAndArgs => {
+      val accessibleConstructor = ensureAccessible(constructorAndArgs._1)
+      captureExceptions {
+        constructorAndArgs._2 match {
+          case Nil  => accessibleConstructor.newInstance()
+          case args => accessibleConstructor.newInstance(args.asInstanceOf[Seq[AnyRef]]:_*)
+        }
+      }
+    })
 
   def findDeclaredClasses(clazz: Class[_], accumulator: Seq[Class[_]] = Seq()): Seq[Class[_]] =
     if (clazz.getDeclaredClasses.isEmpty) {
@@ -32,52 +35,71 @@ private[havarunner] object Reflections {
     } else {
       clazz +: clazz.getDeclaredClasses.flatMap(findDeclaredClasses(_, accumulator))
     }
+  
+  type ConstructorAndArgs = Pair[Constructor[_], ConstructorArgs]
+  type ConstructorArgs = Seq[Any]
 
-  def resolveConstructorAndArgs(implicit testAndParameters: TestAndParameters, suiteInstanceOption: Option[HavaRunnerSuite[_]], parseResult: ParseResult) =
-    withHelpfulConstructorMissingReport {
-      val enclosingInstance: Option[_] = testAndParameters
-        .encloser map { enclosingClass =>
-          parseResult
-            .find(candidate => {
-              val isEnclosingAndHasSameScenario = candidate.testClass == enclosingClass && candidate.scenario.equals(testAndParameters.scenario)
-              isEnclosingAndHasSameScenario
-            })
-            .map(instantiateTestClass(_, parseResult).instance)
-            .getOrElse {
-              enclosingClass.newInstance()
+  def resolveConstructorAndArgs(implicit testAndParameters: TestAndParameters, suiteInstanceOption: Option[HavaRunnerSuite[_]], parseResult: ParseResult):
+  Either[Exception, ConstructorAndArgs] = {
+    def isEnclosingTest(candidate: TestAndParameters, enclosingClass: Class[_]) = 
+      candidate.testClass == enclosingClass && candidate.scenario.equals(testAndParameters.scenario)
+
+    val enclosingInstance: Option[Either[Exception, TestInstance]] = testAndParameters
+      .encloser map {
+      enclosingClass =>
+        parseResult
+          .find(isEnclosingTest(_, enclosingClass))
+          .map(instantiateTestClass(_, parseResult))
+          .getOrElse {
+            try {
+              Right(TestInstance(enclosingClass.newInstance()))
+            } catch {
+              case e: Exception => Left(e)
             }
-        }
-      def resolveConstructorArgs: Seq[_] = {
-        val suiteAndScenarioArgs: Seq[_] = (suiteInstanceOption, testAndParameters.scenario) match {
-          case (Some(suite), Some(scenario)) =>
-            suite.suiteObject :: scenario :: Nil
-          case (Some(suite), None) =>
-            suite.suiteObject :: Nil
-          case (None, Some(scenario)) =>
-            scenario :: Nil
-          case (None, None) =>
-            Nil
-        }
-        val constructorArgs = enclosingInstance.map(_ +: suiteAndScenarioArgs).getOrElse(suiteAndScenarioArgs)
-        constructorArgs
-      }
-      val constructorArgs: Seq[_] = testAndParameters
-        .encloser
-        .map(_ => enclosingInstance.get :: Nil) // Pass only the outer instance to non-static inner classes
-        .getOrElse(resolveConstructorArgs)
-      Pair(
-        testAndParameters.testClass.getDeclaredConstructor(constructorArgs.map(_.getClass):_*),
-        constructorArgs
-      )
+          }
     }
 
-  def withHelpfulConstructorMissingReport[T](op: => T)(implicit testAndParameters: TestAndParameters) =
-    try {
-      op
-    } catch {
-      case e: NoSuchMethodException =>
-        throw new ConstructorNotFound(testAndParameters.testClass, e)
+    def constructorArgsForTopLevelTests: ConstructorArgs =
+      (suiteInstanceOption, testAndParameters.scenario) match {
+        case (Some(suite), Some(scenario)) =>
+          suite.suiteObject :: scenario :: Nil
+        case (Some(suite), None) =>
+          suite.suiteObject :: Nil
+        case (None, Some(scenario)) =>
+          scenario :: Nil
+        case (None, None) =>
+          Nil
+      }
+
+    val constructorArgsOrFailure = enclosingInstance match {
+      case None                         => Right(constructorArgsForTopLevelTests)
+      case Some(Right(testInstance))    =>
+        Right(testInstance.instance :: Nil) // Non-static inner classes receive the enclosing object as the only constructor arg
+      case Some(Left(constructorError)) => Left(constructorError)
     }
+
+    constructorArgsOrFailure.right.flatMap(args =>
+      try {
+        Right(Pair(
+          testAndParameters.testClass.getDeclaredConstructor(args.map(_.getClass): _*),
+          args
+        ))
+      } catch constructorNotFoundOrGenericError
+    )
+  }
+
+  def captureExceptions(initialiseObject: => Any)(implicit testAndParameters: TestAndParameters): Either[Exception, TestInstance] =
+    try {
+      Right(TestInstance(initialiseObject))
+    } catch constructorNotFoundOrGenericError
+
+
+  def constructorNotFoundOrGenericError(implicit testAndParameters: TestAndParameters): PartialFunction[Throwable, Left[Exception, Nothing]] = {
+    case e: NoSuchMethodException =>
+      Left(new ConstructorNotFound(testAndParameters.testClass, e))
+    case e: Exception =>
+      Left(e)
+  }
 
   def enclosingClassForNonStaticTestClass(testAndParameters: TestAndParameters): Option[Class[_]] =
     if (!Modifier.isStatic(testAndParameters.testClass.getModifiers))
