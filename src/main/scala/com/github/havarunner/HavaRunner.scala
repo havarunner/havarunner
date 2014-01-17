@@ -164,13 +164,13 @@ private object HavaRunner {
     foldedRules.evaluate()
   }
 
-  def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, testInstance: TestInstance) {
+  def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, testInstance: TestInstance, parseResult: ParseResult) {
     try {
-      testAndParameters.before.foreach(invoke)
+      testAndParameters.before.foreach(invoke2)
       maybeTimeouting { ensureAccessible(testAndParameters.testMethod).invoke(testInstance.instance)}
       failIfExpectedExceptionNotThrown
     } finally {
-      testAndParameters.after.foreach(invoke)
+      testAndParameters.after.foreach(invoke2)
     }
   }
 
@@ -196,7 +196,7 @@ private object HavaRunner {
       op
       val duration = System.currentTimeMillis() - start
       if (duration >= timeout) {
-        throw new RuntimeException(s"Test timed out after $duration milliseconds")
+        throw new RuntimeException(s"Test timed out after $duration milliseconds") // Todo add systematic error handling
       }
     }).getOrElse(op)
   }

@@ -17,8 +17,8 @@ private[havarunner] object Parser {
 
   def parseTestsAndParameters(classesToTest: Seq[Class[_]]): ParseResult = {
     val parseResult = localAndSuiteTests(classesToTest).flatMap(implicit testClass =>
-      findTestMethods(testClass).map(implicit methodAndScenario =>
-        TestAndParameters(
+      findTestMethods(testClass).map(implicit methodAndScenario => {
+        val withoutSequentialityProperties = TestAndParameters(
           testMethod = methodAndScenario.method,
           testClass = testClass,
           rules = findFields(testClass, classOf[Rule]),
@@ -26,15 +26,17 @@ private[havarunner] object Parser {
           expectedException = expectedException(methodAndScenario.method),
           timeout = timeout(methodAndScenario.method),
           scenario = methodAndScenario.scenario,
-          partOf = suiteOption,
-          afterAll = findMethods(testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          after = findMethods(testClass, classOf[After]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/,
-          before = findMethods(testClass, classOf[Before]),
-          runSequentially = runSequentially(Some(testClass)) orElse runSequentially(suiteOption)
+          partOf = suiteOption(testClass),
+          afterAll = findMethods(testClass, classOf[AfterAll]).reverse /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/
         )
-      )
+        withoutSequentialityProperties.copy(
+          before = findMethods(withoutSequentialityProperties.testClass, classOf[Before]).map(Pair(_, withoutSequentialityProperties)),
+          after = findMethods(withoutSequentialityProperties.testClass, classOf[After]).map(Pair(_, withoutSequentialityProperties)).reverse, /* Reverse, because we want to run the superclass afters AFTER the subclass afters*/
+          runSequentially = runSequentially(Some(withoutSequentialityProperties.testClass)) orElse runSequentially(suiteOption(withoutSequentialityProperties.testClass))
+        )
+      })
     )
-    
+
     parseResult flatMap desugarNonStaticInnerClasses(parseResult)
   }
 
@@ -65,14 +67,20 @@ private[havarunner] object Parser {
       .flatMap(_.scenario)
       .distinct // Here we count on proper Object#equals implementation of the scenario class
     
-    def applyCommonNonStaticInnerClassProperties(testAndParams: TestAndParameters) =
-      testAndParameters.copy(encloser = Some(enclosingClass), partOf = rootEncloser.partOf)
+    def applyParamsToInnerNonStatic(testAndParams: TestAndParameters, scenarioOpt: Option[AnyRef]) =
+      testAndParameters.copy(
+        encloser = Some(ScenarioAndClass(enclosingClass, scenarioOpt)),
+        partOf = rootEncloser.partOf,
+        scenario = scenarioOpt
+        //before = ???,
+        //after = ??? // TODO
+      )
 
     if (scenarios.isEmpty)
-      applyCommonNonStaticInnerClassProperties(testAndParameters) :: Nil
+      applyParamsToInnerNonStatic(testAndParameters, scenarioOpt = None) :: Nil
     else
       scenarios.map(scenarioObject =>
-        applyCommonNonStaticInnerClassProperties(testAndParameters).copy(scenario = Some(scenarioObject))
+        applyParamsToInnerNonStatic(testAndParameters, scenarioOpt = Some(scenarioObject))
       )
   }
 
@@ -95,7 +103,7 @@ private[havarunner] object Parser {
     }
 
 
-  def suiteOption(implicit testClass: Class[_]): Option[Class[_ <:HavaRunnerSuite[_]]] =
+  def suiteOption(testClass: Class[_]): Option[Class[_ <:HavaRunnerSuite[_]]] =
     findAnnotationRecursively(testClass, classOf[PartOf]).
       map(_.asInstanceOf[PartOf]).
       map(_.value())

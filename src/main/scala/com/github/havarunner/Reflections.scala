@@ -17,11 +17,11 @@ private[havarunner] object Reflections {
       }
     }
 
-  def instantiate(implicit suiteInstanceOption: Option[HavaRunnerSuite[_]], testAndParameters: TestAndParameters, parseResult: ParseResult): 
+  def instantiate(implicit instantiationParams: InstantiationParams, parseResult: ParseResult):
   Either[Exception, TestInstance] =
     resolveConstructorAndArgs.right.flatMap(constructorAndArgs => {
       val accessibleConstructor = ensureAccessible(constructorAndArgs._1)
-      captureExceptions {
+      captureObjectInitialisationErrors {
         constructorAndArgs._2 match {
           case Nil  => accessibleConstructor.newInstance()
           case args => accessibleConstructor.newInstance(args.asInstanceOf[Seq[AnyRef]]:_*)
@@ -39,28 +39,28 @@ private[havarunner] object Reflections {
   type ConstructorAndArgs = Pair[Constructor[_], ConstructorArgs]
   type ConstructorArgs = Seq[Any]
 
-  def resolveConstructorAndArgs(implicit testAndParameters: TestAndParameters, suiteInstanceOption: Option[HavaRunnerSuite[_]], parseResult: ParseResult):
+  def resolveConstructorAndArgs(implicit instantiationParams: InstantiationParams, parseResult: ParseResult):
   Either[Exception, ConstructorAndArgs] = {
-    def isEnclosingTest(candidate: TestAndParameters, enclosingClass: Class[_]) = 
-      candidate.testClass == enclosingClass && candidate.scenario.equals(testAndParameters.scenario)
+    def isEnclosingTest(candidate: TestAndParameters, encloser: ScenarioAndClass) =
+      candidate.testClass == encloser.clazz && candidate.scenario.equals(instantiationParams.scenario)
 
-    val enclosingInstance: Option[Either[Exception, TestInstance]] = testAndParameters
-      .encloser map {
-      enclosingClass =>
+    val enclosingInstance: Option[Either[Exception, TestInstance]] = instantiationParams.encloser map {
+      encloser =>
         parseResult
-          .find(isEnclosingTest(_, enclosingClass))
+          .find(isEnclosingTest(_, encloser))
           .map(instantiateTestClass(_, parseResult))
           .getOrElse {
             try {
-              Right(TestInstance(enclosingClass.newInstance()))
+              Right(TestInstance(encloser.clazz.newInstance())) // TODO fix and cache
             } catch {
-              case e: Exception => Left(e)
+              case e: Exception =>
+                Left(e)
             }
           }
     }
 
     def constructorArgsForTopLevelTests: ConstructorArgs =
-      (suiteInstanceOption, testAndParameters.scenario) match {
+      (instantiationParams.partOf map SuiteCache.suiteInstance, instantiationParams.scenario) match {
         case (Some(suite), Some(scenario)) =>
           suite.suiteObject :: scenario :: Nil
         case (Some(suite), None) =>
@@ -81,22 +81,22 @@ private[havarunner] object Reflections {
     constructorArgsOrFailure.right.flatMap(args =>
       try {
         Right(Pair(
-          testAndParameters.testClass.getDeclaredConstructor(args.map(_.getClass): _*),
+          instantiationParams.testClass.getDeclaredConstructor(args.map(_.getClass): _*),
           args
         ))
       } catch constructorNotFoundOrGenericError
     )
   }
 
-  def captureExceptions(initialiseObject: => Any)(implicit testAndParameters: TestAndParameters): Either[Exception, TestInstance] =
+  def captureObjectInitialisationErrors(initialiseObject: => Any)(implicit instantiationParams: InstantiationParams): Either[Exception, TestInstance] =
     try {
       Right(TestInstance(initialiseObject))
     } catch constructorNotFoundOrGenericError
 
 
-  def constructorNotFoundOrGenericError(implicit testAndParameters: TestAndParameters): PartialFunction[Throwable, Left[Exception, Nothing]] = {
+  def constructorNotFoundOrGenericError(implicit instantiationParams: InstantiationParams): PartialFunction[Throwable, Left[Exception, Nothing]] = {
     case e: NoSuchMethodException =>
-      Left(new ConstructorNotFound(testAndParameters.testClass, e))
+      Left(new ConstructorNotFound(instantiationParams.testClass, e))
     case e: Exception =>
       Left(e)
   }
@@ -117,8 +117,15 @@ private[havarunner] object Reflections {
       clazz.getDeclaredFields.filter(_.getAnnotation(annotation) != null)
     )
 
+
   def invoke(method: Method)(implicit testInstance: TestInstance) =
     ensureAccessible(method).invoke(testInstance.instance)
+
+  def invoke2(callParams: Pair[Method, InstantiationParams])(implicit parseResult: ParseResult) = {// TODO remove
+    instantiateTestClass(callParams._2, parseResult).right.map(testInstance =>
+      ensureAccessible(callParams._1).invoke(testInstance.instance)
+    ).left.forall(throw _) // TODO handle exception elsewhere
+  }
 
   def classWithSuperclasses(clazz: Class[_], superclasses: Seq[Class[_]] = Nil): Seq[Class[_]] =
     if (clazz.getSuperclass != null)

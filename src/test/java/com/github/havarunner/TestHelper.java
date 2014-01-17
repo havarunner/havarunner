@@ -76,7 +76,7 @@ public class TestHelper {
         run(havaRunner, new RunNotifier() {
             @Override
             public void fireTestFailure(Failure failure) {
-                throw new RuntimeException(failure.getMessage());
+                throw new RuntimeException(failure.getException());
             }
         });
     }

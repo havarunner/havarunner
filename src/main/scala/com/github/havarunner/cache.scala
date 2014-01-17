@@ -17,9 +17,9 @@ private[havarunner] object SuiteCache {
       })
     }
 
-  def instantiateSuite(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] = {
+  private[this] def instantiateSuite(suiteClass: Class[_ <: HavaRunnerSuite[_]]): HavaRunnerSuite[_] = {
     val noArgConstructor = suiteClass.getDeclaredConstructor()
-    val havaRunnerSuiteInstance: HavaRunnerSuite[_] = ensureAccessible(noArgConstructor).newInstance()
+    val havaRunnerSuiteInstance: HavaRunnerSuite[_] = ensureAccessible(noArgConstructor).newInstance() // Todo might result in an exception. Use Either[Exception, Any].
     havaRunnerSuiteInstance
   }
 
@@ -36,21 +36,14 @@ private[havarunner] object TestInstanceCache {
   val cache = new mutable.HashMap[ScenarioAndClass, Either[Exception, TestInstance]] with mutable.SynchronizedMap[ScenarioAndClass, Either[Exception, TestInstance]]
   val instanceGroupLocks = new mutable.HashMap[ScenarioAndClass, AnyRef] with mutable.SynchronizedMap[ScenarioAndClass, AnyRef]
 
-  def instantiateTestClass(implicit testAndParameters: TestAndParameters, parseResult: ParseResult): Either[Exception, TestInstance] =
-    newOrCachedInstance(
-      testAndParameters,
-      testAndParameters.partOf map suiteInstance,
-      parseResult
-    )
-
-  def newOrCachedInstance(implicit testAndParameters: TestAndParameters, suiteOption: Option[HavaRunnerSuite[_]], parseResult: ParseResult): Either[Exception, TestInstance] =
-    instanceGroupLocks.getOrElseUpdate(testAndParameters.groupCriterion, new Object).synchronized { // Sync with instance group. Different groups may run parallel.
+  def instantiateTestClass(implicit instantiationParams: InstantiationParams, parseResult: ParseResult): Either[Exception, TestInstance] =
+    instanceGroupLocks.getOrElseUpdate(instantiationParams.groupCriterion, new Object).synchronized { // Sync with instance group. Different groups may run parallel.
       cache.
-        get(testAndParameters.groupCriterion).
+        get(instantiationParams.groupCriterion).
         getOrElse({
-          val cachedValue = instantiate
-          cache.update(testAndParameters.groupCriterion, cachedValue) // Do not use Map#getOrElseUpdate, because it would block unnecessarily
-          cachedValue
-        })
+        val cachedValue = instantiate
+        cache.update(instantiationParams.groupCriterion, cachedValue) // Do not use Map#getOrElseUpdate, because it would block unnecessarily
+        cachedValue
+      })
     }
 }

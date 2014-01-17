@@ -13,13 +13,13 @@ private[havarunner] case class TestAndParameters(
   partOf: Option[Class[_ <:HavaRunnerSuite[_]]],
   ignored: Boolean,
   afterAll: Seq[Method],
-  after: Seq[Method],
-  before: Seq[Method],
-  runSequentially: Option[RunSequentially],
-  encloser: Option[Class[_]] = None
-) extends MaybeSequential with InstanceGroup[ScenarioAndClass] {
+  after: Seq[Pair[Method, InstantiationParams]] = Nil, // TODO default values are suspicious
+  before: Seq[Pair[Method, InstantiationParams]] = Nil, // TODO default values are suspicious
+  runSequentially: Option[RunSequentially] = None, // TODO default values are suspicious
+  encloser: Option[ScenarioAndClass] = None // TODO default values are suspicious
+) extends MaybeSequential with InstantiationParams {
 
-  val groupCriterion = ScenarioAndClass(testClass, scenario)
+  val groupCriterion = ScenarioAndClass(testClass, scenario) // TODO use the topmost class as the class reference
 
   lazy val scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
 
@@ -39,6 +39,13 @@ private[havarunner] case class TestAndParameters(
 private[havarunner] case class ScenarioAndClass(clazz: Class[_], scenarioOption: Option[AnyRef])
 
 private[havarunner] case class TestInstance(instance: Any)
+
+private[havarunner] trait InstantiationParams extends InstanceGroup[ScenarioAndClass] {
+  val testClass: Class[_]
+  val partOf: Option[Class[_ <:HavaRunnerSuite[_]]]
+  val scenario: Option[AnyRef]
+  val encloser: Option[ScenarioAndClass]
+}
 
 private[havarunner] trait MaybeSequential {
   def runSequentially: Option[RunSequentially]

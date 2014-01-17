@@ -12,6 +12,7 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 @RunWith(HavaRunner.class)
+@RunSequentially
 public class GroupingWithNonStaticClassesTest {
     final String book;
 
@@ -25,6 +26,11 @@ public class GroupingWithNonStaticClassesTest {
     }
 
     class Hello {
+
+        @Before
+        public void before() {
+            System.out.println("before: " + getClass().getSimpleName());
+        }
 
         @Test
         public void inner() {
