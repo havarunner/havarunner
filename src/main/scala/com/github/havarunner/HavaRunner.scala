@@ -18,7 +18,7 @@ import com.github.havarunner.RunnerHelper._
 import org.junit.runners.model.Statement
 import org.junit.rules.TestRule
 import org.junit.runner.notification.Failure
-import scala.concurrent.ExecutionContext.Implicits.global
+import com.github.havarunner.ConcurrencyControl.Implicits.global
 import scala.concurrent._
 import scala.concurrent.duration._
 

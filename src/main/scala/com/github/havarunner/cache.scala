@@ -11,7 +11,13 @@ private[havarunner] object SuiteCache {
     suiteClass.synchronized {
       cache.getOrElseUpdate(suiteClass, {
         val havaRunnerSuiteInstance: HavaRunnerSuite[_] = instantiateSuite(suiteClass)
+
         registerShutdownHook(havaRunnerSuiteInstance)
+
+        // When the first suite is instantiated, start auto-scaling.
+        // Here we assume that the user runs all the tests via a suite.
+        ConcurrencyControl.AutoScalingHelper.startAutomaticScaling
+
         havaRunnerSuiteInstance
       })
     }
@@ -26,6 +32,7 @@ private[havarunner] object SuiteCache {
     Runtime.getRuntime.addShutdownHook(new Thread(new Runnable() {
       def run() {
         havaRunnerSuiteInstance.afterSuite()
+        ConcurrencyControl.AutoScalingHelper.stopAutomaticScaling
       }
     }))
   }

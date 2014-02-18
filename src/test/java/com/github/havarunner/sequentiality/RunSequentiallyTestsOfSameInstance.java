@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
-import static com.github.havarunner.ConcurrencyControl.semaphore;
+import static com.github.havarunner.ConcurrencyControl.resolveSemaphores;
 import static com.github.havarunner.TestHelper.addHundredTimes;
 import static com.github.havarunner.TestHelper.assertAllEqual;
 import static com.github.havarunner.TestHelper.run;
@@ -34,8 +34,8 @@ public class RunSequentiallyTestsOfSameInstance {
         @Test
         public void HavaRunner_will_run_them_in_parallel() {
             boolean testsUseSameSemaphore =
-                semaphore(filterByScenario("first", children).get(0))
-                .equals(semaphore(filterByScenario("second", children).get(1)));
+                resolveSemaphores(filterByScenario("first", children).get(0))
+                .equals(resolveSemaphores(filterByScenario("second", children).get(1)));
             assertFalse(testsUseSameSemaphore);
         }
 
@@ -78,7 +78,7 @@ public class RunSequentiallyTestsOfSameInstance {
         @Test
         public void HavaRunner_assigns_each_test_a_semaphore_of_size_1() {
             for (TestAndParameters child : children) {
-                assertEquals(1, ConcurrencyControl.semaphore(child).availablePermits());
+                assertEquals(1, ConcurrencyControl.resolveSemaphores(child).availablePermits());
             }
         }
 
@@ -86,13 +86,13 @@ public class RunSequentiallyTestsOfSameInstance {
         public void HavaRunner_assigns_each_test_a_unique_semaphore() {
             List<TestAndParameters> ofTest1 = filterByClass(Enclosing.Test1.class);
             List<TestAndParameters> ofTest2 = filterByClass(Enclosing.Test2.class);
-            assertTrue(semaphore(ofTest1.get(0)) != semaphore(ofTest2.get(0)));
+            assertTrue(resolveSemaphores(ofTest1.get(0)) != resolveSemaphores(ofTest2.get(0)));
         }
 
         @Test
         public void HavaRunner_assigns_tests_of_same_instance_the_same_semaphore() {
             List<TestAndParameters> ofTest1 = filterByClass(Enclosing.Test1.class);
-            assertTrue(semaphore(ofTest1.get(0)) == semaphore(ofTest1.get(1)));
+            assertTrue(resolveSemaphores(ofTest1.get(0)) == resolveSemaphores(ofTest1.get(1)));
         }
 
         private List<TestAndParameters> filterByClass(final Class clazz) {
