@@ -3,6 +3,7 @@ package com.github.havarunner.sequentiality;
 import com.github.havarunner.HavaRunner;
 import com.github.havarunner.TestAndParameters;
 import com.github.havarunner.annotation.RunSequentially;
+import com.github.havarunner.annotation.Scenarios;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -73,27 +74,45 @@ public class RunSequentiallyTest {
         }
     }
 
+    public static class instantiation_sequentiality_when_using_scenarios {
+        static final List<String> ints = Collections.synchronizedList(Lists.<String>newArrayList());
+
+        @Test
+        public void constructors_should_be_called_sequentially() {
+            run(new HavaRunner(SequentialityAndScenariosTest.class));
+            verifySequentiality(ints);
+        }
+
+        @RunSequentially(because = "this test does not thrive in the concurrent world")
+        static class SequentialityAndScenariosTest {
+            final String scenario;
+
+            SequentialityAndScenariosTest(String scenario) throws InterruptedException {
+                this.scenario = scenario;
+                for (int i = 0; i < 100; i++) {
+                    Thread.sleep(0, 50);
+                    ints.add("from " + scenario);
+                }
+            }
+
+            @Test
+            void test() throws InterruptedException {
+            }
+
+            @Scenarios
+            static List<String> scenarios() {
+                return Lists.newArrayList("first", "second");
+            }
+        }
+    }
+
     public static class running_two_sequential_tests {
         static final List<String> ints = Collections.synchronizedList(Lists.<String>newArrayList());
 
         @Test
         public void should_work_as_expected() {
             run(new HavaRunner(SequentialTest.class));
-            if (ints.get(0).equals("from first")) { // The order in which the tests are run varies from JVM to JVM
-                assertTrue(allEqual(ints.subList(0, 100), "from first"));
-                assertTrue(allEqual(ints.subList(100, 200), "from second"));
-            } else {
-                assertTrue(allEqual(ints.subList(0, 100), "from second"));
-                assertTrue(allEqual(ints.subList(100, 200), "from first"));
-            }
-        }
-
-        private boolean allEqual(List<String> list, final String expected) {
-            return Iterables.all(list, new Predicate<String>() {
-                public boolean apply(String input) {
-                    return input.equals(expected);
-                }
-            });
+            verifySequentiality(ints);
         }
 
         @RunSequentially(because = "this test does not thrive in the concurrent world")
@@ -115,5 +134,24 @@ public class RunSequentiallyTest {
                 }
             }
         }
+    }
+
+
+    private static void verifySequentiality(List<String> ints) {
+        if (ints.get(0).equals("from first")) { // The order in which the tests are run varies from JVM to JVM
+            assertTrue(allEqual(ints.subList(0, 100), "from first"));
+            assertTrue(allEqual(ints.subList(100, 200), "from second"));
+        } else {
+            assertTrue(allEqual(ints.subList(0, 100), "from second"));
+            assertTrue(allEqual(ints.subList(100, 200), "from first"));
+        }
+    }
+
+    private static boolean allEqual(List<String> list, final String expected) {
+        return Iterables.all(list, new Predicate<String>() {
+            public boolean apply(String input) {
+                return input.equals(expected);
+            }
+        });
     }
 }
