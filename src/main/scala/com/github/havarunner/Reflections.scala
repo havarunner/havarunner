@@ -1,8 +1,9 @@
 package com.github.havarunner
 
 import java.lang.annotation.Annotation
-import java.lang.reflect.{AccessibleObject, Field, Method}
+import java.lang.reflect.{AccessibleObject, Field, Method, Constructor}
 import com.github.havarunner.exception.ConstructorNotFound
+import scala.util.Try
 
 /**
  * Place here code that is related to Java reflections but not to parsing tests.
@@ -36,24 +37,47 @@ private[havarunner] object Reflections {
       val clazz = testAndParameters.testClass
       (suiteInstanceOption, testAndParameters.scenario) match {
         case (Some(suite), Some(scenario)) =>
+          val constructorArgs = Seq(suite.suiteObject.getClass, scenario.getClass)
           (
-            clazz.getDeclaredConstructor(suite.suiteObject.getClass, scenario.getClass),
+            Try(clazz.getDeclaredConstructor(constructorArgs:_*)).getOrElse(resolveCovariantConstructor(clazz,constructorArgs)),
             Some(suite.suiteObject :: scenario :: Nil)
           )
         case (Some(suite), None) =>
+          val constructorArgs = Seq(suite.suiteObject.getClass)
           (
-            clazz.getDeclaredConstructor(suite.suiteObject.getClass),
+            Try(clazz.getDeclaredConstructor(constructorArgs:_*)).getOrElse(resolveCovariantConstructor(clazz,constructorArgs)),
             Some(suite.suiteObject :: Nil)
           )
         case (None, Some(scenario)) =>
+          val constructorArgs = Seq(scenario.getClass)
           (
-            clazz.getDeclaredConstructor(scenario.getClass),
+            Try(clazz.getDeclaredConstructor(constructorArgs:_*)).getOrElse(resolveCovariantConstructor(clazz,constructorArgs)),
             Some(scenario :: Nil)
           )
         case (None, None) =>
           (clazz.getDeclaredConstructor(), None)
       }
     }
+
+  def resolveCovariantConstructor(clazz: Class[_], args: Seq[Class[_]]): Constructor[_] = {
+    val constructors = clazz.getDeclaredConstructors
+    val foundConstructor =  constructors.find(c => {
+      val expectedParamCount = args.length
+      if ((!c.isVarArgs) && (c.getParameterTypes.length != expectedParamCount)){
+        false
+      }
+      else {
+        c.getParameterTypes.zipWithIndex.forall { case (param, i) =>  param.isAssignableFrom(args(i)) }
+      }
+    })
+
+    foundConstructor match {
+      case Some(c) => c
+      case None => throw new ConstructorNotFound(clazz, new NoSuchMethodException(s"${clazz.getSimpleName}(${args.mkString(",")})"))
+    }
+
+
+  }
 
   def withHelpfulConstructorMissingReport[T](op: => T)(implicit testAndParameters: TestAndParameters) =
     try {

@@ -102,7 +102,7 @@ public class RunningSuiteMembersIndividuallyTest {
             Failure failure = runAndRecordFailure(new HavaRunner(TestWithoutTheRequiredSuiteConstructor.class));
             assertEquals(ConstructorNotFound.class, failure.getException().getClass());
             assertEquals(
-                "Class TestWithoutTheRequiredSuiteConstructor is missing the required constructor. Try adding the following constructor: com.github.havarunner.suite.RunningSuiteMembersIndividuallyTest$when_suite_member_is_missing_the_suite_object_constructor$TestWithoutTheRequiredSuiteConstructor.<init>(java.lang.String)",
+                "Class TestWithoutTheRequiredSuiteConstructor is missing the required constructor. Try adding the following constructor: TestWithoutTheRequiredSuiteConstructor(class java.lang.String)",
                 failure.getException().getMessage()
             );
         }
