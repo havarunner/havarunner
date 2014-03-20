@@ -16,6 +16,8 @@ publishTo <<= version { (v: String) =>
 
 scalaVersion := "2.10.2"
 
+scalacOptions ++= Seq( "-deprecation", "-unchecked", "-feature", "-language:postfixOps", "-language:existentials", "-language:implicitConversions"  )
+
 javacOptions ++= Seq("-source", "1.7")
 
 parallelExecution in Test := false

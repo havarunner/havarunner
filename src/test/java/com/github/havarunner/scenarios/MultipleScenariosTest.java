@@ -45,7 +45,7 @@ public class MultipleScenariosTest {
     public void HavaRunner_prints_a_helpful_error_message_if_the_scenario_method_is_missing() throws Exception {
         final AtomicReference<Failure> expectedFailure = runInvalidScenarioTestMethod();
         assertEquals(
-            "Class InvalidScenarioTest is missing the required constructor. Try adding the following constructor: com.github.havarunner.scenarios.MultipleScenariosTest$InvalidScenarioTest.<init>(java.lang.String)",
+            "Class InvalidScenarioTest is missing the required constructor. Try adding the following constructor: InvalidScenarioTest(class java.lang.String)",
             expectedFailure.get().getMessage()
         );
     }
