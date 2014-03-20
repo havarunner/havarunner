@@ -17,7 +17,7 @@ public class SuiteConstructorSubclassTest {
     }
 
     @Test
-    public void test_suite_member_created_using_covariant_constructor(){
+    public void havarunner_should_support_covariant_suite_objects(){
         run(new HavaRunner(Suite.class));
         assertTrue(suiteMemberTestInvoked);
     }
