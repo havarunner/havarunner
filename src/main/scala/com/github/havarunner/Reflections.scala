@@ -63,20 +63,19 @@ private[havarunner] object Reflections {
     val constructors = clazz.getDeclaredConstructors
     val foundConstructor =  constructors.find(c => {
       val expectedParamCount = args.length
-      if ((!c.isVarArgs) && (c.getParameterTypes.length != expectedParamCount)){
+      if ((!c.isVarArgs) && (c.getParameterTypes.length != expectedParamCount)) {
         false
-      }
-      else {
-        c.getParameterTypes.zipWithIndex.forall { case (param, i) =>  param.isAssignableFrom(args(i)) }
+      } else {
+        c.getParameterTypes.zipWithIndex.forall {
+          case (param, i) => param.isAssignableFrom(args(i))
+        }
       }
     })
 
     foundConstructor match {
-      case Some(c) => c
+      case Some(constructor) => constructor
       case None => throw new ConstructorNotFound(clazz, new NoSuchMethodException(s"${clazz.getSimpleName}(${args.mkString(",")})"))
     }
-
-
   }
 
   def withHelpfulConstructorMissingReport[T](op: => T)(implicit testAndParameters: TestAndParameters) =
