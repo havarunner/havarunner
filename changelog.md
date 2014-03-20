@@ -2,6 +2,17 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.1.0
+
+* Add support for covariant suite objects and scenarios
+
+  From now on, you can use interfaces in the constructors of your test
+  classes.
+
+  See <https://github.com/havarunner/havarunner/pull/3> for discussion.
+
+  Thanks to <https://github.com/charith-qubit> for implementing this!
+
 ## 1.0.1
 
 * Fail the test if its class has more than one @Scenario methods
