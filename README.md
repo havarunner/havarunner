@@ -396,3 +396,7 @@ Author Lauri Lehmijoki.
 
 Lots of kudos to Juha Paananen and Tomi Takussaari for 
 giving hugely valuable ideas!
+
+## Donations
+
+[![Support via Gittip](https://rawgithub.com/twolfson/gittip-badge/0.2.0/dist/gittip.png)](https://www.gittip.com/laurilehmijoki/)
