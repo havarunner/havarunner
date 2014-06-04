@@ -20,7 +20,7 @@ private[havarunner] object ConcurrencyControl {
   }
 
   def semaphore(implicit maybeSequential: MaybeSequential with InstanceGroup[_]) =
-    maybeSequential.runSequentially map sequentialSemaphore getOrElse forParallelTests
+    maybeSequential.runSequentially.fold(forParallelTests)(sequentialSemaphore)
 
   def sequentialSemaphore(runSequentially: RunSequentially)(implicit instanceGroup: InstanceGroup[_]): Semaphore =
     runSequentially.`with`() match {

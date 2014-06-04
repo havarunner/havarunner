@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
 private[havarunner] object RunnerHelper {
 
   def acceptTest(testParameters: TestAndParameters, filterOption: Option[Filter]): Boolean =
-    filterOption.map(filter => {
+    filterOption.fold(true)(filter => {
       val FilterDescribePattern = "Method (.*)\\((.*)\\)".r
       filter.describe() match {
         case FilterDescribePattern(desiredMethodName, desiredClassName) =>
@@ -20,7 +20,7 @@ private[havarunner] object RunnerHelper {
           classNameMatches && methodNameMatches
         case unexpected => throw new IllegalArgumentException(s"Filter#describe returned an unexpected string $unexpected")
       }
-    }).getOrElse(true)
+    })
 
   def describeTest(implicit testAndParameters: TestAndParameters) =
     Description createTestDescription(

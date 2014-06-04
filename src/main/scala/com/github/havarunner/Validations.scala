@@ -56,10 +56,9 @@ private[havarunner] object Validations {
     })
 
   def unsupportedJUnitAnnotations(implicit maybeSequential: MaybeSequential) =
-    maybeSequential.runSequentially map { _ =>
+    maybeSequential.runSequentially.fold(allUnsupportedAnnotations)(_ =>
       unsupportedAnnotationsWhenSequential
-    } getOrElse
-      allUnsupportedAnnotations
+    )
 
   val allUnsupportedAnnotations =
     AnnotationAndReason(classOf[After], Some(s"Only tests that are @${classOf[RunSequentially].getSimpleName} may use @${classOf[After].getSimpleName}")) ::

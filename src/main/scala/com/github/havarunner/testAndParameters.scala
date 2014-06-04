@@ -20,7 +20,7 @@ private[havarunner] case class TestAndParameters(
 
   val groupCriterion = ScenarioAndClass(testClass, scenario)
   
-  lazy val scenarioToString = scenario.map(scenario => s" (when ${scenario.toString})").getOrElse("")
+  lazy val scenarioToString = scenario.fold("")(scenario => s" (when ${scenario.toString})")
 
   override def toString =
     String.format(
@@ -28,7 +28,7 @@ private[havarunner] case class TestAndParameters(
       testClass.getName,
       testMethod.getName,
       scenarioToString,
-      partOf.map(suite => s" (suite $suite)").getOrElse("")
+      partOf.fold("")(suite => s" (suite $suite)")
     )
 
   lazy val toStringWithoutSuite =
