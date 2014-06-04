@@ -14,7 +14,7 @@ publishTo <<= version { (v: String) =>
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.11.1"
 
 scalacOptions ++= Seq( "-deprecation", "-unchecked", "-feature", "-language:postfixOps", "-language:existentials", "-language:implicitConversions"  )
 
