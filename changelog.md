@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.1.1
+
+* Print the reason of failed assumption
+
 ## 1.1.0
 
 * Add support for covariant suite objects and scenarios
