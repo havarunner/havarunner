@@ -8,10 +8,14 @@ import org.junit.Test;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
+import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.Statement;
 
+import static com.github.havarunner.TestHelper.run;
 import static com.github.havarunner.TestHelper.runAndRecordFailedAssumption;
+import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assume.assumeThat;
 import static org.junit.Assume.assumeTrue;
 
 public class AssumeThatTest {
@@ -40,6 +44,15 @@ public class AssumeThatTest {
         assertEquals("skippedTest", failure.getDescription().getMethodName());
     }
 
+    @Test
+    public void HavaRunner_should_print_the_reason_of_the_failed_assumption() {
+        Failure failure = runAndRecordFailedAssumption(new HavaRunner(AssumptionWithExplanation.class));
+        assertEquals(
+            "[HavaRunner] Ignored com.github.havarunner.AssumeThatTest$AssumptionWithExplanation#skipMe because got: \"World is flat\", expected: is \"World is round\"",
+            failure.getMessage()
+        );
+    }
+
     @RunSequentially(because = "we want to test a failing assumption that is in a @Before method")
     static class AssumptionFailsInBefore {
         @Before
@@ -52,6 +65,12 @@ public class AssumeThatTest {
         }
     }
 
+    static class AssumptionWithExplanation {
+        @Test
+        public void skipMe() {
+            assumeThat("World is flat", is("World is round"));
+        }
+    }
 
     static class AssumptionDoesNotHold {
 
