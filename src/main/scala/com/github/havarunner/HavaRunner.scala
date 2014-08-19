@@ -170,8 +170,14 @@ private object HavaRunner {
         val msg = s"[HavaRunner] Ignored $testAndParameters because ${exception.getMessage}"
         notifier fireTestAssumptionFailed new Failure(description, new AssumptionViolatedException(msg))
       case Some(exception) if testAndParameters.expectedException.isDefined =>
-        if (exception.getClass == testAndParameters.expectedException.get) {
+        val cause = exception match {
+          case e: InvocationTargetException => e.getCause
+          case e: Throwable                 => e
+        }
+        if (cause.getClass == testAndParameters.expectedException.get) {
           // Expected exception. All ok.
+        } else {
+          notifier fireTestFailure new Failure(description, exception)
         }
       case Some(exception) if exception.isInstanceOf[InvocationTargetException] =>
          handleException(exception.asInstanceOf[InvocationTargetException].getTargetException)

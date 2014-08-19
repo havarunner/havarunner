@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## NEXT
+
+* Fix bug in `@Test(expected = SomeException.class)`
+
 ## 1.1.1
 
 * Print the reason of failed assumption
