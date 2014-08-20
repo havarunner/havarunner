@@ -2,7 +2,7 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
-## NEXT
+## 1.1.2
 
 * Fix bug in `@Test(expected = SomeException.class)`
 
