@@ -2,6 +2,11 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.1.3
+
+* Show a correct failure report when a test throws an exception that is not
+  expected
+
 ## 1.1.2
 
 * Fix bug in `@Test(expected = SomeException.class)`
