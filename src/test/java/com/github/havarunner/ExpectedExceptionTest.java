@@ -5,6 +5,7 @@ import org.junit.Test;
 import org.junit.runner.notification.Failure;
 
 import static com.github.havarunner.TestHelper.runAndRecordFailure;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertEquals;
 
@@ -26,6 +27,12 @@ public class ExpectedExceptionTest {
         );
     }
 
+    @Test
+    public void HavaRunner_fails_if_the_test_throws_an_exception_that_is_not_the_expected_exception() {
+        Failure failure = runAndRecordFailure(new HavaRunner(ExpectingOtherExceptionButGotAnother.class));
+        assertEquals(failure.getException().getClass(), TestDidNotRiseExpectedException.class);
+    }
+
     static class TestWithExpectedException {
 
         @Test(expected = IllegalStateException.class)
@@ -40,5 +47,20 @@ public class ExpectedExceptionTest {
         void this_is_a_test_that_passes_unexpectedly() {
 
         }
+    }
+
+    static class ExpectingOtherExceptionButGotAnother {
+
+        @Test(expected = OtherExpection.class)
+        public void shouldThrowOtherExpection() {
+            throw new SomeException();
+        }
+
+        private static class SomeException extends RuntimeException {
+        }
+
+        private static class OtherExpection extends RuntimeException {
+        }
+
     }
 }
