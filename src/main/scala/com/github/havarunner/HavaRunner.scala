@@ -177,7 +177,7 @@ private object HavaRunner {
         if (cause.getClass == testAndParameters.expectedException.get) {
           // Expected exception. All ok.
         } else {
-          notifier fireTestFailure new Failure(description, exception)
+          notifier fireTestFailure new Failure(description, new TestDidNotRiseExpectedException(testAndParameters.expectedException.get, testAndParameters))
         }
       case Some(exception) if exception.isInstanceOf[InvocationTargetException] =>
          handleException(exception.asInstanceOf[InvocationTargetException].getTargetException)
