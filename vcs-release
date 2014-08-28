@@ -3,7 +3,7 @@
 version=$1
 
 sbt clean
-sbt -DreleaseVersion=$version publish-signed
+sbt -DreleaseVersion=$version publishSigned
 git tag $version
 git push
 git push --tags
