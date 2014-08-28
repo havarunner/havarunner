@@ -1,6 +1,5 @@
 package com.github.havarunner.scenarios.duplicated;
 
-import com.github.havarunner.annotation.AfterAll;
 import org.junit.Test;
 
 import java.util.List;
@@ -23,11 +22,4 @@ abstract class VerifyThatTestAreRunOnlyOnceTestSuperClass {
             assertTrue(runNumber+" / "+VerifyThatTestAreRunOnlyOnceTestOneImpl.scenarios().size()+ " currentScenario: "+scenarios, VerifyThatTestAreRunOnlyOnceTestOneImpl.scenarios().size() >= runNumber);
         }
     }
-
-    @AfterAll
-    public void afterAll() {
-
-    }
-
-
 }
