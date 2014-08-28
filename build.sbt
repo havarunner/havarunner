@@ -18,13 +18,13 @@ scalaVersion := "2.11.2"
 
 scalacOptions ++= Seq( "-deprecation", "-unchecked", "-feature", "-language:postfixOps", "-language:existentials", "-language:implicitConversions"  )
 
-javacOptions ++= Seq("-source", "1.8")
+javacOptions ++= Seq("-source", "1.7")
 
 parallelExecution in Test := false
 
 libraryDependencies ++= Seq(
   "junit" % "junit" % "4.11" % "provided, test",
-  "com.google.guava" % "guava" % "17.0" % "provided",
+  "com.google.guava" % "guava" % "14.0" % "provided",
   "com.novocode" % "junit-interface" % "0.9" % "test",
   "com.google.code.findbugs" % "jsr305" % "2.0.1"  % "test"
 )
