@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## NEXT
+
+* Add Java 8 support
+
 ## 1.1.3
 
 * Show a correct failure report when a test throws an exception that is not
