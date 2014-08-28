@@ -20,13 +20,13 @@ abstract class VerifyThatTestAreRunOnlyOnceTestSuperClass {
         final int runNumber = suiteObject.addAndGet(1);
         System.out.println("Run: "+runNumber+ " for scenario: "+scenarios);
         synchronized (VerifyThatTestAreRunOnlyOnceTestOneImpl.class) {
-            assertTrue(runNumber+" / "+VerifyThatTestAreRunOnlyOnceTestOneImpl.scenarios().size()+ " currentScenario: "+scenarios, VerifyThatTestAreRunOnlyOnceTestOneImpl.scenarios().size() >= suiteObject.get());
+            assertTrue(runNumber+" / "+VerifyThatTestAreRunOnlyOnceTestOneImpl.scenarios().size()+ " currentScenario: "+scenarios, VerifyThatTestAreRunOnlyOnceTestOneImpl.scenarios().size() >= runNumber);
         }
     }
 
     @AfterAll
     public void afterAll() {
-        System.out.println("After all..");
+
     }
 
 
