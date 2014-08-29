@@ -88,7 +88,7 @@ private[havarunner] object Reflections {
 
   def findMethods(clazz: Class[_], annotation: Class[_ <: Annotation]): Seq[Method] =
     classWithSuperclasses(clazz).flatMap(clazz =>
-      clazz.getDeclaredMethods.filter(_.getAnnotation(annotation) != null)
+      clazz.getDeclaredMethods.filter(method => method.getAnnotation(annotation) != null && !method.isBridge)
     )
 
   def findFields(clazz: Class[_], annotation: Class[_ <: Annotation]): Seq[Field] =
