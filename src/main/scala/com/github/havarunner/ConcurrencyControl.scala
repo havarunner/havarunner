@@ -6,7 +6,12 @@ import RunSequentially.SequentialityContext._
 import scala.collection.mutable
 
 private[havarunner] object ConcurrencyControl {
-  val forParallelTests = new Semaphore(Runtime.getRuntime.availableProcessors(), true)
+  val forParallelTests = new Semaphore(permits, true)
+
+  def permits: Int = {
+    System.getProperty("havarunner.parallel.concurrency", Runtime.getRuntime.availableProcessors().toString).toInt
+  }
+
   val forTestsMarkedByTheDefaultContext = new Semaphore(1)
   val forTestsOfSameInstance = new mutable.HashMap[Any, Semaphore] with mutable.SynchronizedMap[Any, Semaphore]
 
