@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.2.0
+
+* Add support for controlling the maximum level of parallelism
+
 ## 1.1.4
 
 * Add Java 8 support
