@@ -14,10 +14,10 @@ public class ConcurrencyControlTest {
     @Test
     public void defaultCanbeOverridenBySystemProperty() {
         try {
-            System.setProperty("havarunner.parallel.concurrency", "99999");
+            System.setProperty("havarunner.maximum_parallelism", "99999");
             assertEquals(99999, ConcurrencyControl.permits());
         } finally {
-            System.clearProperty("havarunner.parallel.concurrency");
+            System.clearProperty("havarunner.maximum_parallelism");
         }
     }
 

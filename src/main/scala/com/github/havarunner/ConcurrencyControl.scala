@@ -9,7 +9,7 @@ private[havarunner] object ConcurrencyControl {
   val forParallelTests = new Semaphore(permits, true)
 
   def permits: Int = {
-    System.getProperty("havarunner.parallel.concurrency", Runtime.getRuntime.availableProcessors().toString).toInt
+    System.getProperty("havarunner.maximum_parallelism", Runtime.getRuntime.availableProcessors().toString).toInt
   }
 
   val forTestsMarkedByTheDefaultContext = new Semaphore(1)

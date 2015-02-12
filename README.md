@@ -370,6 +370,16 @@ The principles of parsing are:
  * E.g., if both the suite and the suite member contain the `@RunSequentially`
    annotation, honor the annotation of the suite member
 
+
+## Controlling amount of concurrently running tests
+
+By default, Havarunner will use Runtime.getRuntime.availableProcessors() to control how many tests are executed concurrently.
+
+As that can introduce problems in environments running multiple Havarunner jobs at same time, you can
+override the maximum number of parallel tests with the system property havarunner.maximum_parallelism.
+
+For example, havarunner.maximum_parallelism=8 will instruct HavaRunner to use at most 8 threads.
+
 ## Supported JUnit annotations
 
 HavaRunner supports only a limited set of JUnit annotations. Here they are:
