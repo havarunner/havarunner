@@ -15,8 +15,8 @@ import com.github.havarunner.TestInstanceCache._
 import com.github.havarunner.ConcurrencyControl._
 import com.github.havarunner.ExceptionHelper._
 import com.github.havarunner.RunnerHelper._
-import org.junit.runners.model.Statement
-import org.junit.rules.TestRule
+import org.junit.runners.model.{FrameworkMethod, Statement}
+import org.junit.rules.{MethodRule, TestRule}
 import org.junit.runner.notification.Failure
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent._
@@ -141,8 +141,11 @@ private object HavaRunner {
       }
     }
     def applyRuleAndHandleException(rule: Field, accumulator: Statement) = {
-      val testRule: TestRule = ensureAccessible(rule).get(testInstance.instance).asInstanceOf[TestRule]
-      testRule.apply(accumulator, describeTest)
+      val instance = ensureAccessible(rule).get(testInstance.instance);
+      instance match {
+          case testRule: TestRule => testRule.apply(accumulator, describeTest);
+          case methodRule: MethodRule => methodRule.apply(accumulator, testAndParameters.testMethod, testInstance);
+      }
     }
     val foldedRules =
       testAndParameters
@@ -157,7 +160,7 @@ private object HavaRunner {
   def runTest(implicit testAndParameters: TestAndParameters, notifier: RunNotifier, description: Description, testInstance: TestInstance) {
     try {
       testAndParameters.before.foreach(invoke)
-      maybeTimeouting { ensureAccessible(testAndParameters.testMethod).invoke(testInstance.instance)}
+      maybeTimeouting { ensureAccessible(testAndParameters.testMethod.getMethod).invoke(testInstance.instance)}
       failIfExpectedExceptionNotThrown
     } finally {
       testAndParameters.after.foreach(invoke)

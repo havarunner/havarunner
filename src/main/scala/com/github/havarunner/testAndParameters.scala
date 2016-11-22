@@ -2,9 +2,10 @@ package com.github.havarunner
 
 import java.lang.reflect.{Field, Method}
 import com.github.havarunner.annotation.RunSequentially
+import org.junit.runners.model.FrameworkMethod
 
 private[havarunner] case class TestAndParameters(
-  testMethod: Method,
+  testMethod: FrameworkMethod,
   testClass: Class[_],
   rules: Seq[Field],
   expectedException: Option[Class[_<:Throwable]],
