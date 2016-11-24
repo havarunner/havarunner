@@ -81,7 +81,7 @@ public class HelloWorldTest {
 
     @Test
     void HavaRunner_greets_the_galary() {
-        System.out.println("hello galary");
+        System.out.println("hello galaxy");
     }
 
     @AfterAll
