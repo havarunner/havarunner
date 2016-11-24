@@ -31,7 +31,7 @@ Add the following fragment into the `<dependencies>` element of *pom.xml*:
 <dependency>
   <groupId>com.github.havarunner</groupId>
   <artifactId>havarunner</artifactId>
-  <version>1.2.0</version>
+  <version>1.2.1</version>
   <scope>test</scope>
 </dependency>
 <dependency>
