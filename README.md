@@ -11,7 +11,7 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
  * Group your tests by annotating them as `@PartOf` a suite
 * **Scenarios**
  * Run the same test against multiple scenarios
-* **Once instance per test**
+* **Benefit from immutability in test code**
  * Do your computation-intensive setup in the constructor of the test class
  * Write easy-to-reason-about test classes that rely on `final` instance fields
 * **Non-blocking**
