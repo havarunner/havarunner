@@ -25,7 +25,8 @@ private[havarunner] object RunnerHelper {
   def describeTest(implicit testAndParameters: TestAndParameters) =
     Description createTestDescription(
       testAndParameters.testClass,
-      testAndParameters.testMethod.getName + testAndParameters.scenarioToString
+      testAndParameters.testMethod.getName + testAndParameters.scenarioToString,
+      testAndParameters.testMethod.getAnnotations:_*
     )
 
   def reportIfSuite(tests: java.lang.Iterable[TestAndParameters]): java.lang.Iterable[String] =

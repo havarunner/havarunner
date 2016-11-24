@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## NEXT
+
+* Fix missing support of TestRule annotations
+
 ## 1.2.0
 
 * Add support for controlling the maximum level of parallelism
