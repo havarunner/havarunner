@@ -40,7 +40,7 @@ public class AnnotatedRuleTest {
                     public void evaluate() throws Throwable {
                         Assume.assumeTrue(
                             "This test should be run only when we have 'some.property' defined as 'MYSETTING'",
-                            System.getProperty("some.property").equals("MYSETTING")
+                            System.getProperty("some.property", "NOT-DEFINED").equals("MYSETTING")
                         );
                     }
                 };
