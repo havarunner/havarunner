@@ -37,13 +37,13 @@ Add the following fragment into the `<dependencies>` element of *pom.xml*:
 <dependency>
   <groupId>junit</groupId>
   <artifactId>junit</artifactId>
-  <version>4.11</version> <!-- Any JUnit above 4.10 should do. -->
+  <version>4.12</version> <!-- Any JUnit above 4.10 should do. -->
   <scope>test</scope>
 </dependency>
 <dependency>
   <groupId>com.google.guava</groupId>
   <artifactId>guava</artifactId>
-  <version>14.0.1</version> <!-- HavaRunner needs the v.14 or higher. -->
+  <version>22.0</version> <!-- HavaRunner needs the v.14 or higher. -->
   <scope>test</scope>
 </dependency>
 ````
