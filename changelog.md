@@ -2,6 +2,10 @@
 
 This project uses [Semantic Versioning](http://semver.org)
 
+## 1.2.2
+
+* Update to Scala 2.12 and Java 8 bytecode
+
 ## 1.2.1
 
 * Fix missing support of TestRule annotations
