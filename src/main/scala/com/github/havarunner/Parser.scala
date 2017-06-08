@@ -1,12 +1,13 @@
 package com.github.havarunner
 
 import org.junit._
-import com.github.havarunner.annotation.{PartOf, AfterAll, Scenarios, RunSequentially}
+import com.github.havarunner.annotation.{AfterAll, PartOf, RunSequentially, Scenarios}
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier._
 import scala.collection.JavaConversions._
 import com.github.havarunner.Reflections._
 import com.google.common.reflect.ClassPath
+import org.junit.runners.model.FrameworkMethod
 
 /**
  * Place here code that is related to discovering tests and their parameters from the source classes.
@@ -17,7 +18,7 @@ private[havarunner] object Parser {
     localAndSuiteTests(classesToTest).flatMap(implicit testClass =>
       findTestMethods(testClass).map(implicit methodAndScenario =>
         TestAndParameters(
-          testMethod = methodAndScenario.method,
+          testMethod = new FrameworkMethod(methodAndScenario.method),
           testClass = testClass,
           rules = findFields(testClass, classOf[Rule]),
           ignored = isIgnored,
