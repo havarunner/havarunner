@@ -8,25 +8,27 @@ crossPaths := false
 
 publishMavenStyle := true
 
-publishTo <<= version { (v: String) =>
+publishTo := {
   val nexus = "https://oss.sonatype.org/"
-  if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
-  else Some("releases" at nexus + "service/local/staging/deploy/maven2")
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "content/repositories/snapshots")
+  else
+    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
 }
 
-scalaVersion := "2.11.2"
+scalaVersion := "2.12.2"
 
 scalacOptions ++= Seq( "-deprecation", "-unchecked", "-feature", "-language:postfixOps", "-language:existentials", "-language:implicitConversions"  )
 
-javacOptions ++= Seq("-source", "1.7")
+javacOptions ++= Seq("-source", "1.8")
 
 parallelExecution in Test := false
 
 libraryDependencies ++= Seq(
-  "junit" % "junit" % "4.11" % "provided, test",
-  "com.google.guava" % "guava" % "14.0" % "provided",
+  "junit" % "junit" % "4.12" % "provided, test",
+  "com.google.guava" % "guava" % "22.0" % "provided",
   "com.novocode" % "junit-interface" % "0.11" % "test",
-  "com.google.code.findbugs" % "jsr305" % "2.0.1"  % "test"
+  "com.google.code.findbugs" % "jsr305" % "3.0.2"  % "test"
 )
 
 pomExtra :=

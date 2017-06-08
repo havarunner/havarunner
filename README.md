@@ -11,7 +11,7 @@ Status](https://travis-ci.org/havarunner/havarunner.png?branch=master)](https://
  * Group your tests by annotating them as `@PartOf` a suite
 * **Scenarios**
  * Run the same test against multiple scenarios
-* **Once instance per test**
+* **Benefit from immutability in test code**
  * Do your computation-intensive setup in the constructor of the test class
  * Write easy-to-reason-about test classes that rely on `final` instance fields
 * **Non-blocking**
@@ -37,13 +37,13 @@ Add the following fragment into the `<dependencies>` element of *pom.xml*:
 <dependency>
   <groupId>junit</groupId>
   <artifactId>junit</artifactId>
-  <version>4.11</version> <!-- Any JUnit above 4.10 should do. -->
+  <version>4.12</version> <!-- Any JUnit above 4.10 should do. -->
   <scope>test</scope>
 </dependency>
 <dependency>
   <groupId>com.google.guava</groupId>
   <artifactId>guava</artifactId>
-  <version>14.0.1</version> <!-- HavaRunner needs the v.14 or higher. -->
+  <version>22.0</version> <!-- HavaRunner needs the v.14 or higher. -->
   <scope>test</scope>
 </dependency>
 ````
@@ -81,7 +81,7 @@ public class HelloWorldTest {
 
     @Test
     void HavaRunner_greets_the_galary() {
-        System.out.println("hello galary");
+        System.out.println("hello galaxy");
     }
 
     @AfterAll
